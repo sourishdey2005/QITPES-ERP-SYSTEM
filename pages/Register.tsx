@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Shield, Lock, Mail, User, ArrowRight, Briefcase } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -23,23 +22,23 @@ const Register: React.FC = () => {
     setError(null);
 
     try {
+      // Pass metadata to signUp so the database trigger public.handle_new_user() can use it
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+            role: formData.role
+          }
+        }
       });
 
       if (authError) throw authError;
 
       if (authData.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
-            full_name: formData.fullName,
-            role: formData.role
-          })
-          .eq('id', authData.user.id);
-
-        if (profileError) throw profileError;
+        // Since we have a trigger in db.sql, the profile is created automatically.
+        // We navigate to dashboard immediately.
         navigate('/');
       }
     } catch (err: any) {

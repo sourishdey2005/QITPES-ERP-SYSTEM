@@ -1,9 +1,10 @@
-
 import { createClient } from '@supabase/supabase-js';
 
-// QITPES ERP - Supabase Configuration
+// QITPES ERP - Verified Production Connection
+// Project Name: ERP
+// Project ID: asvkyztwnjgeajoyccuo
 const supabaseUrl = 'https://asvkyztwnjgeajoyccuo.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzdmt5enR3bmpnZWFqb3ljY3VvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MTYwNjksImV4cCI6MjA4NjM5MjA2OX0.YW60fWMya6hhc4PuKWCIXqIog2AZaOs67AzVhqVgVbo'; 
+const supabaseAnonKey = 'sb_publishable_UiqrTs3LbymTSLOTH5tDag_Zjye5owE'; 
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
