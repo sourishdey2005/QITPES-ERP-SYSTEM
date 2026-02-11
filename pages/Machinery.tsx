@@ -2,8 +2,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
-import { Wrench, ShieldAlert, Activity, Gauge, Battery, MoreVertical, Plus, X, Loader2 } from 'lucide-react';
-// Fix: Cast motion to any to resolve property missing errors
+import { Wrench, ShieldAlert, Activity, Gauge, Battery, MoreVertical, Plus, X, Loader2, MapPin } from 'lucide-react';
 import { motion as motionBase, AnimatePresence } from 'framer-motion';
 
 const motion = motionBase as any;
@@ -24,7 +23,10 @@ const Machinery: React.FC = () => {
 
   const registerAsset = useMutation({
     mutationFn: async (newAsset: any) => {
-      const { data, error } = await supabase.from('assets').insert([newAsset]).select();
+      const { data, error } = await supabase.from('assets').insert([{
+        ...newAsset,
+        status: 'Healthy'
+      }]).select();
       if (error) throw error;
       return data;
     },
@@ -40,7 +42,7 @@ const Machinery: React.FC = () => {
       <div className="flex items-center justify-between">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
           <h1 className="text-2xl font-bold text-slate-900">Machinery & Assets</h1>
-          <p className="text-slate-500 text-sm">Preventive maintenance and real-time equipment health.</p>
+          <p className="text-slate-500 text-sm">Preventive maintenance and real-time equipment telemetry.</p>
         </motion.div>
         <motion.button 
           whileHover={{ scale: 1.02 }}
@@ -70,16 +72,16 @@ const Machinery: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Engine Hours</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Initial Engine Hours</label>
                     <input required type="number" value={formData.engine_hours} onChange={(e) => setFormData({...formData, engine_hours: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="0" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Fuel (%)</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Fuel Level (%)</label>
                     <input required type="number" value={formData.fuel_level} onChange={(e) => setFormData({...formData, fuel_level: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" />
                   </div>
                 </div>
                 <button disabled={registerAsset.isPending} type="submit" className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold flex items-center justify-center">
-                  {registerAsset.isPending ? <Loader2 className="animate-spin" /> : 'Add to Fleet'}
+                  {registerAsset.isPending ? <Loader2 className="animate-spin" /> : 'Add to Site Fleet'}
                 </button>
               </form>
             </motion.div>
@@ -88,29 +90,35 @@ const Machinery: React.FC = () => {
       </AnimatePresence>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {assets?.map((machine: any) => (
-          <div key={machine.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-start gap-4 hover:border-blue-300 transition-all">
-             <div className="w-16 h-16 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 border border-slate-100"><Wrench size={32} /></div>
+        {assets?.length === 0 ? (
+          <div className="col-span-full py-20 bg-white rounded-2xl border-2 border-dashed border-slate-200 text-center text-slate-400">
+            No heavy machinery registered. Add assets to begin telemetry tracking.
+          </div>
+        ) : assets?.map((machine: any) => (
+          <div key={machine.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-start gap-4 hover:border-blue-300 transition-all group">
+             <div className="w-16 h-16 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 border border-slate-100 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
+               <Wrench size={32} />
+             </div>
              <div className="flex-1">
                 <div className="flex justify-between items-start mb-2">
                    <div>
-                      <h3 className="font-bold text-slate-900 text-lg">{machine.name}</h3>
-                      <p className="text-xs text-slate-500 font-medium">Assigned to: {machine.site_location}</p>
+                      <h3 className="font-bold text-slate-900 text-lg group-hover:text-blue-600 transition-colors">{machine.name}</h3>
+                      <p className="text-xs text-slate-500 font-medium flex items-center gap-1 mt-0.5"><MapPin size={12} className="text-blue-500" /> {machine.site_location}</p>
                    </div>
                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${machine.status === 'Healthy' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
                       {machine.status}
                    </span>
                 </div>
                 <div className="grid grid-cols-2 gap-4 mt-4">
-                   <div className="bg-slate-50 p-2 rounded-lg text-center">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase">Engine Hours</p>
+                   <div className="bg-slate-50 p-2 rounded-lg text-center border border-slate-100">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Engine Hours</p>
                       <p className="text-sm font-bold text-slate-800">{machine.engine_hours} Hrs</p>
                    </div>
-                   <div className="bg-slate-50 p-2 rounded-lg">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Fuel Level</p>
+                   <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase mb-1 tracking-tighter">Fuel Level</p>
                       <div className="flex items-center gap-2">
                          <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                            <div className="h-full bg-blue-500" style={{ width: `${machine.fuel_level}%` }} />
+                            <motion.div initial={{ width: 0 }} animate={{ width: `${machine.fuel_level}%` }} className={`h-full ${machine.fuel_level < 20 ? 'bg-red-500' : 'bg-blue-500'}`} />
                          </div>
                          <span className="text-xs font-bold text-slate-700">{machine.fuel_level}%</span>
                       </div>

@@ -1,7 +1,7 @@
 
 -- QITPES ERP SYSTEM - COMPLETE PRODUCTION SCHEMA
 -- TARGET: SUPABASE POSTGRESQL
--- VERSION: 2026.2 (Stable)
+-- VERSION: 2026.3 (Financial & Logistics Engine)
 
 -- 1. ENUMS
 DO $$ BEGIN
@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS tax_records (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
--- 5. HR & ASSET MODULES
+-- 5. HR & OKR MODULES
 CREATE TABLE IF NOT EXISTS employees (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   employee_id TEXT UNIQUE NOT NULL,
@@ -118,6 +118,17 @@ CREATE TABLE IF NOT EXISTS employees (
   role TEXT,
   status TEXT DEFAULT 'Active',
   gross_salary NUMERIC(15, 2) DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS payroll_records (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  employee_id UUID REFERENCES employees(id) ON DELETE CASCADE,
+  pay_month TEXT NOT NULL,
+  gross_amount NUMERIC(15, 2) NOT NULL,
+  net_amount NUMERIC(15, 2) NOT NULL,
+  status TEXT DEFAULT 'Paid',
+  payment_date DATE DEFAULT CURRENT_DATE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
@@ -130,6 +141,7 @@ CREATE TABLE IF NOT EXISTS okrs (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
+-- 6. ASSET & LOGISTICS
 CREATE TABLE IF NOT EXISTS assets (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
@@ -158,7 +170,7 @@ CREATE TABLE IF NOT EXISTS workflows (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
--- 6. SECURITY (RLS)
+-- 7. SECURITY (RLS)
 DO $$ 
 DECLARE 
     t TEXT;
@@ -190,12 +202,13 @@ SELECT secure_table_for_authenticated('ledger_entries');
 SELECT secure_table_for_authenticated('cost_centers');
 SELECT secure_table_for_authenticated('tax_records');
 SELECT secure_table_for_authenticated('employees');
+SELECT secure_table_for_authenticated('payroll_records');
 SELECT secure_table_for_authenticated('okrs');
 SELECT secure_table_for_authenticated('assets');
 SELECT secure_table_for_authenticated('fleet');
 SELECT secure_table_for_authenticated('workflows');
 
--- 7. AUTOMATION
+-- 8. AUTOMATION
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
