@@ -3,7 +3,10 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase, formatCurrency } from '../lib/supabase';
 import { IndianRupee, Landmark, CreditCard, Receipt, FileText, Download, Plus } from 'lucide-react';
-import { motion } from 'framer-motion';
+// Fix: Cast motion to any to resolve property missing errors
+import { motion as motionBase } from 'framer-motion';
+
+const motion = motionBase as any;
 
 const Finance: React.FC = () => {
   const { data: transactions, isLoading } = useQuery({

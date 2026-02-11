@@ -1,9 +1,12 @@
 
 import React, { useState } from 'react';
 import { BrainCircuit, Sparkles, Send, Bot, Loader2, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+// Fix: Cast motion to any to resolve property missing errors
+import { motion as motionBase } from 'framer-motion';
 // Fix: Use standardized import for GoogleGenAI
 import {GoogleGenAI} from "@google/genai";
+
+const motion = motionBase as any;
 
 const AIStrategy: React.FC = () => {
   const [prompt, setPrompt] = useState('');

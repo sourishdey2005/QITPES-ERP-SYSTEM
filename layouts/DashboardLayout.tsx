@@ -1,11 +1,15 @@
+
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, Search, User, LogOut, Menu, X, ChevronRight } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+// Fix: Cast motion to any to resolve property 'initial', 'animate', etc. missing errors
+import { motion as motionBase, AnimatePresence } from 'framer-motion';
 import { NAV_ITEMS, ICON_MAP } from '../constants';
 import { useAuth } from '../App';
 import { supabase } from '../lib/supabase';
 import AIAssistant from '../components/AIAssistant';
+
+const motion = motionBase as any;
 
 const DashboardLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);

@@ -1,134 +1,153 @@
 
-import React from 'react';
-import { Package, Search, Plus, Filter, ArrowUpRight, ArrowDownRight, MoreVertical, AlertTriangle } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '../lib/supabase';
+import { Package, Search, Plus, Filter, ArrowUpRight, AlertTriangle, X, Loader2, MoreVertical } from 'lucide-react';
+// Fix: Cast motion to any to resolve property missing errors
+import { motion as motionBase, AnimatePresence } from 'framer-motion';
+
+const motion = motionBase as any;
 
 const Inventory: React.FC = () => {
+  const queryClient = useQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({ sku: '', name: '', category: 'Consumables', stock_level: '', unit: 'Bags', unit_price: '' });
+
+  const { data: items, isLoading } = useQuery({
+    queryKey: ['inventory'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('inventory').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const addItem = useMutation({
+    mutationFn: async (newItem: any) => {
+      const { data, error } = await supabase.from('inventory').insert([newItem]).select();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      setIsModalOpen(false);
+      setFormData({ sku: '', name: '', category: 'Consumables', stock_level: '', unit: 'Bags', unit_price: '' });
+    }
+  });
+
+  const stats = React.useMemo(() => {
+    if (!items) return { total: 0, low: 0, val: 0 };
+    return {
+      total: items.length,
+      low: items.filter((i: any) => i.stock_level < 50).length,
+      val: items.reduce((acc: number, i: any) => acc + (i.stock_level * i.unit_price), 0)
+    };
+  }, [items]);
+
   return (
     <div className="space-y-6 page-transition">
       <div className="flex items-center justify-between">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-        >
+        <div>
           <h1 className="text-2xl font-bold text-slate-900">Store & Inventory</h1>
           <p className="text-slate-500">Real-time tracking of assets, materials, and consumables.</p>
-        </motion.div>
-        <div className="flex space-x-3">
-          <motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg font-bold hover:bg-slate-50 transition-all"
-          >
-            Export CSV
-          </motion.button>
-          <motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-4 py-2 bg-blue-600 text-black rounded-lg hover:bg-blue-500 font-bold flex items-center shadow-lg shadow-blue-500/20 transition-all"
-          >
-            <Plus size={18} className="mr-2" /> Add Item
-          </motion.button>
+        </div>
+        <button onClick={() => setIsModalOpen(true)} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold flex items-center shadow-lg transition-all">
+          <Plus size={18} className="mr-2" /> Add Item
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+              <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                <h3 className="text-lg font-bold text-slate-900">Register New Inventory SKU</h3>
+                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={20}/></button>
+              </div>
+              <form onSubmit={(e) => { e.preventDefault(); addItem.mutate({...formData, stock_level: parseFloat(formData.stock_level), unit_price: parseFloat(formData.unit_price)}); }} className="p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">SKU Reference</label>
+                    <input required value={formData.sku} onChange={(e) => setFormData({...formData, sku: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="ITM-2026-X" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Item Name</label>
+                    <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="Cement Bags" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Qty</label>
+                    <input required type="number" value={formData.stock_level} onChange={(e) => setFormData({...formData, stock_level: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Unit Price (₹)</label>
+                    <input required type="number" value={formData.unit_price} onChange={(e) => setFormData({...formData, unit_price: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" />
+                  </div>
+                </div>
+                <button disabled={addItem.isPending} type="submit" className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center">
+                  {addItem.isPending ? <Loader2 className="animate-spin" /> : 'Register Item'}
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-5 rounded-xl border border-slate-200 flex items-center">
+          <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mr-4"><Package size={24} /></div>
+          <div><p className="text-xs font-bold text-slate-400 uppercase">SKU Count</p><h3 className="text-xl font-bold text-slate-900">{stats.total}</h3></div>
+        </div>
+        <div className="bg-white p-5 rounded-xl border border-slate-200 flex items-center">
+          <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center mr-4"><AlertTriangle size={24} /></div>
+          <div><p className="text-xs font-bold text-slate-400 uppercase">Low Stock</p><h3 className="text-xl font-bold text-slate-900">{stats.low}</h3></div>
+        </div>
+        <div className="bg-white p-5 rounded-xl border border-slate-200 flex items-center">
+          <div className="w-12 h-12 bg-green-50 text-green-600 rounded-lg flex items-center justify-center mr-4"><ArrowUpRight size={24} /></div>
+          <div><p className="text-xs font-bold text-slate-400 uppercase">Store Value</p><h3 className="text-xl font-bold text-slate-900">₹{stats.val.toLocaleString()}</h3></div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[
-          { label: 'Total SKU Items', value: '1,284', icon: <Package size={24} />, bg: 'bg-blue-50', text: 'text-blue-600' },
-          { label: 'Low Stock Alerts', value: '14 Items', icon: <AlertTriangle size={24} />, bg: 'bg-amber-50', text: 'text-amber-600' },
-          { label: 'Inventory Value', value: '₹2.4 Cr', icon: <ArrowUpRight size={24} />, bg: 'bg-green-50', text: 'text-green-600' }
-        ].map((card, i) => (
-          <motion.div 
-            key={i}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className="bg-white p-5 rounded-xl border border-slate-200 flex items-center hover:shadow-md transition-shadow"
-          >
-            <div className={`w-12 h-12 ${card.bg} ${card.text} rounded-lg flex items-center justify-center mr-4 transition-transform hover:rotate-6`}>
-              {card.icon}
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{card.label}</p>
-              <h3 className="text-xl font-bold text-slate-900">{card.value}</h3>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden"
-      >
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-          <div className="flex items-center bg-white border border-slate-200 rounded-lg px-3 py-1.5 w-full max-w-sm transition-all focus-within:ring-2 focus-within:ring-blue-500/20">
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-slate-100 flex items-center bg-slate-50/50">
+          <div className="flex items-center bg-white border border-slate-200 rounded-lg px-3 py-1.5 w-full max-w-sm">
             <Search size={16} className="text-slate-400 mr-2" />
-            <input type="text" placeholder="Search by SKU, Name..." className="text-sm outline-none w-full" />
-          </div>
-          <div className="flex items-center space-x-2">
-            <button className="p-2 text-slate-400 hover:text-slate-600 transition-all border border-slate-200 rounded-lg"><Filter size={18} /></button>
+            <input type="text" placeholder="Search Inventory..." className="text-sm outline-none w-full" />
           </div>
         </div>
         <table className="w-full text-left">
-          <thead className="bg-slate-50">
+          <thead className="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase">
             <tr>
-              <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Item Details</th>
-              <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Category</th>
-              <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Stock Level</th>
-              <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Unit Price</th>
-              <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Status</th>
-              <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Action</th>
+              <th className="px-6 py-3">Item Details</th>
+              <th className="px-6 py-3">Category</th>
+              <th className="px-6 py-3">Stock Level</th>
+              <th className="px-6 py-3">Unit Price</th>
+              <th className="px-6 py-3">Status</th>
+              <th className="px-6 py-3"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {[
-              { sku: 'CON-001', name: 'Portland Cement Grade 53', cat: 'Consumables', stock: 450, unit: 'Bags', price: '₹8.50', status: 'Healthy' },
-              { sku: 'STL-882', name: 'Reinforced Steel Bar 12mm', cat: 'Construction', stock: 82, unit: 'Rods', price: '₹45.00', status: 'Low Stock' },
-              { sku: 'LUB-491', name: 'Heavy Duty Gear Oil (5L)', cat: 'Maintenance', stock: 12, unit: 'Units', price: '₹22.00', status: 'Healthy' },
-              { sku: 'GEN-221', name: 'Safety Helmet - High Viz', cat: 'PPE', stock: 120, unit: 'Units', price: '₹12.00', status: 'Healthy' },
-            ].map((item, i) => (
-              <motion.tr 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 + i * 0.05 }}
-                key={i} 
-                className="hover:bg-slate-50/50 transition-colors"
-              >
+            {items?.map((item: any) => (
+              <tr key={item.id} className="text-sm hover:bg-slate-50 transition-colors">
                 <td className="px-6 py-4">
-                  <div>
-                    <span className="text-xs font-mono font-bold text-slate-400 block uppercase">{item.sku}</span>
-                    <span className="text-sm font-semibold text-slate-900">{item.name}</span>
-                  </div>
+                  <span className="text-[10px] font-mono text-slate-400 block">{item.sku}</span>
+                  <span className="font-bold text-slate-900">{item.name}</span>
                 </td>
+                <td className="px-6 py-4 text-slate-600">{item.category}</td>
+                <td className="px-6 py-4 font-bold">{item.stock_level} {item.unit}</td>
+                <td className="px-6 py-4">₹{item.unit_price}</td>
                 <td className="px-6 py-4">
-                  <span className="text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded-full font-medium">{item.cat}</span>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center">
-                    <span className="text-sm font-bold text-slate-700">{item.stock}</span>
-                    <span className="text-xs text-slate-400 ml-1">{item.unit}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm text-slate-600 font-bold">{item.price}</td>
-                <td className="px-6 py-4">
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                    item.status === 'Healthy' ? 'bg-green-50 text-green-600 ring-1 ring-green-100' : 'bg-amber-50 text-amber-600 ring-1 ring-amber-100'
-                  }`}>
-                    {item.status}
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.stock_level < 50 ? 'bg-amber-50 text-amber-600' : 'bg-green-50 text-green-600'}`}>
+                    {item.stock_level < 50 ? 'Low Stock' : 'Healthy'}
                   </span>
                 </td>
-                <td className="px-6 py-4">
-                  <button className="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-50 rounded-lg transition-all">
-                    <MoreVertical size={16} />
-                  </button>
-                </td>
-              </motion.tr>
+                <td className="px-6 py-4"><MoreVertical size={16} className="text-slate-400" /></td>
+              </tr>
             ))}
           </tbody>
         </table>
-      </motion.div>
+      </div>
     </div>
   );
 };

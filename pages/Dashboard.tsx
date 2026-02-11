@@ -4,7 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase, formatCurrency } from '../lib/supabase';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, Users, FolderKanban, IndianRupee, ArrowUpRight, ArrowDownRight, ChevronRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+// Fix: Cast motion to any to resolve property missing errors
+import { motion as motionBase } from 'framer-motion';
+
+const motion = motionBase as any;
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
 

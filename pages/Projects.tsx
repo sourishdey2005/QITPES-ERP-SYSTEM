@@ -3,7 +3,10 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase, formatCurrency } from '../lib/supabase';
 import { Plus, Search, Filter, Calendar, MoreHorizontal, ChevronRight, X, Loader2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+// Fix: Cast motion to any to resolve property missing errors
+import { motion as motionBase, AnimatePresence } from 'framer-motion';
+
+const motion = motionBase as any;
 
 const Projects: React.FC = () => {
   const queryClient = useQueryClient();

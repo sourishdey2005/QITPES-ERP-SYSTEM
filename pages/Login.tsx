@@ -3,7 +3,10 @@ import React, { useState } from 'react';
 import { Shield, Lock, Mail, ArrowRight, AlertCircle, Clock } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { motion } from 'framer-motion';
+// Fix: Cast motion to any to resolve property missing errors
+import { motion as motionBase } from 'framer-motion';
+
+const motion = motionBase as any;
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');

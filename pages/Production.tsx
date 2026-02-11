@@ -1,9 +1,40 @@
 
-import React from 'react';
-import { Factory, Zap, Activity, AlertCircle, PlayCircle, StopCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '../lib/supabase';
+import { Factory, Zap, Activity, AlertCircle, PlayCircle, StopCircle, X, Loader2 } from 'lucide-react';
+// Fix: Cast motion to any to resolve property missing errors
+import { motion as motionBase, AnimatePresence } from 'framer-motion';
+
+const motion = motionBase as any;
 
 const Production: React.FC = () => {
+  const queryClient = useQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({ unit_name: '', message: '', status_type: 'Info' });
+
+  const { data: logs, isLoading } = useQuery({
+    queryKey: ['production_logs'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('production_logs').select('*').order('created_at', { ascending: false }).limit(10);
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const createLog = useMutation({
+    mutationFn: async (newLog: any) => {
+      const { data, error } = await supabase.from('production_logs').insert([newLog]).select();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['production_logs'] });
+      setIsModalOpen(false);
+      setFormData({ unit_name: '', message: '', status_type: 'Info' });
+    }
+  });
+
   return (
     <div className="space-y-6 page-transition">
       <div className="flex items-center justify-between">
@@ -11,84 +42,67 @@ const Production: React.FC = () => {
           <h1 className="text-2xl font-bold text-slate-900">Plant & Production</h1>
           <p className="text-slate-500 text-sm">Real-time site output and machinery telemetry.</p>
         </div>
-        <div className="flex gap-2">
-           <button className="bg-slate-900 text-white px-4 py-2 rounded-lg font-bold hover:bg-slate-800 flex items-center gap-2">
-             <Activity size={18} /> Live Monitor
-           </button>
-        </div>
+        <button onClick={() => setIsModalOpen(true)} className="bg-slate-900 text-white px-4 py-2 rounded-lg font-bold hover:bg-slate-800 flex items-center gap-2 shadow-lg">
+           <Activity size={18} /> Log Activity
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-           <div className="p-3 bg-green-50 text-green-600 rounded-lg"><Zap size={24} /></div>
-           <div>
-              <p className="text-xs font-bold text-slate-400 uppercase">Production Efficiency</p>
-              <h3 className="text-2xl font-bold text-slate-900">94.8%</h3>
-           </div>
-        </div>
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-           <div className="p-3 bg-blue-50 text-blue-600 rounded-lg"><Factory size={24} /></div>
-           <div>
-              <p className="text-xs font-bold text-slate-400 uppercase">Active Lines</p>
-              <h3 className="text-2xl font-bold text-slate-900">12 / 14</h3>
-           </div>
-        </div>
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
-           <div className="p-3 bg-red-50 text-red-600 rounded-lg"><AlertCircle size={24} /></div>
-           <div>
-              <p className="text-xs font-bold text-slate-400 uppercase">Downtime Incidents</p>
-              <h3 className="text-2xl font-bold text-slate-900">2 Pending</h3>
-           </div>
-        </div>
-      </div>
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+              <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                <h3 className="text-lg font-bold text-slate-900">Log Production Activity</h3>
+                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={20}/></button>
+              </div>
+              <form onSubmit={(e) => { e.preventDefault(); createLog.mutate(formData); }} className="p-6 space-y-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Unit Name</label>
+                  <input required value={formData.unit_name} onChange={(e) => setFormData({...formData, unit_name: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="e.g. Mixing Plant B" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Status Type</label>
+                  <select value={formData.status_type} onChange={(e) => setFormData({...formData, status_type: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none">
+                    <option>Info</option><option>Success</option><option>Warning</option><option>Error</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Message</label>
+                  <textarea required value={formData.message} onChange={(e) => setFormData({...formData, message: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none h-24" placeholder="Description of event..." />
+                </div>
+                <button disabled={createLog.isPending} type="submit" className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold flex items-center justify-center">
+                  {createLog.isPending ? <Loader2 className="animate-spin" /> : 'Commit Log'}
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-           <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+           <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
              <h3 className="font-bold text-slate-800">Unit Activity Logs</h3>
              <span className="text-[10px] font-bold text-green-600 animate-pulse">● LIVE STREAM</span>
            </div>
-           <div className="p-4 space-y-4">
-             {[
-               { unit: 'Casting Unit 4', msg: 'Started operation cycle', time: '2 mins ago', icon: <PlayCircle className="text-green-500" /> },
-               { unit: 'Mixing Plant B', msg: 'Material shortage alert', time: '14 mins ago', icon: <AlertCircle className="text-amber-500" /> },
-               { unit: 'Crane 08', msg: 'Shutdown for maintenance', time: '1 hour ago', icon: <StopCircle className="text-red-500" /> },
-             ].map((log, i) => (
-               <div key={i} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
-                  <div className="mt-0.5">{log.icon}</div>
-                  <div className="flex-1">
-                    <p className="text-sm font-bold text-slate-900">{log.unit}</p>
-                    <p className="text-xs text-slate-500">{log.msg}</p>
+           <div className="p-4 space-y-4 h-[400px] overflow-y-auto">
+             {logs?.map((log: any) => (
+               <div key={log.id} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                  <div className="mt-0.5">
+                    {log.status_type === 'Error' ? <StopCircle className="text-red-500" /> : log.status_type === 'Warning' ? <AlertCircle className="text-amber-500" /> : <PlayCircle className="text-green-500" />}
                   </div>
-                  <span className="text-[10px] font-medium text-slate-400">{log.time}</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-slate-900">{log.unit_name}</p>
+                    <p className="text-xs text-slate-500">{log.message}</p>
+                  </div>
+                  <span className="text-[10px] font-medium text-slate-400">{new Date(log.created_at).toLocaleTimeString()}</span>
                </div>
              ))}
            </div>
         </div>
 
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-           <h3 className="font-bold text-slate-800 mb-6">Output Target vs Actual</h3>
-           <div className="space-y-6">
-             {[
-               { label: 'Cement Block (Units)', target: 10000, actual: 8500, color: 'bg-blue-500' },
-               { label: 'Steel Reinforcement (Tons)', target: 200, actual: 195, color: 'bg-emerald-500' },
-               { label: 'Aggregate Mix (Cu.M)', target: 500, actual: 320, color: 'bg-amber-500' },
-             ].map((item, i) => (
-               <div key={i}>
-                  <div className="flex justify-between text-xs font-bold text-slate-500 uppercase mb-2">
-                    <span>{item.label}</span>
-                    <span>{Math.round((item.actual/item.target)*100)}%</span>
-                  </div>
-                  <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                    <motion.div initial={{ width: 0 }} animate={{ width: `${(item.actual/item.target)*100}%` }} className={`h-full ${item.color}`} />
-                  </div>
-                  <div className="flex justify-between mt-1 text-[10px] text-slate-400 font-medium">
-                    <span>Target: {item.target}</span>
-                    <span>Actual: {item.actual}</span>
-                  </div>
-               </div>
-             ))}
-           </div>
+           <h3 className="font-bold text-slate-800 mb-6 text-center py-20 text-slate-400">Production Analytics Engine Initializing...</h3>
         </div>
       </div>
     </div>

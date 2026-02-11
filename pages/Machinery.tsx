@@ -1,24 +1,39 @@
 
 import React, { useState } from 'react';
-import { Wrench, ShieldAlert, Activity, Gauge, Battery, MoreVertical, Plus, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '../lib/supabase';
+import { Wrench, ShieldAlert, Activity, Gauge, Battery, MoreVertical, Plus, X, Loader2 } from 'lucide-react';
+// Fix: Cast motion to any to resolve property missing errors
+import { motion as motionBase, AnimatePresence } from 'framer-motion';
+
+const motion = motionBase as any;
 
 const Machinery: React.FC = () => {
+  const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [assets, setAssets] = useState([
-    { name: 'JCB Excavator 3DX', site: 'Nagpur Site A', hours: 4200, status: 'Healthy', fuel: 85 },
-    { name: 'Tower Crane TC-40', site: 'Pune IT Hub', hours: 1200, status: 'Service Due', fuel: 42 },
-    { name: 'Concrete Mixer M20', site: 'Mumbai Site 2', hours: 850, status: 'Healthy', fuel: 92 },
-  ]);
+  const [formData, setFormData] = useState({ name: '', site_location: '', engine_hours: '', fuel_level: '100' });
 
-  const [formData, setFormData] = useState({ name: '', site: '', hours: '', status: 'Healthy', fuel: 100 });
+  const { data: assets, isLoading } = useQuery({
+    queryKey: ['assets'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('assets').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    }
+  });
 
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-    setAssets([{ ...formData, hours: parseInt(formData.hours) || 0 }, ...assets]);
-    setIsModalOpen(false);
-    setFormData({ name: '', site: '', hours: '', status: 'Healthy', fuel: 100 });
-  };
+  const registerAsset = useMutation({
+    mutationFn: async (newAsset: any) => {
+      const { data, error } = await supabase.from('assets').insert([newAsset]).select();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['assets'] });
+      setIsModalOpen(false);
+      setFormData({ name: '', site_location: '', engine_hours: '', fuel_level: '100' });
+    }
+  });
 
   return (
     <div className="space-y-6 page-transition">
@@ -44,50 +59,43 @@ const Machinery: React.FC = () => {
                 <h3 className="text-lg font-bold text-slate-900">Asset Registration</h3>
                 <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={20}/></button>
               </div>
-              <form onSubmit={handleRegister} className="p-6 space-y-4">
+              <form onSubmit={(e) => { e.preventDefault(); registerAsset.mutate({...formData, engine_hours: parseFloat(formData.engine_hours), fuel_level: parseFloat(formData.fuel_level)}); }} className="p-6 space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Equipment Name</label>
-                  <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20" placeholder="e.g. Caterpillar D9 Dozer" />
+                  <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="e.g. Caterpillar D9 Dozer" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Assigned Site</label>
-                  <input required value={formData.site} onChange={(e) => setFormData({...formData, site: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20" placeholder="e.g. Nagpur Site B" />
+                  <input required value={formData.site_location} onChange={(e) => setFormData({...formData, site_location: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="e.g. Nagpur Site B" />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Initial Engine Hours</label>
-                  <input required type="number" value={formData.hours} onChange={(e) => setFormData({...formData, hours: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20" placeholder="0" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Engine Hours</label>
+                    <input required type="number" value={formData.engine_hours} onChange={(e) => setFormData({...formData, engine_hours: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="0" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Fuel (%)</label>
+                    <input required type="number" value={formData.fuel_level} onChange={(e) => setFormData({...formData, fuel_level: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" />
+                  </div>
                 </div>
-                <button type="submit" className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all">Add to Fleet</button>
+                <button disabled={registerAsset.isPending} type="submit" className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold flex items-center justify-center">
+                  {registerAsset.isPending ? <Loader2 className="animate-spin" /> : 'Add to Fleet'}
+                </button>
               </form>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { label: 'Asset Value', value: '₹12.4 Cr', icon: <Activity />, color: 'text-blue-600' },
-          { label: 'In Operation', value: `${assets.length} / ${assets.length + 3}`, icon: <Gauge />, color: 'text-green-600' },
-          { label: 'Critical Service', value: '1 Unit', icon: <ShieldAlert />, color: 'text-red-600' },
-          { label: 'Avg Fuel Efficiency', value: '82%', icon: <Battery />, color: 'text-amber-600' },
-        ].map((stat, i) => (
-          <div key={i} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-             <div className={`${stat.color} mb-3`}>{stat.icon}</div>
-             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{stat.label}</p>
-             <h3 className="text-xl font-bold text-slate-900">{stat.value}</h3>
-          </div>
-        ))}
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {assets.map((machine, i) => (
-          <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-start gap-4 hover:border-blue-300 transition-all">
+        {assets?.map((machine: any) => (
+          <div key={machine.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-start gap-4 hover:border-blue-300 transition-all">
              <div className="w-16 h-16 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 border border-slate-100"><Wrench size={32} /></div>
              <div className="flex-1">
                 <div className="flex justify-between items-start mb-2">
                    <div>
                       <h3 className="font-bold text-slate-900 text-lg">{machine.name}</h3>
-                      <p className="text-xs text-slate-500 font-medium">Assigned to: {machine.site}</p>
+                      <p className="text-xs text-slate-500 font-medium">Assigned to: {machine.site_location}</p>
                    </div>
                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${machine.status === 'Healthy' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
                       {machine.status}
@@ -96,15 +104,15 @@ const Machinery: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4 mt-4">
                    <div className="bg-slate-50 p-2 rounded-lg text-center">
                       <p className="text-[10px] font-bold text-slate-400 uppercase">Engine Hours</p>
-                      <p className="text-sm font-bold text-slate-800">{machine.hours} Hrs</p>
+                      <p className="text-sm font-bold text-slate-800">{machine.engine_hours} Hrs</p>
                    </div>
                    <div className="bg-slate-50 p-2 rounded-lg">
                       <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Fuel Level</p>
                       <div className="flex items-center gap-2">
                          <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                            <div className="h-full bg-blue-500" style={{ width: `${machine.fuel}%` }} />
+                            <div className="h-full bg-blue-500" style={{ width: `${machine.fuel_level}%` }} />
                          </div>
-                         <span className="text-xs font-bold text-slate-700">{machine.fuel}%</span>
+                         <span className="text-xs font-bold text-slate-700">{machine.fuel_level}%</span>
                       </div>
                    </div>
                 </div>

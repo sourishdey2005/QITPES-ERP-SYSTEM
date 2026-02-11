@@ -1,8 +1,11 @@
 
 import React from 'react';
 import { Receipt, ShieldCheck, FileText, IndianRupee, Download, PieChart as PieIcon } from 'lucide-react';
-import { motion } from 'framer-motion';
+// Fix: Cast motion to any to resolve property missing errors
+import { motion as motionBase } from 'framer-motion';
 import { formatCurrency } from '../lib/supabase';
+
+const motion = motionBase as any;
 
 const TaxEngine: React.FC = () => {
   return (

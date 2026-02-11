@@ -4,7 +4,10 @@ import { Shield, Lock, Mail, User, ArrowRight, Briefcase, CheckCircle2, AlertCir
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { UserRole } from '../types';
-import { motion, AnimatePresence } from 'framer-motion';
+// Fix: Cast motion to any to resolve property missing errors
+import { motion as motionBase, AnimatePresence } from 'framer-motion';
+
+const motion = motionBase as any;
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({

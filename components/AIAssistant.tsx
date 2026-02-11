@@ -3,7 +3,10 @@ import React, { useState } from 'react';
 // Fix: Use correct import style for GoogleGenAI
 import {GoogleGenAI} from "@google/genai";
 import { Sparkles, Send, X, Bot, Loader2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+// Fix: Cast motion to any to resolve property missing errors
+import { motion as motionBase, AnimatePresence } from 'framer-motion';
+
+const motion = motionBase as any;
 
 const AIAssistant: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
