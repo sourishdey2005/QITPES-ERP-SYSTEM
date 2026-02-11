@@ -1,7 +1,7 @@
 
 -- QITPES ERP SYSTEM - COMPLETE PRODUCTION SCHEMA
 -- TARGET: SUPABASE POSTGRESQL
--- VERSION: 2026.3 (Financial & Logistics Engine)
+-- VERSION: 2026.4
 
 -- 1. ENUMS
 DO $$ BEGIN
@@ -59,14 +59,6 @@ CREATE TABLE IF NOT EXISTS purchase_orders (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS production_logs (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  unit_name TEXT NOT NULL,
-  message TEXT NOT NULL,
-  status_type TEXT DEFAULT 'Info',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
-);
-
 -- 4. FINANCIAL SUITE
 CREATE TABLE IF NOT EXISTS finance_transactions (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -109,7 +101,7 @@ CREATE TABLE IF NOT EXISTS tax_records (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
--- 5. HR & OKR MODULES
+-- 5. HR & PAYROLL MODULES
 CREATE TABLE IF NOT EXISTS employees (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   employee_id TEXT UNIQUE NOT NULL,
@@ -129,7 +121,8 @@ CREATE TABLE IF NOT EXISTS payroll_records (
   net_amount NUMERIC(15, 2) NOT NULL,
   status TEXT DEFAULT 'Paid',
   payment_date DATE DEFAULT CURRENT_DATE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  UNIQUE(employee_id, pay_month)
 );
 
 CREATE TABLE IF NOT EXISTS okrs (
@@ -161,15 +154,6 @@ CREATE TABLE IF NOT EXISTS fleet (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS workflows (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL,
-  module TEXT NOT NULL,
-  steps INTEGER DEFAULT 1,
-  status TEXT DEFAULT 'Active',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
-);
-
 -- 7. SECURITY (RLS)
 DO $$ 
 DECLARE 
@@ -190,13 +174,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Apply Security
+-- Apply Security to all tables
 SELECT secure_table_for_authenticated('profiles');
 SELECT secure_table_for_authenticated('projects');
 SELECT secure_table_for_authenticated('planning_tasks');
 SELECT secure_table_for_authenticated('inventory');
 SELECT secure_table_for_authenticated('purchase_orders');
-SELECT secure_table_for_authenticated('production_logs');
 SELECT secure_table_for_authenticated('finance_transactions');
 SELECT secure_table_for_authenticated('ledger_entries');
 SELECT secure_table_for_authenticated('cost_centers');
@@ -206,7 +189,6 @@ SELECT secure_table_for_authenticated('payroll_records');
 SELECT secure_table_for_authenticated('okrs');
 SELECT secure_table_for_authenticated('assets');
 SELECT secure_table_for_authenticated('fleet');
-SELECT secure_table_for_authenticated('workflows');
 
 -- 8. AUTOMATION
 CREATE OR REPLACE FUNCTION public.handle_new_user()
