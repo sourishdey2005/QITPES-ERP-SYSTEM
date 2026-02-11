@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, createContext, useContext } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
@@ -10,6 +9,7 @@ import Projects from './pages/Projects';
 import Inventory from './pages/Inventory';
 import Finance from './pages/Finance';
 import HR from './pages/HR';
+import WorkflowBuilder from './pages/WorkflowBuilder';
 import { UserRole } from './types';
 
 interface AuthContextType {
@@ -107,11 +107,12 @@ const App: React.FC = () => {
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/accounts" element={<Finance />} />
           <Route path="/hr" element={<HR />} />
+          <Route path="/workflows" element={<WorkflowBuilder />} />
           
           <Route path="*" element={
             <div className="p-8">
               <h1 className="text-2xl font-bold text-slate-800">Module Under Construction</h1>
-              <p className="text-slate-500 mt-2">This module is part of the QITPES ERP 2026 roadmap.</p>
+              <p className="text-slate-500 mt-2">This enterprise module is part of the QITPES ERP 2026 roadmap.</p>
             </div>
           } />
         </Route>

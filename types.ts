@@ -1,4 +1,3 @@
-
 export type UserRole = 'owner' | 'director' | 'accounting';
 
 export interface Profile {
@@ -6,12 +5,24 @@ export interface Profile {
   email: string;
   full_name: string | null;
   role: UserRole;
+  company_id?: string;
+  branch_id?: string;
+  permissions: string[];
   avatar_url: string | null;
   created_at: string;
 }
 
+export interface Company {
+  id: string;
+  name: string;
+  gstin: string;
+  subscription_tier: 'Standard' | 'Premium' | 'Enterprise';
+  settings: any;
+}
+
 export interface Project {
   id: string;
+  company_id: string;
   name: string;
   description: string;
   start_date: string;
@@ -20,24 +31,21 @@ export interface Project {
   budget: number;
 }
 
-export interface InventoryItem {
+export interface Workflow {
   id: string;
-  sku: string;
   name: string;
-  category: string;
-  quantity: number;
-  unit_price: number;
-  reorder_level: number;
+  trigger_module: string;
+  is_active: boolean;
 }
 
-export interface Transaction {
+export interface OKR {
   id: string;
-  type: 'income' | 'expense';
-  amount: number;
-  category: string;
-  description: string;
-  transaction_date: string;
-  project_id?: string;
+  objective: string;
+  key_result: string;
+  target_value: number;
+  current_value: number;
+  quarter: string;
+  year: number;
 }
 
 export interface NavItem {
