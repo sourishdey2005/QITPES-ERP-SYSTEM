@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Shield, Lock, Mail, User, ArrowRight, Briefcase, CheckCircle2 } from 'lucide-react';
+import { Shield, Lock, Mail, User, ArrowRight, Briefcase, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { UserRole } from '../types';
@@ -24,7 +24,7 @@ const Register: React.FC = () => {
     setError(null);
 
     try {
-      // Keys 'full_name' and 'role' must match the SQL trigger exactly
+      // The keys 'full_name' and 'role' must be exact for the SQL trigger
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -42,7 +42,8 @@ const Register: React.FC = () => {
         setIsRegistered(true);
       }
     } catch (err: any) {
-      setError(err.message || 'Registration failed. Please try again.');
+      console.error('Registration Error:', err);
+      setError(err.message || 'Registration failed. Check if your SQL trigger is set correctly in Supabase.');
     } finally {
       setLoading(false);
     }
@@ -56,7 +57,6 @@ const Register: React.FC = () => {
         transition={{ duration: 0.5 }}
         className="max-w-[1000px] w-full bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-slate-200"
       >
-        
         <div className="md:w-1/2 bg-blue-700 p-12 text-white flex flex-col justify-between relative overflow-hidden">
           <div className="relative z-10">
             <motion.div 
@@ -86,15 +86,10 @@ const Register: React.FC = () => {
           </div>
           
           <div className="relative z-10 mt-12 space-y-4">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="p-4 bg-white/10 rounded-lg border border-white/10"
-            >
+            <div className="p-4 bg-white/10 rounded-lg border border-white/10">
               <h4 className="font-bold text-sm text-white">Security Standards</h4>
               <p className="text-xs text-blue-200 mt-1">RLS Protected Database & End-to-End Encryption.</p>
-            </motion.div>
+            </div>
             <p className="text-xs text-blue-300 italic">© 2026 QITPES International Systems.</p>
           </div>
 
@@ -123,9 +118,13 @@ const Register: React.FC = () => {
                     <motion.div 
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="p-3 bg-red-50 text-red-600 text-xs rounded-lg border border-red-100 font-medium"
+                      className="p-4 bg-red-50 text-red-700 text-xs rounded-lg border border-red-100 font-medium flex gap-3"
                     >
-                      {error}
+                      <AlertCircle size={16} className="shrink-0" />
+                      <div>
+                        <p className="font-bold">Database Error</p>
+                        <p className="mt-1 opacity-80">{error}</p>
+                      </div>
                     </motion.div>
                   )}
                   
@@ -142,7 +141,7 @@ const Register: React.FC = () => {
                           value={formData.fullName}
                           onChange={(e) => setFormData({...formData, fullName: e.target.value})}
                           className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                          placeholder="e.g. Rajesh Kumar"
+                          placeholder="e.g. Abhradeep Hazra"
                         />
                       </div>
                     </div>
@@ -159,7 +158,7 @@ const Register: React.FC = () => {
                           value={formData.email}
                           onChange={(e) => setFormData({...formData, email: e.target.value})}
                           className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                          placeholder="name@company.in"
+                          placeholder="abhradeephazra99@gmail.com"
                         />
                       </div>
                     </div>
@@ -207,7 +206,7 @@ const Register: React.FC = () => {
                     disabled={loading}
                     className="w-full flex items-center justify-center py-3 px-4 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 disabled:bg-slate-400 transition-all shadow-lg shadow-blue-500/20"
                   >
-                    {loading ? 'Registering...' : 'Initialize Account'} <ArrowRight size={18} className="ml-2" />
+                    {loading ? 'Initializing...' : 'Initialize Account'} <ArrowRight size={18} className="ml-2" />
                   </motion.button>
 
                   <p className="text-center text-sm text-slate-500 mt-6">
