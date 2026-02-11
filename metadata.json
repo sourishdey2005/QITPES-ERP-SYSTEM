@@ -1,0 +1,7 @@
+{
+  "name": "QITPES ERP SYSTEM",
+  "description": "An enterprise-grade ERP system with modules for Project Management, Finance, HR, and Operations, featuring role-based access control and real-time analytics.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
