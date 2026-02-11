@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase, formatCurrency } from '../lib/supabase';
-import { Receipt, ShieldCheck, FileText, IndianRupee, Download, Plus, X, Loader2 } from 'lucide-react';
+import { Receipt, ShieldCheck, FileText, IndianRupee, Plus, X, Loader2 } from 'lucide-react';
 import { motion as motionBase, AnimatePresence } from 'framer-motion';
 
 const motion = motionBase as any;
@@ -36,9 +36,9 @@ const TaxEngine: React.FC = () => {
   });
 
   const totals = React.useMemo(() => {
-    if (!taxRecords) return { credits: 0, pending: 0 };
+    if (!taxRecords) return { credits: 0, count: 0 };
     const credits = taxRecords.reduce((s: number, r: any) => s + Number(r.total_tax), 0);
-    return { credits, pending: 245000 }; // Pending liability mock until calculation engine added
+    return { credits, count: taxRecords.length };
   }, [taxRecords]);
 
   return (
@@ -88,9 +88,9 @@ const TaxEngine: React.FC = () => {
       </AnimatePresence>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard label="GST Input Credit" value={totals.credits} icon={<Receipt />} color="bg-green-50 text-green-600" />
-        <StatCard label="Liability Due" value={totals.pending} icon={<IndianRupee />} color="bg-red-50 text-red-600" />
-        <StatCard label="Audit Score" value="98%" icon={<ShieldCheck />} color="bg-blue-50 text-blue-600" />
+        <StatCard label="Accumulated Tax Credits" value={totals.credits} icon={<Receipt />} color="bg-green-50 text-green-600" />
+        <StatCard label="Active Filings" value={totals.count} icon={<FileText />} color="bg-blue-50 text-blue-600" />
+        <StatCard label="Compliance Status" value="Compliant" icon={<ShieldCheck />} color="bg-emerald-50 text-emerald-600" />
       </div>
 
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
@@ -98,7 +98,9 @@ const TaxEngine: React.FC = () => {
            <h3 className="font-bold text-slate-800">Tax History Registry - FY 2026</h3>
         </div>
         <div className="p-6 space-y-4">
-           {taxRecords?.map((row: any) => (
+           {taxRecords?.length === 0 ? (
+             <div className="text-center py-10 text-slate-400 font-medium">No records found. Initialize your first filing above.</div>
+           ) : taxRecords?.map((row: any) => (
              <div key={row.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-blue-200 transition-all">
                 <div className="flex items-center gap-4">
                    <div className="p-2 bg-white rounded-lg border border-slate-200"><FileText size={20} className="text-slate-400" /></div>
