@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Shield, Lock, Mail, ArrowRight } from 'lucide-react';
+import { Shield, Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { motion } from 'framer-motion';
@@ -26,7 +26,12 @@ const Login: React.FC = () => {
       if (authError) throw authError;
       navigate('/');
     } catch (err: any) {
-      setError(err.message || 'Login failed. Please check your credentials.');
+      // Specifically handle the confirmation error
+      if (err.message?.toLowerCase().includes('email not confirmed')) {
+        setError('Your email is not confirmed. Please check your inbox for the verification link.');
+      } else {
+        setError(err.message || 'Login failed. Please check your credentials.');
+      }
     } finally {
       setLoading(false);
     }
@@ -91,9 +96,14 @@ const Login: React.FC = () => {
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="p-3 bg-red-50 text-red-600 text-xs rounded-lg border border-red-100 font-medium"
+                  className={`p-3 text-xs rounded-lg border font-medium flex items-start gap-3 ${
+                    error.includes('not confirmed') 
+                    ? 'bg-amber-50 text-amber-700 border-amber-100' 
+                    : 'bg-red-50 text-red-600 border-red-100'
+                  }`}
                 >
-                  {error}
+                  <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                  <span>{error}</span>
                 </motion.div>
               )}
               
@@ -138,7 +148,7 @@ const Login: React.FC = () => {
                 whileTap={{ scale: 0.98 }}
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center py-3 px-4 bg-blue-600 text-black rounded-lg font-bold hover:bg-blue-500 disabled:bg-slate-400 transition-all shadow-lg shadow-blue-500/20"
+                className="w-full flex items-center justify-center py-3 px-4 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 disabled:bg-slate-400 transition-all shadow-lg shadow-blue-500/20"
               >
                 {loading ? 'Authenticating...' : 'Sign In To Portal'} <ArrowRight size={18} className="ml-2" />
               </motion.button>
