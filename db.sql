@@ -1,9 +1,9 @@
 
 -- QITPES ERP SYSTEM - PRODUCTION SCHEMA RECOVERY
 -- TARGET: SUPABASE POSTGRESQL
--- VERSION: 2026.6 (Schema Cache Fix)
+-- VERSION: 2026.7 (Custom Deductions Support)
 
--- 1. CLEANUP (Careful: This drops tables to ensure fresh schema)
+-- 1. CLEANUP
 DROP TABLE IF EXISTS payroll_records CASCADE;
 DROP TABLE IF EXISTS employees CASCADE;
 
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
--- 4. HR & PAYROLL MODULES (Fixed full_name column)
+-- 4. HR & PAYROLL MODULES (Fixed full_name and added monthly_deductions)
 CREATE TABLE employees (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   employee_id TEXT UNIQUE NOT NULL,
@@ -31,6 +31,7 @@ CREATE TABLE employees (
   role TEXT,
   status TEXT DEFAULT 'Active',
   gross_salary NUMERIC(15, 2) DEFAULT 0,
+  monthly_deductions NUMERIC(15, 2) DEFAULT 0, -- NEW: Custom deduction tracking
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
@@ -40,6 +41,7 @@ CREATE TABLE payroll_records (
   pay_month TEXT NOT NULL,
   gross_amount NUMERIC(15, 2) NOT NULL,
   net_amount NUMERIC(15, 2) NOT NULL,
+  deduction_amount NUMERIC(15, 2) DEFAULT 0, -- Track deduction at time of payment
   status TEXT DEFAULT 'Paid',
   payment_date DATE DEFAULT CURRENT_DATE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
@@ -67,33 +69,12 @@ CREATE TABLE IF NOT EXISTS finance_transactions (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS assets (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL,
-  site_location TEXT,
-  engine_hours NUMERIC(12, 1) DEFAULT 0,
-  fuel_level NUMERIC(5, 2) DEFAULT 0,
-  status TEXT DEFAULT 'Healthy',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
-);
-
-CREATE TABLE IF NOT EXISTS fleet (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  vehicle_number TEXT UNIQUE NOT NULL,
-  vehicle_type TEXT,
-  current_location TEXT,
-  status TEXT DEFAULT 'Ready',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
-);
-
 -- 6. SECURITY (RLS)
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE employees ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payroll_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE finance_transactions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE assets ENABLE ROW LEVEL SECURITY;
-ALTER TABLE fleet ENABLE ROW LEVEL SECURITY;
 
 -- Idempotent Policy Helper
 CREATE OR REPLACE FUNCTION secure_table_for_authenticated(tbl TEXT) 
@@ -109,8 +90,3 @@ SELECT secure_table_for_authenticated('employees');
 SELECT secure_table_for_authenticated('payroll_records');
 SELECT secure_table_for_authenticated('projects');
 SELECT secure_table_for_authenticated('finance_transactions');
-SELECT secure_table_for_authenticated('assets');
-SELECT secure_table_for_authenticated('fleet');
-
--- 7. REFRESH HINT
--- If you still see column missing errors, run: NOTIFY pgrst, 'reload schema';

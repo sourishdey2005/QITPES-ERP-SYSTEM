@@ -17,7 +17,10 @@ import {
   ChevronRight,
   TrendingUp,
   CreditCard,
-  AlertTriangle
+  AlertTriangle,
+  Edit2,
+  Save,
+  Percent
 } from 'lucide-react';
 import { motion as motionBase, AnimatePresence } from 'framer-motion';
 
@@ -29,6 +32,8 @@ const Payroll: React.FC = () => {
   const [isAddStaffOpen, setIsAddStaffOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
+  const [editingDeductionId, setEditingDeductionId] = useState<string | null>(null);
+  const [tempDeductionValue, setTempDeductionValue] = useState<string>('');
 
   const today = new Date();
   const currentPayMonth = today.toLocaleString('default', { month: 'long', year: 'numeric' });
@@ -62,7 +67,7 @@ const Payroll: React.FC = () => {
   });
 
   // 3. Mutation: Register Staff (Onboarding)
-  const [newStaff, setNewStaff] = useState({ employee_id: '', full_name: '', department: 'Operations', gross_salary: '' });
+  const [newStaff, setNewStaff] = useState({ employee_id: '', full_name: '', department: 'Operations', gross_salary: '', monthly_deductions: '0' });
   const addStaff = useMutation({
     mutationFn: async (staff: any) => {
       const { data, error } = await supabase.from('employees').insert([staff]).select();
@@ -75,11 +80,27 @@ const Payroll: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employees'] });
       setIsAddStaffOpen(false);
-      setNewStaff({ employee_id: '', full_name: '', department: 'Operations', gross_salary: '' });
+      setNewStaff({ employee_id: '', full_name: '', department: 'Operations', gross_salary: '', monthly_deductions: '0' });
       setFormError(null);
     },
     onError: (error: any) => {
-      setFormError(error.message || "Failed to register staff member. Check if 'full_name' column exists in Supabase.");
+      setFormError(error.message || "Failed to register staff member.");
+    }
+  });
+
+  // 4. Mutation: Update Individual Deduction
+  const updateDeduction = useMutation({
+    mutationFn: async ({ id, deductions }: { id: string; deductions: number }) => {
+      const { data, error } = await supabase.from('employees').update({ monthly_deductions: deductions }).eq('id', id).select();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      setEditingDeductionId(null);
+    },
+    onError: (error: any) => {
+      alert("Update Failed: " + error.message);
     }
   });
 
@@ -88,22 +109,37 @@ const Payroll: React.FC = () => {
     setFormError(null);
     
     const salary = parseFloat(newStaff.gross_salary);
+    const deductions = parseFloat(newStaff.monthly_deductions);
+    
     if (isNaN(salary) || salary <= 0) {
       setFormError("Please enter a valid gross salary amount.");
       return;
     }
+    if (isNaN(deductions) || deductions < 0) {
+      setFormError("Deductions must be a valid positive number.");
+      return;
+    }
 
-    // Explicitly mapping fields to ensure they match the db.sql schema
     addStaff.mutate({
       employee_id: newStaff.employee_id.trim(),
       full_name: newStaff.full_name.trim(),
       department: newStaff.department,
       gross_salary: salary,
+      monthly_deductions: deductions,
       status: 'Active'
     });
   };
 
-  // 4. Mutation: Bulk Authorize Payroll
+  const handleSaveDeduction = (id: string) => {
+    const value = parseFloat(tempDeductionValue);
+    if (!isNaN(value)) {
+      updateDeduction.mutate({ id, deductions: value });
+    } else {
+      setEditingDeductionId(null);
+    }
+  };
+
+  // 5. Mutation: Bulk Authorize Payroll
   const runPayroll = useMutation({
     mutationFn: async () => {
       if (!employees || employees.length === 0) throw new Error("No active employees found in registry.");
@@ -112,7 +148,8 @@ const Payroll: React.FC = () => {
         employee_id: emp.id,
         pay_month: currentPayMonth,
         gross_amount: emp.gross_salary,
-        net_amount: emp.gross_salary * 0.88, 
+        deduction_amount: emp.monthly_deductions || 0,
+        net_amount: (emp.gross_salary || 0) - (emp.monthly_deductions || 0), 
         status: 'Paid',
         payment_date: new Date().toISOString()
       }));
@@ -142,8 +179,9 @@ const Payroll: React.FC = () => {
 
   const stats = useMemo(() => {
     const totalSalaries = employees?.reduce((sum, e) => sum + Number(e.gross_salary), 0) || 0;
+    const totalDeductions = employees?.reduce((sum, e) => sum + Number(e.monthly_deductions || 0), 0) || 0;
     const paidThisMonth = payrollHistory?.filter(r => r.pay_month === currentPayMonth).length || 0;
-    return { totalSalaries, paidThisMonth };
+    return { totalSalaries, totalDeductions, paidThisMonth };
   }, [employees, payrollHistory, currentPayMonth]);
 
   const filteredStaff = employees?.filter(e => 
@@ -156,7 +194,7 @@ const Payroll: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Enterprise Payroll Hub</h1>
-          <p className="text-slate-500 text-sm">Automated salary engine for {currentPayMonth}.</p>
+          <p className="text-slate-500 text-sm">Precision salary engine with individual deduction control for {currentPayMonth}.</p>
         </div>
         <div className="flex gap-2">
            <button 
@@ -177,16 +215,16 @@ const Payroll: React.FC = () => {
       {employeesError && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3 text-red-700 text-sm font-bold">
           <AlertCircle size={20} />
-          <span>Critical Schema Error: {employeesError.message || "Column missing in 'employees' table."}</span>
-          <p className="ml-auto text-xs font-medium">Try running the updated db.sql in Supabase.</p>
+          <span>Critical Schema Error: {employeesError.message}</span>
+          <p className="ml-auto text-xs font-medium">Please ensure 'monthly_deductions' column is present.</p>
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <StatItem label="Next Pay Day" value={nextPayDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} sub={`${daysUntilPay} days left`} icon={<Calendar size={20} className="text-blue-500" />} />
         <StatItem label="Monthly Liability" value={formatCurrency(stats.totalSalaries)} sub="Gross Pipeline" icon={<TrendingUp size={20} className="text-slate-400" />} />
-        <StatItem label="Authorized" value={`${stats.paidThisMonth} / ${employees?.length || 0}`} sub="Cycle Completion" icon={<CheckCircle2 size={20} className="text-emerald-500" />} />
-        <StatItem label="Staff Headcount" value={employees?.length || 0} sub="Active Payees" icon={<Users size={20} className="text-blue-500" />} />
+        <StatItem label="Cycle Authorizations" value={`${stats.paidThisMonth} / ${employees?.length || 0}`} sub="Cycle Completion" icon={<CheckCircle2 size={20} className="text-emerald-500" />} />
+        <StatItem label="Active Payees" value={employees?.length || 0} sub="Site Registry" icon={<Users size={20} className="text-blue-500" />} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -194,13 +232,13 @@ const Payroll: React.FC = () => {
           <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
             <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
               <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                <Users size={16} className="text-blue-500" /> Salary Registry
+                <Users size={16} className="text-blue-500" /> Professional Salary Registry
               </h3>
               <div className="relative">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input 
                   type="text" 
-                  placeholder="Filter by name..." 
+                  placeholder="Search staff..." 
                   className="pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs outline-none w-48 focus:ring-2 focus:ring-blue-500/20"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -212,38 +250,62 @@ const Payroll: React.FC = () => {
                 <thead className="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">
                   <tr>
                     <th className="px-6 py-4">Employee</th>
-                    <th className="px-6 py-4">Department</th>
                     <th className="px-6 py-4">Gross (₹)</th>
-                    <th className="px-6 py-4">Status</th>
-                    <th className="px-6 py-4 text-right">Action</th>
+                    <th className="px-6 py-4">Deductions (₹)</th>
+                    <th className="px-6 py-4">Net Payout (₹)</th>
+                    <th className="px-6 py-4 text-right">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-sm">
                   {loadingEmployees ? (
                     <tr><td colSpan={5} className="p-10 text-center"><Loader2 className="animate-spin mx-auto text-blue-600" /></td></tr>
                   ) : filteredStaff?.length === 0 ? (
-                    <tr><td colSpan={5} className="px-6 py-10 text-center text-slate-400 italic">No employees found in registry.</td></tr>
+                    <tr><td colSpan={5} className="px-6 py-10 text-center text-slate-400 italic">No payees found. Add staff to begin payroll engine.</td></tr>
                   ) : filteredStaff?.map((emp: any) => {
                     const isPaid = payrollHistory?.some(r => r.employee_id === emp.id && r.pay_month === currentPayMonth);
+                    const isEditing = editingDeductionId === emp.id;
+                    
                     return (
-                      <tr key={emp.id} className="hover:bg-slate-50/50 transition-colors">
+                      <tr key={emp.id} className="hover:bg-slate-50/50 transition-colors group">
                         <td className="px-6 py-4">
                           <div className="flex flex-col">
                             <span className="font-bold text-slate-900">{emp.full_name}</span>
                             <span className="text-[10px] font-mono text-slate-400 uppercase tracking-tighter">{emp.employee_id}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-slate-500 font-medium">{emp.department}</td>
                         <td className="px-6 py-4 font-bold text-slate-900">{formatCurrency(emp.gross_salary)}</td>
                         <td className="px-6 py-4">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${isPaid ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
-                            {isPaid ? 'Cycle Complete' : 'Awaiting Cycle'}
-                          </span>
+                          {isEditing ? (
+                            <div className="flex items-center gap-2">
+                              <input 
+                                type="number" 
+                                autoFocus
+                                className="w-24 p-1 border rounded text-xs font-bold focus:ring-2 focus:ring-blue-500/20"
+                                value={tempDeductionValue}
+                                onChange={(e) => setTempDeductionValue(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSaveDeduction(emp.id)}
+                              />
+                              <button onClick={() => handleSaveDeduction(emp.id)} className="p-1 text-emerald-600 hover:bg-emerald-50 rounded"><Save size={14}/></button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 group-hover:translate-x-1 transition-transform">
+                              <span className="text-red-600 font-bold">{formatCurrency(emp.monthly_deductions || 0)}</span>
+                              <button 
+                                onClick={() => { setEditingDeductionId(emp.id); setTempDeductionValue(emp.monthly_deductions?.toString() || '0'); }}
+                                className="p-1 text-slate-300 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <Edit2 size={12} />
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 font-black text-emerald-600">
+                          {formatCurrency((emp.gross_salary || 0) - (emp.monthly_deductions || 0))}
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
-                             <ChevronRight size={16} />
-                          </button>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${isPaid ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                            {isPaid ? 'Cycle Paid' : 'Pending'}
+                          </span>
                         </td>
                       </tr>
                     );
@@ -257,24 +319,24 @@ const Payroll: React.FC = () => {
         <div className="space-y-6">
           <div className="bg-slate-900 p-6 rounded-3xl shadow-xl border border-slate-800 relative overflow-hidden group">
             <div className="relative z-10">
-               <h3 className="text-white font-bold text-lg mb-1">Payment Queue</h3>
-               <p className="text-slate-400 text-xs mb-6 font-medium tracking-tight">System Forecast for {currentPayMonth}</p>
+               <h3 className="text-white font-bold text-lg mb-1">Cycle Forecasting</h3>
+               <p className="text-slate-400 text-xs mb-6 font-medium tracking-tight">Enterprise Projections for {currentPayMonth}</p>
                <div className="space-y-4">
                   <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-slate-500">
-                    <span>Liability</span>
+                    <span>Total Liability</span>
                     <span className="text-white">{formatCurrency(stats.totalSalaries)}</span>
                   </div>
                   <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-slate-500">
-                    <span>Est. Deductions</span>
-                    <span className="text-red-400">{formatCurrency(stats.totalSalaries * 0.12)}</span>
+                    <span>Active Deductions</span>
+                    <span className="text-red-400 font-black">{formatCurrency(stats.totalDeductions)}</span>
                   </div>
                   <div className="pt-4 border-t border-white/10 flex items-center gap-3">
                      <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400 border border-blue-500/20">
                         <Clock size={20} />
                      </div>
                      <div>
-                        <p className="text-[10px] text-slate-500 font-bold uppercase">Countdown</p>
-                        <p className="text-lg font-black text-white">{daysUntilPay} Days to Release</p>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">Scheduled Release</p>
+                        <p className="text-lg font-black text-white">{daysUntilPay} Days to Disbursement</p>
                      </div>
                   </div>
                </div>
@@ -283,8 +345,9 @@ const Payroll: React.FC = () => {
           </div>
 
           <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-             <div className="p-4 border-b border-slate-100 bg-slate-50/50">
-               <h3 className="font-bold text-slate-800 text-xs uppercase tracking-widest">Recent Registry Log</h3>
+             <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+               <h3 className="font-bold text-slate-800 text-xs uppercase tracking-widest">Disbursement Archive</h3>
+               <Clock size={14} className="text-slate-400" />
              </div>
              <div className="p-2 space-y-1 max-h-[350px] overflow-y-auto custom-scrollbar">
                 {payrollHistory?.slice(0, 8).map((record: any) => (
@@ -300,7 +363,7 @@ const Payroll: React.FC = () => {
                     </div>
                     <div className="text-right">
                        <p className="text-xs font-bold text-emerald-600">{formatCurrency(record.net_amount)}</p>
-                       <p className="text-[10px] font-bold text-slate-300 uppercase">PAID</p>
+                       <p className="text-[10px] font-bold text-slate-300 uppercase tracking-tighter">SUCCESS</p>
                     </div>
                   </div>
                 ))}
@@ -315,25 +378,43 @@ const Payroll: React.FC = () => {
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200">
               <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">Authorize Monthly Payouts</h3>
-                  <p className="text-xs text-slate-500 font-medium">Final approval for {currentPayMonth}</p>
+                  <h3 className="text-lg font-bold text-slate-900">Enterprise Payout Authorization</h3>
+                  <p className="text-xs text-slate-500 font-medium tracking-tight">Cycle Finalization for {currentPayMonth}</p>
                 </div>
                 <button onClick={() => setIsPayModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-100 rounded-full transition-all"><X size={20}/></button>
               </div>
               <div className="p-8 space-y-6">
-                <div className="p-5 bg-amber-50 border border-amber-200 rounded-2xl flex gap-4">
-                  <AlertCircle className="text-amber-600 shrink-0" size={24} />
+                <div className="p-5 bg-blue-50 border border-blue-200 rounded-2xl flex gap-4">
+                  <AlertCircle className="text-blue-600 shrink-0" size={24} />
                   <div>
-                    <p className="text-xs font-black text-amber-800 uppercase tracking-widest mb-1">Compliance Check</p>
-                    <p className="text-sm text-amber-700 leading-relaxed font-medium">This will authorize disbursements for <strong>{employees?.length || 0} employees</strong>.</p>
+                    <p className="text-xs font-black text-blue-800 uppercase tracking-widest mb-1">Individual Control Check</p>
+                    <p className="text-sm text-blue-700 leading-relaxed font-medium">Authorizing disbursements for <strong>{employees?.length || 0} employees</strong> using individual deduction overrides.</p>
                   </div>
                 </div>
+
+                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                  <div className="flex justify-between items-center mb-4 pb-4 border-b border-slate-200/50">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Net Disbursement</span>
+                    <span className="text-2xl font-black text-slate-900">{formatCurrency(stats.totalSalaries - stats.totalDeductions)}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Deductions Applied</p>
+                      <p className="text-sm font-bold text-red-600">{formatCurrency(stats.totalDeductions)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Approval Context</p>
+                      <p className="text-sm font-bold text-blue-600 uppercase">FY26-Q1-READY</p>
+                    </div>
+                  </div>
+                </div>
+
                 <button 
                   onClick={() => runPayroll.mutate()}
                   disabled={runPayroll.isPending || !employees || employees.length === 0}
                   className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-3 shadow-xl hover:bg-black disabled:bg-slate-300 transition-all"
                 >
-                  {runPayroll.isPending ? <Loader2 className="animate-spin" /> : <><CreditCard size={20} /> Confirm & Authorize Payout</>}
+                  {runPayroll.isPending ? <Loader2 className="animate-spin" /> : <><CreditCard size={20} /> Authorize Individualized Payouts</>}
                 </button>
               </div>
             </motion.div>
@@ -343,40 +424,46 @@ const Payroll: React.FC = () => {
         {isAddStaffOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200">
-              <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
                 <h3 className="text-lg font-bold text-slate-900">Add Staff Member</h3>
                 <button onClick={() => { setIsAddStaffOpen(false); setFormError(null); }} className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-50 rounded-full transition-all"><X size={20}/></button>
               </div>
               <form onSubmit={handleAddStaffSubmit} className="p-8 space-y-4">
                 {formError && (
-                  <div className="p-3 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 text-red-600 text-xs font-bold">
+                  <div className="p-3 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 text-red-600 text-xs font-bold animate-pulse">
                     <AlertTriangle size={16} /> {formError}
                   </div>
                 )}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Employee ID</label>
-                    <input required value={newStaff.employee_id} onChange={(e) => setNewStaff({...newStaff, employee_id: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm font-mono" placeholder="EMP-2026-X" />
+                    <input required value={newStaff.employee_id} onChange={(e) => setNewStaff({...newStaff, employee_id: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm font-mono tracking-tighter" placeholder="EMP-2026-X" />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Full Name</label>
                     <input required value={newStaff.full_name} onChange={(e) => setNewStaff({...newStaff, full_name: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm" placeholder="e.g. Rahul Sharma" />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Department</label>
-                    <select value={newStaff.department} onChange={(e) => setNewStaff({...newStaff, department: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm">
+                    <select value={newStaff.department} onChange={(e) => setNewStaff({...newStaff, department: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm font-bold">
                       <option>Operations</option><option>Finance</option><option>Engineering</option><option>Logistics</option>
                     </select>
                   </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 pt-2">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Gross Base (₹)</label>
-                    <input required type="number" value={newStaff.gross_salary} onChange={(e) => setNewStaff({...newStaff, gross_salary: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm font-bold" placeholder="50000" />
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-blue-600">Base Gross (₹)</label>
+                    <input required type="number" value={newStaff.gross_salary} onChange={(e) => setNewStaff({...newStaff, gross_salary: e.target.value})} className="w-full p-2.5 bg-blue-50/30 border border-blue-200 rounded-xl outline-none text-sm font-black" placeholder="50000" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-red-600">Deductions (₹)</label>
+                    <input required type="number" value={newStaff.monthly_deductions} onChange={(e) => setNewStaff({...newStaff, monthly_deductions: e.target.value})} className="w-full p-2.5 bg-red-50/30 border border-red-200 rounded-xl outline-none text-sm font-black text-red-600" placeholder="5000" />
                   </div>
                 </div>
-                <button disabled={addStaff.isPending} type="submit" className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all">
-                  {addStaff.isPending ? <Loader2 className="animate-spin" /> : 'Register for Payroll'}
+                <button disabled={addStaff.isPending} type="submit" className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all mt-4">
+                  {addStaff.isPending ? <Loader2 className="animate-spin" /> : 'Register with Custom Deductions'}
                 </button>
               </form>
             </motion.div>
