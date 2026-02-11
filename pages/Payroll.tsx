@@ -36,11 +36,14 @@ const Payroll: React.FC = () => {
   const daysUntilPay = Math.ceil((nextPayDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
   // 1. Fetch Employees
-  const { data: employees, isLoading: loadingEmployees } = useQuery({
+  const { data: employees, isLoading: loadingEmployees, error: employeesError } = useQuery({
     queryKey: ['employees'],
     queryFn: async () => {
       const { data, error } = await supabase.from('employees').select('*').eq('status', 'Active').order('full_name');
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase Error fetching employees:", error);
+        throw error;
+      }
       return data || [];
     }
   });
@@ -63,7 +66,10 @@ const Payroll: React.FC = () => {
   const addStaff = useMutation({
     mutationFn: async (staff: any) => {
       const { data, error } = await supabase.from('employees').insert([staff]).select();
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase Insertion Error:", error);
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
@@ -73,7 +79,7 @@ const Payroll: React.FC = () => {
       setFormError(null);
     },
     onError: (error: any) => {
-      setFormError(error.message || "Failed to register staff member.");
+      setFormError(error.message || "Failed to register staff member. Check if 'full_name' column exists in Supabase.");
     }
   });
 
@@ -87,6 +93,7 @@ const Payroll: React.FC = () => {
       return;
     }
 
+    // Explicitly mapping fields to ensure they match the db.sql schema
     addStaff.mutate({
       employee_id: newStaff.employee_id.trim(),
       full_name: newStaff.full_name.trim(),
@@ -105,7 +112,7 @@ const Payroll: React.FC = () => {
         employee_id: emp.id,
         pay_month: currentPayMonth,
         gross_amount: emp.gross_salary,
-        net_amount: emp.gross_salary * 0.88, // 12% statutory deductions (PF/PT/TDS)
+        net_amount: emp.gross_salary * 0.88, 
         status: 'Paid',
         payment_date: new Date().toISOString()
       }));
@@ -113,7 +120,6 @@ const Payroll: React.FC = () => {
       const { data, error } = await supabase.from('payroll_records').upsert(records, { onConflict: 'employee_id, pay_month' }).select();
       if (error) throw error;
 
-      // Automatically post to Finance Transactions
       const totalNet = records.reduce((sum, r) => sum + r.net_amount, 0);
       await supabase.from('finance_transactions').insert([{
         description: `Payroll Disbursement - ${currentPayMonth}`,
@@ -147,11 +153,10 @@ const Payroll: React.FC = () => {
 
   return (
     <div className="space-y-6 page-transition">
-      {/* Dynamic Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Enterprise Payroll Hub</h1>
-          <p className="text-slate-500 text-sm">Automated salary engine with statutory compliance for {currentPayMonth}.</p>
+          <p className="text-slate-500 text-sm">Automated salary engine for {currentPayMonth}.</p>
         </div>
         <div className="flex gap-2">
            <button 
@@ -169,7 +174,14 @@ const Payroll: React.FC = () => {
         </div>
       </div>
 
-      {/* Forecast & Liability Cards */}
+      {employeesError && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3 text-red-700 text-sm font-bold">
+          <AlertCircle size={20} />
+          <span>Critical Schema Error: {employeesError.message || "Column missing in 'employees' table."}</span>
+          <p className="ml-auto text-xs font-medium">Try running the updated db.sql in Supabase.</p>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <StatItem label="Next Pay Day" value={nextPayDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} sub={`${daysUntilPay} days left`} icon={<Calendar size={20} className="text-blue-500" />} />
         <StatItem label="Monthly Liability" value={formatCurrency(stats.totalSalaries)} sub="Gross Pipeline" icon={<TrendingUp size={20} className="text-slate-400" />} />
@@ -178,7 +190,6 @@ const Payroll: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left: Interactive Payee List */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
             <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
@@ -211,7 +222,7 @@ const Payroll: React.FC = () => {
                   {loadingEmployees ? (
                     <tr><td colSpan={5} className="p-10 text-center"><Loader2 className="animate-spin mx-auto text-blue-600" /></td></tr>
                   ) : filteredStaff?.length === 0 ? (
-                    <tr><td colSpan={5} className="px-6 py-10 text-center text-slate-400 italic">No employees found. Register staff to begin.</td></tr>
+                    <tr><td colSpan={5} className="px-6 py-10 text-center text-slate-400 italic">No employees found in registry.</td></tr>
                   ) : filteredStaff?.map((emp: any) => {
                     const isPaid = payrollHistory?.some(r => r.employee_id === emp.id && r.pay_month === currentPayMonth);
                     return (
@@ -243,13 +254,11 @@ const Payroll: React.FC = () => {
           </div>
         </div>
 
-        {/* Right: Disbursement Timeline */}
         <div className="space-y-6">
           <div className="bg-slate-900 p-6 rounded-3xl shadow-xl border border-slate-800 relative overflow-hidden group">
             <div className="relative z-10">
                <h3 className="text-white font-bold text-lg mb-1">Payment Queue</h3>
                <p className="text-slate-400 text-xs mb-6 font-medium tracking-tight">System Forecast for {currentPayMonth}</p>
-               
                <div className="space-y-4">
                   <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-slate-500">
                     <span>Liability</span>
@@ -300,11 +309,10 @@ const Payroll: React.FC = () => {
         </div>
       </div>
 
-      {/* Modals */}
       <AnimatePresence>
         {isPayModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white rounded-3xl shadow-2xl w-full max-lg overflow-hidden border border-slate-200">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200">
               <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
                 <div>
                   <h3 className="text-lg font-bold text-slate-900">Authorize Monthly Payouts</h3>
@@ -317,27 +325,9 @@ const Payroll: React.FC = () => {
                   <AlertCircle className="text-amber-600 shrink-0" size={24} />
                   <div>
                     <p className="text-xs font-black text-amber-800 uppercase tracking-widest mb-1">Compliance Check</p>
-                    <p className="text-sm text-amber-700 leading-relaxed font-medium">This will authorize disbursements for <strong>{employees?.length || 0} employees</strong>. This record is permanent and will post to the General Ledger.</p>
+                    <p className="text-sm text-amber-700 leading-relaxed font-medium">This will authorize disbursements for <strong>{employees?.length || 0} employees</strong>.</p>
                   </div>
                 </div>
-
-                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                  <div className="flex justify-between items-center mb-4 pb-4 border-b border-slate-200/50">
-                    <span className="text-xs font-bold text-slate-400 uppercase">Estimated Net Payout</span>
-                    <span className="text-2xl font-black text-slate-900">{formatCurrency(stats.totalSalaries * 0.88)}</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase">Cycle ID</p>
-                      <p className="text-sm font-mono text-slate-900 font-bold">PY-2026-{(today.getMonth()+1).toString().padStart(2, '0')}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase">Authorizer Role</p>
-                      <p className="text-sm font-bold text-blue-600 uppercase">Director-Auth</p>
-                    </div>
-                  </div>
-                </div>
-
                 <button 
                   onClick={() => runPayroll.mutate()}
                   disabled={runPayroll.isPending || !employees || employees.length === 0}
