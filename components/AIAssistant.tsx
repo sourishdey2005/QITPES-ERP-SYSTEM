@@ -1,5 +1,7 @@
+
 import React, { useState } from 'react';
-import { GoogleGenAI } from "@google/genai";
+// Fix: Use correct import style for GoogleGenAI
+import {GoogleGenAI} from "@google/genai";
 import { Sparkles, Send, X, Bot, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -17,7 +19,8 @@ const AIAssistant: React.FC = () => {
     setResponse(null);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+      // Fix: Initialize GoogleGenAI strictly with process.env.API_KEY as a named parameter
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const model = 'gemini-3-flash-preview';
       
       const prompt = `You are the QITPES ERP Intelligence Assistant.
@@ -33,6 +36,7 @@ const AIAssistant: React.FC = () => {
         contents: prompt,
       });
 
+      // Fix: Access response text as a property, not a method
       setResponse(result.text || "I'm sorry, I couldn't process that request.");
     } catch (error) {
       console.error('AI Assistant Error:', error);

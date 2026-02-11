@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Shield, Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
+import { Shield, Lock, Mail, ArrowRight, AlertCircle, Clock } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { motion } from 'framer-motion';
@@ -9,7 +9,7 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ message: string; type: 'standard' | 'rate-limit' | 'unconfirmed' } | null>(null);
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -26,12 +26,18 @@ const Login: React.FC = () => {
       if (authError) throw authError;
       navigate('/');
     } catch (err: any) {
-      // Specifically handle the confirmation error
-      if (err.message?.toLowerCase().includes('email not confirmed')) {
-        setError('Your email is not confirmed. Please check your inbox for the verification link.');
-      } else {
-        setError(err.message || 'Login failed. Please check your credentials.');
-      }
+      console.error('Login Error:', err);
+      const isRateLimit = err.message?.toLowerCase().includes('rate limit');
+      const isUnconfirmed = err.message?.toLowerCase().includes('email not confirmed');
+      
+      setError({
+        message: isRateLimit 
+          ? 'System Protection: Login rate limit exceeded. Please try again in a few minutes.'
+          : isUnconfirmed
+          ? 'Your email is not confirmed. Please check your inbox for the verification link.'
+          : err.message || 'Login failed. Please check your credentials.',
+        type: isRateLimit ? 'rate-limit' : isUnconfirmed ? 'unconfirmed' : 'standard'
+      });
     } finally {
       setLoading(false);
     }
@@ -97,13 +103,15 @@ const Login: React.FC = () => {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   className={`p-3 text-xs rounded-lg border font-medium flex items-start gap-3 ${
-                    error.includes('not confirmed') 
-                    ? 'bg-amber-50 text-amber-700 border-amber-100' 
+                    error.type === 'rate-limit' 
+                    ? 'bg-amber-50 text-amber-700 border-amber-200' 
+                    : error.type === 'unconfirmed'
+                    ? 'bg-amber-50 text-amber-700 border-amber-100'
                     : 'bg-red-50 text-red-600 border-red-100'
                   }`}
                 >
-                  <AlertCircle size={16} className="shrink-0 mt-0.5" />
-                  <span>{error}</span>
+                  {error.type === 'rate-limit' ? <Clock size={16} className="shrink-0 mt-0.5" /> : <AlertCircle size={16} className="shrink-0 mt-0.5" />}
+                  <span>{error.message}</span>
                 </motion.div>
               )}
               

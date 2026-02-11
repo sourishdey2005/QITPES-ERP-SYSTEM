@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, createContext, useContext } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
@@ -10,6 +11,23 @@ import Inventory from './pages/Inventory';
 import Finance from './pages/Finance';
 import HR from './pages/HR';
 import WorkflowBuilder from './pages/WorkflowBuilder';
+
+// New Enterprise Modules
+import Planning from './pages/Planning';
+import Purchasing from './pages/Purchasing';
+import Production from './pages/Production';
+import GeneralLedger from './pages/GeneralLedger';
+import CostCenters from './pages/CostCenters';
+import TaxEngine from './pages/TaxEngine';
+import OKR from './pages/OKR';
+import Payroll from './pages/Payroll';
+import Machinery from './pages/Machinery';
+import Fleet from './pages/Fleet';
+import BIAnalytics from './pages/BIAnalytics';
+import AIStrategy from './pages/AIStrategy';
+import Settings from './pages/Settings';
+import AuditLogs from './pages/AuditLogs';
+
 import { UserRole } from './types';
 
 interface AuthContextType {
@@ -35,7 +53,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; roles?: UserRole[] }
     <div className="flex h-screen items-center justify-center bg-slate-50">
       <div className="flex flex-col items-center">
         <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-slate-500 font-medium">Securing Enterprise Session...</p>
+        <p className="text-slate-500 font-medium tracking-tight">Securing QITPES Session...</p>
       </div>
     </div>
   );
@@ -103,16 +121,42 @@ const App: React.FC = () => {
           </ProtectedRoute>
         }>
           <Route path="/" element={<Dashboard />} />
+          
+          {/* Operations Group */}
           <Route path="/projects" element={<Projects />} />
+          <Route path="/planning" element={<Planning />} />
+          <Route path="/purchasing" element={<Purchasing />} />
+          <Route path="/production" element={<Production />} />
           <Route path="/inventory" element={<Inventory />} />
+
+          {/* Finance Group */}
+          <Route path="/ledger" element={<GeneralLedger />} />
+          <Route path="/cost-centers" element={<CostCenters />} />
+          <Route path="/tax" element={<TaxEngine />} />
           <Route path="/accounts" element={<Finance />} />
+
+          {/* HR Group */}
           <Route path="/hr" element={<HR />} />
+          <Route path="/okr" element={<OKR />} />
+          <Route path="/payroll" element={<Payroll />} />
+
+          {/* Assets Group */}
+          <Route path="/machinery" element={<Machinery />} />
+          <Route path="/fleet" element={<Fleet />} />
+
+          {/* Analytics Group */}
+          <Route path="/bi" element={<BIAnalytics />} />
+          <Route path="/ai" element={<AIStrategy />} />
+          
+          {/* Admin Group */}
           <Route path="/workflows" element={<WorkflowBuilder />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/audit" element={<AuditLogs />} />
           
           <Route path="*" element={
-            <div className="p-8">
-              <h1 className="text-2xl font-bold text-slate-800">Module Under Construction</h1>
-              <p className="text-slate-500 mt-2">This enterprise module is part of the QITPES ERP 2026 roadmap.</p>
+            <div className="p-8 text-center py-20">
+              <h1 className="text-2xl font-bold text-slate-800">404 - Module Not Found</h1>
+              <p className="text-slate-500 mt-2">The requested enterprise node is not registered in the 2026 registry.</p>
             </div>
           } />
         </Route>

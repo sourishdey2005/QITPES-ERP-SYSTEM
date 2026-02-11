@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Shield, Lock, Mail, User, ArrowRight, Briefcase, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Shield, Lock, Mail, User, ArrowRight, Briefcase, CheckCircle2, AlertCircle, Clock, Settings } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { UserRole } from '../types';
@@ -14,7 +14,7 @@ const Register: React.FC = () => {
     role: 'accounting' as UserRole
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ message: string; type: 'standard' | 'rate-limit' | 'disabled' } | null>(null);
   const [isRegistered, setIsRegistered] = useState(false);
   const navigate = useNavigate();
 
@@ -24,7 +24,6 @@ const Register: React.FC = () => {
     setError(null);
 
     try {
-      // The keys 'full_name' and 'role' must be exact for the SQL trigger
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -43,7 +42,20 @@ const Register: React.FC = () => {
       }
     } catch (err: any) {
       console.error('Registration Error:', err);
-      setError(err.message || 'Registration failed. Check if your SQL trigger is set correctly in Supabase.');
+      
+      const msg = err.message?.toLowerCase() || '';
+      let errorType: 'standard' | 'rate-limit' | 'disabled' = 'standard';
+      let errorMessage = err.message || 'Registration failed.';
+
+      if (msg.includes('rate limit')) {
+        errorType = 'rate-limit';
+        errorMessage = 'Security Limit: Too many attempts. Please wait 15 minutes.';
+      } else if (msg.includes('disabled') || msg.includes('signups_disabled')) {
+        errorType = 'disabled';
+        errorMessage = 'System Configuration: Signups are disabled in Supabase. Go to Auth > Providers > Email and enable "Allow new users to sign up".';
+      }
+
+      setError({ message: errorMessage, type: errorType });
     } finally {
       setLoading(false);
     }
@@ -111,19 +123,29 @@ const Register: React.FC = () => {
                 className="max-w-sm mx-auto w-full"
               >
                 <h2 className="text-2xl font-bold text-slate-900">Create Account</h2>
-                <p className="text-slate-500 mt-2">Get started with your ERP access credentials.</p>
+                <p className="text-slate-500 mt-2 text-sm">Register your credentials for the ERP portal.</p>
 
                 <form className="mt-8 space-y-4" onSubmit={handleRegister}>
                   {error && (
                     <motion.div 
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="p-4 bg-red-50 text-red-700 text-xs rounded-lg border border-red-100 font-medium flex gap-3"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className={`p-4 rounded-lg border font-medium flex gap-3 ${
+                        error.type === 'disabled' 
+                          ? 'bg-blue-50 text-blue-800 border-blue-200' 
+                          : error.type === 'rate-limit'
+                          ? 'bg-amber-50 text-amber-700 border-amber-200'
+                          : 'bg-red-50 text-red-700 border-red-100'
+                      }`}
                     >
-                      <AlertCircle size={16} className="shrink-0" />
-                      <div>
-                        <p className="font-bold">Database Error</p>
-                        <p className="mt-1 opacity-80">{error}</p>
+                      <div className="shrink-0 mt-0.5">
+                        {error.type === 'disabled' ? <Settings size={16} /> : <AlertCircle size={16} />}
+                      </div>
+                      <div className="text-xs">
+                        <p className="font-bold">
+                          {error.type === 'disabled' ? 'Admin Action Required' : 'Registration Error'}
+                        </p>
+                        <p className="mt-1 opacity-90 leading-relaxed">{error.message}</p>
                       </div>
                     </motion.div>
                   )}
@@ -204,7 +226,7 @@ const Register: React.FC = () => {
                     whileTap={{ scale: 0.98 }}
                     type="submit"
                     disabled={loading}
-                    className="w-full flex items-center justify-center py-3 px-4 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 disabled:bg-slate-400 transition-all shadow-lg shadow-blue-500/20"
+                    className="w-full flex items-center justify-center py-3 px-4 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 disabled:bg-slate-400 transition-all shadow-lg shadow-blue-500/20 mt-4"
                   >
                     {loading ? 'Initializing...' : 'Initialize Account'} <ArrowRight size={18} className="ml-2" />
                   </motion.button>
