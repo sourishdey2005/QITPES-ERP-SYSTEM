@@ -1,6 +1,6 @@
 
 -- QITPES ERP SYSTEM - ENTERPRISE BI SCHEMA (30-KPI OPTIMIZED)
--- VERSION: 2026.10 (Ultimate Analytics Edition)
+-- VERSION: 2026.11 (Analytics Pro Edition)
 
 -- 1. CORE IDENTITY
 CREATE TABLE IF NOT EXISTS profiles (
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
--- 2. PROJECTS (Client, Budget & Overrun tracking)
+-- 2. PROJECTS (Extended for Budget Analysis)
 CREATE TABLE IF NOT EXISTS projects (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS projects (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
--- 3. FINANCE (Double-entry, Aging, and Cost Centers)
+-- 3. FINANCE (With Cost Center and Variable Cost tracking)
 CREATE TABLE IF NOT EXISTS finance_transactions (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   description TEXT NOT NULL,
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS finance_transactions (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
--- 4. INVENTORY (Stock Management & Turnover)
+-- 4. INVENTORY (Detailed Stock Movements)
 CREATE TABLE IF NOT EXISTS inventory (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   sku TEXT UNIQUE NOT NULL,
@@ -57,10 +57,11 @@ CREATE TABLE IF NOT EXISTS inventory (
   reorder_level NUMERIC(12, 2) DEFAULT 100,
   unit_price NUMERIC(12, 2) DEFAULT 0,
   cogs NUMERIC(15, 2) DEFAULT 0,
+  avg_inventory_val NUMERIC(15, 2) DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
--- 5. ASSETS (Machinery, Fleet & Maintenance)
+-- 5. ASSETS (Telemetry & Efficiency)
 CREATE TABLE IF NOT EXISTS assets (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
@@ -77,7 +78,7 @@ CREATE TABLE IF NOT EXISTS assets (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
--- 6. HR (Payroll & Productivity)
+-- 6. HR (Productivity & Attendance)
 CREATE TABLE IF NOT EXISTS employees (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   employee_id TEXT UNIQUE NOT NULL,

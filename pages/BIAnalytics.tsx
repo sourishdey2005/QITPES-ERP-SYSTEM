@@ -44,7 +44,7 @@ const BIAnalytics: React.FC = () => {
     }
   });
 
-  // --- KPI ENGINE (10 OVERALL ENTERPRISE CARDS) ---
+  // --- 10 STRATEGIC KPI CARDS ---
   const enterpriseKPIs = useMemo(() => {
     if (!db) return [];
     
@@ -54,118 +54,127 @@ const BIAnalytics: React.FC = () => {
     const activeProjects = db.proj?.filter(p => p.status === 'Active').length || 0;
     const staffCount = db.emp?.length || 0;
     const payroll = db.emp?.reduce((s, e) => s + Number(e.gross_salary), 0) || 0;
-    const avgAttendance = db.emp?.reduce((s, e) => s + Number(e.attendance_rate), 0) / (staffCount || 1);
-    const downtime = db.asset?.reduce((s, a) => s + Number(a.downtime_hours), 0) || 0;
-    const budgetBurn = db.proj?.reduce((s, p) => s + (p.estimated_cost / (p.budget || 1)), 0) / (db.proj?.length || 1) * 100;
+    const avgAttendance = (db.emp?.reduce((s, e) => s + Number(e.attendance_rate || 0), 0) || 0) / (staffCount || 1);
+    const downtime = db.asset?.reduce((s, a) => s + Number(a.downtime_hours || 0), 0) || 0;
+    const budgetBurn = (db.proj?.reduce((s, p) => s + (Number(p.estimated_cost || 0) / (Number(p.budget || 1))), 0) || 0) / (db.proj?.length || 1) * 100;
     const currentRatio = rev / (exp || 1);
 
     return [
-      { id: 1, label: 'Annual Revenue', value: formatCurrency(rev), trend: '+12%', icon: <IndianRupee />, color: 'blue' },
-      { id: 2, label: 'Total Expenditure', value: formatCurrency(exp), trend: '-4%', icon: <CreditCard />, color: 'rose' },
-      { id: 3, label: 'Inventory Net Value', value: formatCurrency(invVal), trend: '+8%', icon: <Box />, color: 'emerald' },
-      { id: 4, label: 'Active Deployments', value: activeProjects, trend: 'Stable', icon: <Flag />, color: 'amber' },
-      { id: 5, label: 'Workforce Registry', value: staffCount, trend: '+2', icon: <Users />, color: 'indigo' },
-      { id: 6, label: 'Monthly Payroll', value: formatCurrency(payroll), trend: '+5%', icon: <Landmark />, color: 'slate' },
-      { id: 7, label: 'Ops Efficiency', value: `${budgetBurn.toFixed(1)}%`, trend: 'Target: 85%', icon: <Activity />, color: 'cyan' },
-      { id: 8, label: 'Asset Downtime', value: `${downtime}h`, trend: 'Critical', icon: <Clock />, color: 'orange' },
-      { id: 9, label: 'Liquidity Index', value: `${currentRatio.toFixed(2)}x`, trend: 'Healthy', icon: <Scale />, color: 'teal' },
-      { id: 10, label: 'Staff Attendance', value: `${avgAttendance.toFixed(1)}%`, trend: '-0.4%', icon: <CheckCircle2 />, color: 'violet' }
+      { id: 1, label: 'Annual Revenue', value: formatCurrency(rev), trend: '+12.4%', icon: <IndianRupee />, color: 'blue' },
+      { id: 2, label: 'Current Expenditure', value: formatCurrency(exp), trend: '-2.1%', icon: <CreditCard />, color: 'rose' },
+      { id: 3, label: 'Store Net Valuation', value: formatCurrency(invVal), trend: '+5.8%', icon: <Box />, color: 'emerald' },
+      { id: 4, label: 'Active Deployments', value: activeProjects, trend: 'Optimal', icon: <Flag />, color: 'amber' },
+      { id: 5, label: 'Workforce registry', value: staffCount, trend: '+4 Nodes', icon: <Users />, color: 'indigo' },
+      { id: 6, label: 'Monthly Payroll', value: formatCurrency(payroll), trend: 'FY26 Valid', icon: <Landmark />, color: 'slate' },
+      { id: 7, label: 'Site Efficiency', value: `${budgetBurn.toFixed(1)}%`, trend: 'Target: 80%', icon: <Activity />, color: 'cyan' },
+      { id: 8, label: 'Fleet Downtime', value: `${downtime}h`, trend: 'Critical Level', icon: <Clock />, color: 'orange' },
+      { id: 9, label: 'Liquidity Ratio', value: `${currentRatio.toFixed(2)}x`, trend: 'Healthy', icon: <Scale />, color: 'teal' },
+      { id: 10, label: 'Avg Attendance', value: `${avgAttendance.toFixed(1)}%`, trend: '-0.2%', icon: <CheckCircle2 />, color: 'violet' }
     ];
   }, [db]);
 
-  // --- 1. FINANCIAL MODULE CALCULATIONS ---
+  // --- TAB MODULE 1: FINANCE (6 VISUALS) ---
   const financeBI = useMemo(() => {
-    if (!db?.trans) return { monthly: [], expenseByCat: [], aging: [], ratios: [], breakEven: [] };
+    if (!db?.trans) return { monthly: [], expenses: [], aging: [], cash: [], client: [], margin: [] };
     
-    // Revenue & Expense Trend
     const monthlyAgg = db.trans.reduce((acc: any, t: any) => {
       const m = new Date(t.transaction_date).toLocaleString('default', { month: 'short' });
-      if (!acc[m]) acc[m] = { month: m, rev: 0, exp: 0, profit: 0, margin: 0, cashIn: 0, cashOut: 0 };
-      if (t.type === 'income') {
-        acc[m].rev += Number(t.amount);
-        acc[m].cashIn += Number(t.amount);
-      } else {
-        acc[m].exp += Number(t.amount);
-        acc[m].cashOut += Number(t.amount);
-      }
-      acc[m].profit = acc[m].rev - acc[m].exp;
-      acc[m].margin = acc[m].rev > 0 ? (acc[m].profit / acc[m].rev) * 100 : 0;
+      if (!acc[m]) acc[m] = { month: m, rev: 0, exp: 0, cashIn: 0, cashOut: 0, margin: 0 };
+      if (t.type === 'income') { acc[m].rev += Number(t.amount); acc[m].cashIn += Number(t.amount); }
+      else { acc[m].exp += Number(t.amount); acc[m].cashOut += Number(t.amount); }
+      acc[m].margin = acc[m].rev > 0 ? ((acc[m].rev - acc[m].exp) / acc[m].rev) * 100 : 0;
       return acc;
     }, {});
 
-    // AR Aging
-    const aging = { '0-30': 0, '31-60': 0, '60-90': 0, '90+': 0 };
+    const catAgg = db.trans.filter(t => t.type === 'expense').reduce((acc: any, t) => {
+      acc[t.category] = (acc[t.category] || 0) + Number(t.amount);
+      return acc;
+    }, {});
+
+    const aging = { '0-30': 0, '31-60': 0, '61-90': 0, '90+': 0 };
     db.trans.filter(t => !t.is_paid).forEach(t => {
       const days = Math.floor((Date.now() - new Date(t.due_date).getTime()) / 86400000);
       if (days <= 30) aging['0-30'] += Number(t.amount);
       else if (days <= 60) aging['31-60'] += Number(t.amount);
-      else if (days <= 90) aging['60-90'] += Number(t.amount);
+      else if (days <= 90) aging['61-90'] += Number(t.amount);
       else aging['90+'] += Number(t.amount);
     });
 
-    // Client Breakdown
-    const clientRev = db.proj?.map(p => ({
+    const clientData = db.proj?.map(p => ({
       name: p.client_name || p.name,
       value: db.trans?.filter(t => t.client_id === p.id && t.type === 'income').reduce((s, t) => s + Number(t.amount), 0) || 0
     })) || [];
 
     return {
       monthly: Object.values(monthlyAgg),
+      expenses: Object.entries(catAgg).map(([name, value]) => ({ name, value })),
       aging: Object.entries(aging).map(([name, value]) => ({ name, value })),
-      clientRev
+      clientRev: clientData.slice(0, 10)
     };
   }, [db]);
 
-  // --- 2. OPS & INVENTORY CALCULATIONS ---
+  // --- TAB MODULE 2: OPERATIONS (6 VISUALS) ---
   const opsBI = useMemo(() => {
-    if (!db) return { invStatus: [], projectOverrun: [], turnover: [] };
+    if (!db) return { stock: [], completion: [], contract: [], overrun: [], turnover: [] };
     
-    const invStatus = db.inv?.map(i => ({
+    const stock = db.inv?.map(i => ({
       name: i.name,
       stock: i.stock_level,
       reorder: i.reorder_level,
-      turnover: i.stock_level > 0 ? (i.cogs / i.stock_level) : 0,
       isLow: i.stock_level < i.reorder_level
     })) || [];
 
-    const projectOverrun = db.proj?.map(p => ({
+    const projectAnalysis = db.proj?.map(p => ({
       name: p.name,
-      overrun: p.budget > 0 ? ((p.estimated_cost - p.budget) / p.budget) * 100 : 0,
       completion: p.completion_percentage,
-      contract: p.contract_value,
+      overrun: p.budget > 0 ? ((p.estimated_cost - p.budget) / p.budget) * 100 : 0,
       paid: p.paid_amount,
       pending: p.contract_value - p.paid_amount
     })) || [];
 
-    return { invStatus, projectOverrun };
+    const turnover = db.inv?.map(i => ({
+      name: i.name,
+      ratio: i.stock_level > 0 ? (i.cogs / i.stock_level) : 0
+    })) || [];
+
+    return { stock, projectAnalysis, turnover };
   }, [db]);
 
-  // --- 3. HR MODULE CALCULATIONS ---
-  // Fix: Defining missing 'hrc' variable for HR analytics
-  const hrc = useMemo(() => {
-    if (!db?.emp) return { payroll: [], attendance: [], productivity: [] };
+  // --- TAB MODULE 3: ASSETS (6 VISUALS) ---
+  const assetBI = useMemo(() => {
+    if (!db?.asset) return { downtime: [], maintenance: [], fuel: [], efficiency: [], value: [] };
     
-    const deptAgg = db.emp.reduce((acc: any, e: any) => {
-      const dept = e.department || 'Operations';
-      if (!acc[dept]) acc[dept] = { name: dept, value: 0 };
-      acc[dept].value += Number(e.gross_salary || 0);
+    return {
+      stats: db.asset.map(a => ({
+        name: a.name,
+        downtime: a.downtime_hours,
+        maint: a.maintenance_cost,
+        fuel: a.fuel_used > 0 ? a.distance_traveled / a.fuel_used : 0,
+        eff: a.planned_output > 0 ? (a.actual_output / a.planned_output) * 100 : 0,
+        value: a.purchase_cost * Math.pow(0.85, 1) // 15% depreciation
+      }))
+    };
+  }, [db]);
+
+  // --- TAB MODULE 4: HR (6 VISUALS) ---
+  const hrBI = useMemo(() => {
+    if (!db?.emp) return { payroll: [], attendance: [], productivity: [], dept: [] };
+    
+    const deptPay = db.emp.reduce((acc: any, e) => {
+      acc[e.department] = (acc[e.department] || 0) + Number(e.gross_salary);
       return acc;
     }, {});
 
-    const attendance = db.emp.map(e => ({
-      name: e.full_name,
-      rate: Number(e.attendance_rate || Math.floor(Math.random() * 10) + 90)
-    }));
-
-    const productivity = db.emp.map(e => ({
-      name: e.full_name,
-      prod: Math.floor(Math.random() * 40) + 60
-    }));
+    const deptCount = db.emp.reduce((acc: any, e) => {
+      acc[e.department] = (acc[e.department] || 0) + 1;
+      return acc;
+    }, {});
 
     return {
-      payroll: Object.values(deptAgg),
-      attendance,
-      productivity
+      payroll: Object.entries(deptPay).map(([name, value]) => ({ name, value })),
+      attendance: db.emp.map(e => ({ name: e.full_name, val: e.attendance_rate })),
+      productivity: db.emp.map(e => ({ name: e.full_name, val: e.labour_hours > 0 ? e.output_units / e.labour_hours : 0 })),
+      deptDist: Object.entries(deptCount).map(([name, value]) => ({ name, value }))
     };
   }, [db]);
 
@@ -173,30 +182,30 @@ const BIAnalytics: React.FC = () => {
     <div className="flex h-[80vh] items-center justify-center">
       <div className="text-center">
         <Loader2 className="w-16 h-16 text-blue-600 animate-spin mx-auto mb-6" />
-        <h2 className="text-xl font-black text-slate-800 tracking-tighter uppercase">Initializing Strategic Warp Drive...</h2>
-        <p className="text-slate-400 font-bold mt-2">Compiling 30 logic streams and real-time site telemetry.</p>
+        <h2 className="text-2xl font-black text-slate-800 tracking-tighter uppercase">Compiling Real-time site telemetry...</h2>
+        <p className="text-slate-400 font-bold mt-2">Initializing 30+ Enterprise BI streams for QITPES 2026.</p>
       </div>
     </div>
   );
 
   return (
     <div className="space-y-10 page-transition pb-20">
-      {/* 1. ENTERPRISE HEADER */}
+      {/* ENTERPRISE WAR ROOM HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
         <div>
           <div className="flex items-center gap-3 text-blue-600 mb-2">
             <Zap size={20} fill="currentColor" />
-            <span className="text-xs font-black uppercase tracking-[0.2em]">Live Intelligence Layer</span>
+            <span className="text-xs font-black uppercase tracking-[0.2em]">Live Intelligence Engine</span>
           </div>
           <h1 className="text-4xl font-black text-slate-900 tracking-tight">Enterprise War Room 2026</h1>
-          <p className="text-slate-500 font-medium mt-1">Unified site-telemetry, fiscal auditing, and predictive forecasting.</p>
+          <p className="text-slate-500 font-medium mt-1">Unified site-telemetry, fiscal auditing, and predictive forecasting across India.</p>
         </div>
-        <div className="flex flex-wrap bg-white p-1.5 rounded-3xl border border-slate-200 shadow-xl">
+        <div className="flex flex-wrap bg-white p-2 rounded-[32px] border border-slate-200 shadow-2xl">
           {(['finance', 'ops', 'assets', 'hr', 'strategic'] as const).map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
             >
               {tab}
             </button>
@@ -204,22 +213,21 @@ const BIAnalytics: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. OVERALL ENTERPRISE KPIs (10 CARDS) */}
+      {/* 10 TOP-LEVEL STRATEGIC KPI CARDS */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
         {enterpriseKPIs.map((kpi, idx) => (
           <motion.div 
             key={kpi.id} 
-            initial={{ opacity: 0, y: 10 }} 
+            initial={{ opacity: 0, y: 15 }} 
             animate={{ opacity: 1, y: 0 }} 
-            transition={{ delay: idx * 0.05 }}
-            className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all group"
+            transition={{ delay: idx * 0.04 }}
+            className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-2xl transition-all group border-b-4 hover:border-b-blue-500"
           >
-            {/* Fix: Cast icon to any to avoid type mismatch in React.cloneElement */}
-            <div className={`p-2.5 w-fit rounded-xl bg-${kpi.color}-50 text-${kpi.color}-600 mb-4 group-hover:bg-slate-900 group-hover:text-white transition-colors`}>
-              {React.cloneElement(kpi.icon as any, { size: 20 })}
+            <div className={`p-3 w-fit rounded-2xl bg-${kpi.color}-50 text-${kpi.color}-600 mb-4 group-hover:bg-slate-900 group-hover:text-white transition-colors`}>
+              {React.cloneElement(kpi.icon as any, { size: 24 })}
             </div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{kpi.label}</p>
-            <h3 className="text-xl font-black text-slate-900 leading-tight">{kpi.value}</h3>
+            <h3 className="text-xl font-black text-slate-900 leading-tight tracking-tight">{kpi.value}</h3>
             <span className={`text-[10px] font-bold mt-2 block ${kpi.trend.startsWith('+') ? 'text-emerald-500' : kpi.trend === 'Critical' ? 'text-rose-500' : 'text-slate-400'}`}>
               {kpi.trend}
             </span>
@@ -227,7 +235,6 @@ const BIAnalytics: React.FC = () => {
         ))}
       </div>
 
-      {/* 3. CORE ANALYTICS ENGINE */}
       <AnimatePresence mode="wait">
         <motion.div 
           key={activeTab} 
@@ -238,78 +245,72 @@ const BIAnalytics: React.FC = () => {
         >
           {activeTab === 'finance' && (
             <>
-              {/* V1: Revenue Trend Analysis */}
-              <ChartCard title="Monthly Revenue Velocity" icon={<TrendingUp />}>
+              <ChartCard title="Revenue Growth Velocity" icon={<TrendingUp />}>
                 <ResponsiveContainer width="100%" height={280}>
                   <LineChart data={financeBI.monthly}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="month" axisLine={false} tickLine={false} style={{fontSize: '10px'}} />
-                    <YAxis axisLine={false} tickLine={false} style={{fontSize: '10px'}} />
+                    <XAxis dataKey="month" style={{fontSize: '10px'}} axisLine={false} tickLine={false} />
+                    <YAxis style={{fontSize: '10px'}} axisLine={false} tickLine={false} />
                     <Tooltip contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'}} />
-                    <Line type="monotone" dataKey="rev" stroke="#3b82f6" strokeWidth={5} dot={{r: 4}} name="Inflow" />
+                    <Line type="monotone" dataKey="rev" stroke="#3b82f6" strokeWidth={5} strokeDasharray="5 5" name="Income (₹)" />
                   </LineChart>
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V2: Expense Distribution */}
-              <ChartCard title="Cost Concentration" icon={<PieIcon />}>
+              <ChartCard title="Expense Category Density" icon={<PieIcon />}>
                 <ResponsiveContainer width="100%" height={280}>
                   <PieChart>
-                    <Pie data={financeBI.monthly} innerRadius={60} outerRadius={90} paddingAngle={8} dataKey="exp">
-                      {financeBI.monthly.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                    <Pie data={financeBI.expenses} innerRadius={60} outerRadius={90} paddingAngle={8} dataKey="value">
+                      {financeBI.expenses.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                     </Pie>
                     <Tooltip />
-                    <Legend iconType="circle" wrapperStyle={{fontSize: '10px', paddingTop: '20px'}} />
+                    <Legend iconType="circle" wrapperStyle={{fontSize: '10px', paddingTop: '10px'}} />
                   </PieChart>
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V3: Cash Flow Health */}
-              <ChartCard title="Liquidity Balance (Cash In/Out)" icon={<IndianRupee />}>
+              <ChartCard title="Cash Flow Integrity" icon={<IndianRupee />}>
                 <ResponsiveContainer width="100%" height={280}>
                   <AreaChart data={financeBI.monthly}>
                     <XAxis dataKey="month" style={{fontSize: '10px'}} />
                     <YAxis style={{fontSize: '10px'}} />
                     <Tooltip />
-                    <Area type="monotone" dataKey="cashIn" stroke="#10b981" fill="#10b981" fillOpacity={0.1} name="Inflow" />
-                    <Area type="monotone" dataKey="cashOut" stroke="#f43f5e" fill="#f43f5e" fillOpacity={0.1} name="Outflow" />
+                    <Area type="monotone" dataKey="cashIn" stroke="#10b981" fill="#10b981" fillOpacity={0.1} name="Cash In" />
+                    <Area type="monotone" dataKey="cashOut" stroke="#f43f5e" fill="#f43f5e" fillOpacity={0.1} name="Cash Out" />
                   </AreaChart>
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V4: AR Aging Stacked */}
-              <ChartCard title="A/R Overdue Maturation" icon={<Clock />}>
+              <ChartCard title="Receivable Maturation (Aging)" icon={<Clock />}>
                 <ResponsiveContainer width="100%" height={280}>
                   <BarChart data={financeBI.aging}>
                     <XAxis dataKey="name" style={{fontSize: '10px'}} />
                     <YAxis style={{fontSize: '10px'}} />
                     <Tooltip />
-                    <Bar dataKey="value" fill="#8b5cf6" radius={[6, 6, 0, 0]} name="Aging Amount" />
+                    <Bar dataKey="value" fill="#8b5cf6" radius={[6, 6, 0, 0]} name="Overdue (₹)" />
                   </BarChart>
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V5: Profit Margin Comparison */}
-              <ChartCard title="Strategic Margin Index" icon={<Activity />}>
+              <ChartCard title="Site Profitability Index (%)" icon={<Activity />}>
                 <ResponsiveContainer width="100%" height={280}>
                   <ComposedChart data={financeBI.monthly}>
                     <XAxis dataKey="month" style={{fontSize: '10px'}} />
                     <YAxis style={{fontSize: '10px'}} unit="%" />
                     <Tooltip />
-                    <Bar dataKey="margin" fill="#06b6d4" opacity={0.4} name="Margin %" />
+                    <Bar dataKey="margin" fill="#06b6d4" opacity={0.4} />
                     <Line type="monotone" dataKey="margin" stroke="#06b6d4" strokeWidth={3} dot={false} />
                   </ComposedChart>
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V6: Revenue by Client */}
               <ChartCard title="Client Contribution Matrix" icon={<Users />}>
                 <ResponsiveContainer width="100%" height={280}>
                   <BarChart data={financeBI.clientRev} layout="vertical">
                     <XAxis type="number" hide />
                     <YAxis dataKey="name" type="category" style={{fontSize: '10px'}} width={100} />
                     <Tooltip />
-                    <Bar dataKey="value" fill="#f59e0b" radius={[0, 6, 6, 0]} name="Revenue Contribution" />
+                    <Bar dataKey="value" fill="#f59e0b" radius={[0, 6, 6, 0]} name="Contribution" />
                   </BarChart>
                 </ResponsiveContainer>
               </ChartCard>
@@ -318,34 +319,30 @@ const BIAnalytics: React.FC = () => {
 
           {activeTab === 'ops' && (
             <>
-              {/* V7: Inventory Levels */}
-              <ChartCard title="Stock Integrity Registry" icon={<Box />}>
+              <ChartCard title="Site Material Levels" icon={<Box />}>
                 <ResponsiveContainer width="100%" height={280}>
-                  <BarChart data={opsBI.invStatus}>
+                  <BarChart data={opsBI.stock}>
                     <XAxis dataKey="name" style={{fontSize: '8px'}} />
                     <YAxis style={{fontSize: '10px'}} />
                     <Tooltip />
-                    <Bar dataKey="stock" fill="#3b82f6" name="Available Stock" />
-                    <ReferenceLine y={100} stroke="#f43f5e" strokeDasharray="5 5" label={{position: 'right', value: 'Reorder', fill: '#f43f5e', fontSize: 10}} />
+                    <Bar dataKey="stock" fill="#3b82f6" name="Stock Qty" />
+                    <ReferenceLine y={100} stroke="#f43f5e" strokeDasharray="5 5" label={{position: 'right', value: 'Low', fill: '#f43f5e', fontSize: 10}} />
                   </BarChart>
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V8: Project Completion Progress */}
               <ChartCard title="Milestone Trajectory" icon={<Flag />}>
                 <ResponsiveContainer width="100%" height={280}>
-                  <RadialBarChart innerRadius="30%" outerRadius="100%" data={opsBI.projectOverrun} startAngle={180} endAngle={0}>
+                  <RadialBarChart innerRadius="30%" outerRadius="100%" data={opsBI.projectAnalysis} startAngle={180} endAngle={0}>
                     <RadialBar label={{ fill: '#666', position: 'insideStart' }} background dataKey="completion" />
-                    <Legend iconSize={10} wrapperStyle={{fontSize: '10px'}} />
                     <Tooltip />
                   </RadialBarChart>
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V9: Contractor Payment Variance */}
-              <ChartCard title="Contract Disbursement Status" icon={<ReceiptText />}>
+              <ChartCard title="Payment Clearance Status" icon={<ReceiptText />}>
                 <ResponsiveContainer width="100%" height={280}>
-                  <BarChart data={opsBI.projectOverrun} layout="vertical">
+                  <BarChart data={opsBI.projectAnalysis} layout="vertical">
                     <XAxis type="number" hide />
                     <YAxis dataKey="name" type="category" style={{fontSize: '10px'}} width={100} />
                     <Tooltip />
@@ -355,45 +352,45 @@ const BIAnalytics: React.FC = () => {
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V10: Project Cost Overrun */}
-              <ChartCard title="Budget Variance Analysis" icon={<AlertTriangle />}>
+              <ChartCard title="Budget Variance Plot" icon={<AlertTriangle />}>
                 <ResponsiveContainer width="100%" height={280}>
                   <ScatterChart>
                     <XAxis dataKey="name" name="Project" style={{fontSize: '10px'}} />
                     <YAxis dataKey="overrun" unit="%" style={{fontSize: '10px'}} />
                     <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                    <Scatter data={opsBI.projectOverrun} fill="#f43f5e" />
+                    <Scatter data={opsBI.projectAnalysis} fill="#f43f5e" />
                     <ReferenceLine y={0} stroke="#333" />
                   </ScatterChart>
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V11: Inventory Turnover Line */}
-              <ChartCard title="Stock Velocity (Turnover Ratio)" icon={<Activity />}>
+              <ChartCard title="Stock Velocity (Turnover)" icon={<Activity />}>
                 <ResponsiveContainer width="100%" height={280}>
-                  <LineChart data={opsBI.invStatus}>
+                  <LineChart data={opsBI.turnover}>
                     <XAxis dataKey="name" style={{fontSize: '8px'}} />
                     <YAxis style={{fontSize: '10px'}} />
                     <Tooltip />
-                    <Line type="monotone" dataKey="turnover" stroke="#8b5cf6" strokeWidth={3} name="Turnover Factor" />
+                    <Line type="monotone" dataKey="ratio" stroke="#8b5cf6" strokeWidth={3} name="Turnover Factor" />
                   </LineChart>
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V12: Low Stock Alert Map */}
-              <ChartCard title="Critical Replenishment Nodes" icon={<ShieldAlert />}>
+              <ChartCard title="Critical Site Alerts" icon={<ShieldAlert />}>
                 <div className="space-y-3 overflow-y-auto max-h-[250px] pr-2 custom-scrollbar">
-                  {opsBI.invStatus.filter(i => i.isLow).map(i => (
-                    <div key={i.name} className="flex items-center justify-between p-4 bg-rose-50 border border-rose-100 rounded-2xl animate-pulse">
+                  {opsBI.stock.filter(i => i.isLow).map(i => (
+                    <div key={i.name} className="flex items-center justify-between p-4 bg-rose-50 border border-rose-100 rounded-3xl animate-pulse">
                       <div>
                         <p className="text-xs font-black text-rose-900">{i.name}</p>
-                        <p className="text-[10px] text-rose-600 font-bold">QTY: {i.stock} / LIMIT: {i.reorder}</p>
+                        <p className="text-[10px] text-rose-600 font-bold uppercase tracking-tight">Replenishment Required: QTY {i.stock}</p>
                       </div>
                       <AlertTriangle size={18} className="text-rose-600" />
                     </div>
                   ))}
-                  {opsBI.invStatus.filter(i => i.isLow).length === 0 && (
-                    <div className="text-center py-20 text-slate-300 font-bold">Stock integrity verified. No alerts.</div>
+                  {opsBI.stock.filter(i => i.isLow).length === 0 && (
+                    <div className="flex flex-col items-center justify-center h-40 text-slate-300 font-bold">
+                       <CheckCircle2 size={40} className="mb-2" />
+                       <p>Operations in Optimal State</p>
+                    </div>
                   )}
                 </div>
               </ChartCard>
@@ -402,91 +399,84 @@ const BIAnalytics: React.FC = () => {
 
           {activeTab === 'assets' && (
             <>
-              {/* V13: Machine Downtime Analysis */}
-              <ChartCard title="Mechanical Downtime Index" icon={<Clock />}>
+              <ChartCard title="Mechanical Downtime Analytics" icon={<Clock />}>
                 <ResponsiveContainer width="100%" height={280}>
-                  <BarChart data={db?.asset?.map(a => ({ name: a.name, val: a.downtime_hours }))}>
+                  <BarChart data={assetBI.stats}>
                     <XAxis dataKey="name" style={{fontSize: '10px'}} />
                     <YAxis style={{fontSize: '10px'}} />
                     <Tooltip />
-                    <Bar dataKey="val" fill="#f43f5e" radius={[6, 6, 0, 0]} name="Hours Offline" />
+                    <Bar dataKey="downtime" fill="#f43f5e" radius={[6, 6, 0, 0]} name="Hours Down" />
                   </BarChart>
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V14: Maintenance Cost Matrix */}
-              <ChartCard title="Maintenance Burn Rate" icon={<Wrench />}>
+              <ChartCard title="Maintenance Burn Projection" icon={<Wrench />}>
                 <ResponsiveContainer width="100%" height={280}>
-                  <AreaChart data={db?.asset?.map(a => ({ name: a.name, val: a.maintenance_cost }))}>
+                  <AreaChart data={assetBI.stats}>
                     <XAxis dataKey="name" style={{fontSize: '10px'}} />
                     <YAxis style={{fontSize: '10px'}} />
                     <Tooltip />
-                    <Area type="monotone" dataKey="val" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.1} name="Cost (₹)" />
+                    <Area type="monotone" dataKey="maint" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.1} name="Cost (₹)" />
                   </AreaChart>
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V15: Fuel Consumption Analytics */}
-              <ChartCard title="Logistics Fuel Efficiency" icon={<Truck />}>
+              <ChartCard title="Fleet Fuel Optimization" icon={<Truck />}>
                 <ResponsiveContainer width="100%" height={280}>
-                  <LineChart data={db?.asset?.map(a => ({ name: a.name, val: a.distance_traveled / (a.fuel_used || 1) }))}>
+                  <LineChart data={assetBI.stats}>
                     <XAxis dataKey="name" style={{fontSize: '10px'}} />
                     <YAxis style={{fontSize: '10px'}} />
                     <Tooltip />
-                    <Line type="stepAfter" dataKey="val" stroke="#10b981" strokeWidth={3} name="KM/L" />
+                    <Line type="stepAfter" dataKey="fuel" stroke="#10b981" strokeWidth={3} name="KM/L Efficiency" />
                   </LineChart>
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V16: Production Efficiency Gauge (Simulated with Radar) */}
-              <ChartCard title="Site Output Optimization" icon={<Zap />}>
+              <ChartCard title="Asset Output Benchmarking" icon={<Zap />}>
                 <ResponsiveContainer width="100%" height={280}>
-                  <RadarChart cx="50%" cy="50%" outerRadius="80%" data={db?.asset?.map(a => ({ name: a.name, val: (a.actual_output / (a.planned_output || 1)) * 100 }))}>
-                    <PolarGrid />
+                  <RadarChart cx="50%" cy="50%" outerRadius="80%" data={assetBI.stats}>
+                    <PolarGrid stroke="#f1f5f9" />
                     <PolarAngleAxis dataKey="name" style={{fontSize: '10px'}} />
-                    <Radar name="Efficiency %" dataKey="val" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.5} />
+                    <Radar name="Output Eff %" dataKey="eff" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.5} />
                     <Tooltip />
                   </RadarChart>
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V17: Asset Depreciation Chart */}
               <ChartCard title="Residual Asset Valuation" icon={<Database />}>
                 <ResponsiveContainer width="100%" height={280}>
-                  <ComposedChart data={db?.asset?.map(a => ({ name: a.name, val: a.purchase_cost * 0.8 }))}>
+                  <ComposedChart data={assetBI.stats}>
                     <XAxis dataKey="name" style={{fontSize: '10px'}} />
                     <YAxis style={{fontSize: '10px'}} />
                     <Tooltip />
-                    <Bar dataKey="val" fill="#334155" opacity={0.6} name="Current Value" />
-                    <Line type="monotone" dataKey="val" stroke="#334155" strokeWidth={2} />
+                    <Bar dataKey="value" fill="#334155" opacity={0.6} radius={[6,6,0,0]} name="Net Residual (₹)" />
+                    <Line type="monotone" dataKey="value" stroke="#334155" strokeWidth={2} dot={false} />
                   </ComposedChart>
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V18: Asset Status Health Check */}
-              <ChartCard title="Mechanical Health Map" icon={<ShieldAlert />}>
-                <div className="flex items-center justify-center h-full gap-4">
-                  {['Healthy', 'Warning', 'Critical'].map(status => (
-                    <div key={status} className="text-center">
-                      <div className={`w-16 h-16 rounded-full flex items-center justify-center border-4 ${status === 'Healthy' ? 'border-emerald-500 text-emerald-600 bg-emerald-50' : status === 'Warning' ? 'border-amber-500 text-amber-600 bg-amber-50' : 'border-rose-500 text-rose-600 bg-rose-50'}`}>
-                        <span className="font-black text-xl">{db?.asset?.filter(a => a.status === status).length || 0}</span>
-                      </div>
-                      <p className="text-[10px] font-black uppercase mt-2 tracking-widest text-slate-400">{status}</p>
+              <ChartCard title="Systemic Fleet Integrity" icon={<Info />}>
+                 <div className="flex flex-col justify-center h-full space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-3xl border border-emerald-100">
+                       <span className="text-xs font-black text-emerald-900">HEALTHY ASSETS</span>
+                       <span className="text-2xl font-black text-emerald-600">{db?.asset?.filter(a => a.status === 'Healthy').length || 0}</span>
                     </div>
-                  ))}
-                </div>
+                    <div className="flex items-center justify-between p-4 bg-rose-50 rounded-3xl border border-rose-100">
+                       <span className="text-xs font-black text-rose-900">CRITICAL MAINTENANCE</span>
+                       <span className="text-2xl font-black text-rose-600">{db?.asset?.filter(a => a.status !== 'Healthy').length || 0}</span>
+                    </div>
+                 </div>
               </ChartCard>
             </>
           )}
 
           {activeTab === 'hr' && (
             <>
-              {/* V19: Payroll Distribution Pie */}
-              <ChartCard title="Departmental Salary Load" icon={<Users />}>
+              <ChartCard title="Departmental Payroll Load" icon={<Users />}>
                 <ResponsiveContainer width="100%" height={280}>
                   <PieChart>
-                    <Pie data={hrc.payroll} innerRadius={60} outerRadius={90} dataKey="value">
-                      {hrc.payroll.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                    <Pie data={hrBI.payroll} innerRadius={60} outerRadius={90} paddingAngle={5} dataKey="value">
+                      {hrBI.payroll.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                     </Pie>
                     <Tooltip />
                     <Legend iconType="circle" wrapperStyle={{fontSize: '10px'}} />
@@ -494,47 +484,43 @@ const BIAnalytics: React.FC = () => {
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V20: Attendance Rate Bar */}
-              <ChartCard title="Staff Presence Index" icon={<CheckCircle2 />}>
+              <ChartCard title="Attendance Performance Map" icon={<CheckCircle2 />}>
                 <ResponsiveContainer width="100%" height={280}>
-                  <BarChart data={hrc.attendance.slice(0, 10)}>
+                  <BarChart data={hrBI.attendance.slice(0, 10)}>
                     <XAxis dataKey="name" style={{fontSize: '8px'}} />
                     <YAxis domain={[0, 100]} style={{fontSize: '10px'}} />
                     <Tooltip />
-                    <Bar dataKey="rate" fill="#10b981" radius={[4, 4, 0, 0]} name="Attendance %" />
+                    <Bar dataKey="val" fill="#10b981" radius={[4, 4, 0, 0]} name="Presence Rate %" />
                   </BarChart>
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V21: Labour Productivity Line */}
-              <ChartCard title="Productivity Benchmarking" icon={<TrendingUp />}>
+              <ChartCard title="Unit Productivity Index" icon={<Activity />}>
                 <ResponsiveContainer width="100%" height={280}>
-                  <LineChart data={hrc.productivity.slice(0, 10)}>
+                  <LineChart data={hrBI.productivity.slice(0, 10)}>
                     <XAxis dataKey="name" style={{fontSize: '8px'}} />
                     <YAxis style={{fontSize: '10px'}} />
                     <Tooltip />
-                    <Line type="monotone" dataKey="prod" stroke="#f59e0b" strokeWidth={4} name="Units/Hour" />
+                    <Line type="monotone" dataKey="val" stroke="#f59e0b" strokeWidth={4} name="Output Units/Hr" />
                   </LineChart>
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V22: Workforce Distribution Donut */}
-              <ChartCard title="Operational Headcount" icon={<Target />}>
+              <ChartCard title="Headcount Distribution" icon={<Target />}>
                 <ResponsiveContainer width="100%" height={280}>
                   <PieChart>
-                    <Pie data={hrc.payroll} innerRadius={80} outerRadius={100} dataKey="value" startAngle={90} endAngle={450}>
-                      {hrc.payroll.map((_, i) => <Cell key={i} fill={COLORS[(i+2) % COLORS.length]} />)}
+                    <Pie data={hrBI.deptDist} innerRadius={80} outerRadius={100} dataKey="value" startAngle={90} endAngle={450}>
+                      {hrBI.deptDist.map((_, i) => <Cell key={i} fill={COLORS[(i+2) % COLORS.length]} />)}
                     </Pie>
                     <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V23: Department Efficiency Radar */}
-              <ChartCard title="Org-Level Skill Matrix" icon={<Briefcase />}>
+              <ChartCard title="Org-Level Resource Density" icon={<Briefcase />}>
                 <ResponsiveContainer width="100%" height={280}>
-                  <RadarChart cx="50%" cy="50%" outerRadius="80%" data={hrc.payroll}>
-                    <PolarGrid />
+                  <RadarChart cx="50%" cy="50%" outerRadius="80%" data={hrBI.payroll}>
+                    <PolarGrid stroke="#f1f5f9" />
                     <PolarAngleAxis dataKey="name" style={{fontSize: '10px'}} />
                     <Radar name="Dept Density" dataKey="value" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.4} />
                     <Tooltip />
@@ -542,13 +528,12 @@ const BIAnalytics: React.FC = () => {
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V24: Staff Status Summary */}
-              <ChartCard title="Registry Integrity" icon={<Info />}>
+              <ChartCard title="Site Registry Integrity" icon={<ShieldAlert />}>
                  <div className="flex flex-col justify-center h-full space-y-4">
                     {['Active', 'On Leave', 'Contractor'].map((s, i) => (
-                      <div key={s} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                        <span className="text-sm font-bold text-slate-700">{s}</span>
-                        <span className="text-xl font-black text-slate-900">{Math.floor(Math.random()*10)+5}</span>
+                      <div key={s} className="flex items-center justify-between p-5 bg-slate-50 rounded-[28px] border border-slate-100 hover:border-blue-200 transition-colors">
+                        <span className="text-sm font-bold text-slate-700">{s} Registry</span>
+                        <span className="text-2xl font-black text-slate-900">{Math.floor(Math.random()*20)+10}</span>
                       </div>
                     ))}
                  </div>
@@ -558,96 +543,90 @@ const BIAnalytics: React.FC = () => {
 
           {activeTab === 'strategic' && (
             <>
-              {/* V25: AI Revenue Forecast */}
-              <ChartCard title="AI Predictive Revenue (2027)" icon={<Sparkles />}>
+              <ChartCard title="AI Predictive Revenue (FY27)" icon={<Sparkles />}>
                 <ResponsiveContainer width="100%" height={280}>
-                  <LineChart data={[...financeBI.monthly, {month: 'Jan 27', rev: 1200000}, {month: 'Feb 27', rev: 1350000}]}>
+                  <LineChart data={[...financeBI.monthly, {month: 'Jan 27', rev: 1200000}, {month: 'Feb 27', rev: 1450000}]}>
                     <XAxis dataKey="month" style={{fontSize: '10px'}} />
                     <YAxis style={{fontSize: '10px'}} />
                     <Tooltip />
-                    <Line type="monotone" dataKey="rev" stroke="#3b82f6" strokeWidth={5} strokeDasharray="5 5" name="Forecast Model" />
+                    <Line type="monotone" dataKey="rev" stroke="#3b82f6" strokeWidth={5} strokeDasharray="5 5" name="Forecast (₹)" />
                   </LineChart>
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V26: Anomaly Detection Map */}
-              <ChartCard title="Fraud & Integrity Alerts" icon={<ShieldAlert />}>
+              <ChartCard title="Operational Anomaly Monitor" icon={<ShieldAlert />}>
                 <div className="space-y-4">
-                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-4">
+                  <div className="p-5 bg-amber-50 border border-amber-200 rounded-[28px] flex items-center gap-4">
                     <AlertCircle className="text-amber-600" />
                     <div>
-                      <p className="text-xs font-black text-amber-900">Duplicate Vendor UUID</p>
-                      <p className="text-[10px] text-amber-600 font-bold uppercase tracking-tight">Risk Index: 82.4% | Manual Audit Required</p>
+                      <p className="text-xs font-black text-amber-900">Statistical Variance Alert</p>
+                      <p className="text-[10px] text-amber-600 font-bold uppercase tracking-tight">Vendor ID: V-QIT-44 | Risk Index: 88.2%</p>
                     </div>
                   </div>
-                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl flex items-center gap-4">
+                  <div className="p-5 bg-blue-50 border border-blue-200 rounded-[28px] flex items-center gap-4">
                     <Search className="text-blue-600" />
                     <div>
-                      <p className="text-xs font-black text-blue-900">Statistical Fuel Outlier</p>
-                      <p className="text-[10px] text-blue-600 font-bold uppercase tracking-tight">Site Nagpur-B | Deviation: +3.2σ</p>
+                      <p className="text-xs font-black text-blue-900">Site Log Outlier</p>
+                      <p className="text-[10px] text-blue-600 font-bold uppercase tracking-tight">Site Pune-Hub | Load Deviation: +2.1σ</p>
                     </div>
                   </div>
                 </div>
               </ChartCard>
 
-              {/* V27: Break-even Analysis Line */}
-              <ChartCard title="Operational Break-even Plot" icon={<Scale />}>
+              <ChartCard title="Project Break-even Logic" icon={<Scale />}>
                 <ResponsiveContainer width="100%" height={280}>
                   <LineChart data={financeBI.monthly}>
                     <XAxis dataKey="month" style={{fontSize: '10px'}} />
                     <YAxis style={{fontSize: '10px'}} />
                     <Tooltip />
-                    <Line type="monotone" dataKey="rev" stroke="#3b82f6" strokeWidth={3} name="Revenue" />
-                    <Line type="monotone" dataKey="exp" stroke="#f43f5e" strokeWidth={3} name="Total Cost" />
+                    <Line type="monotone" dataKey="rev" stroke="#3b82f6" strokeWidth={3} name="Inflow" />
+                    <Line type="monotone" dataKey="exp" stroke="#f43f5e" strokeWidth={3} name="Operating Cost" />
                   </LineChart>
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V28: Vendor Performance Radar */}
-              <ChartCard title="Strategic Sourcing Score" icon={<Target />}>
+              <ChartCard title="Tier-1 Vendor Integrity" icon={<Target />}>
                 <ResponsiveContainer width="100%" height={280}>
                   <RadarChart cx="50%" cy="50%" outerRadius="80%" data={[
-                    { subject: 'Quality', A: 120, B: 110, fullMark: 150 },
-                    { subject: 'Lead Time', A: 98, B: 130, fullMark: 150 },
-                    { subject: 'Cost', A: 86, B: 130, fullMark: 150 },
-                    { subject: 'Reliability', A: 99, B: 100, fullMark: 150 },
-                    { subject: 'Compliance', A: 85, B: 90, fullMark: 150 },
+                    { subject: 'Quality', A: 120, B: 110 },
+                    { subject: 'Lead Time', A: 98, B: 130 },
+                    { subject: 'SLA Match', A: 86, B: 130 },
+                    { subject: 'Reliability', A: 99, B: 100 },
+                    { subject: 'Compliance', A: 85, B: 90 },
                   ]}>
-                    <PolarGrid />
+                    <PolarGrid stroke="#f1f5f9" />
                     <PolarAngleAxis dataKey="subject" style={{fontSize: '10px'}} />
-                    <Radar name="Tier 1 Vendor" dataKey="A" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} />
-                    <Radar name="Tier 2 Vendor" dataKey="B" stroke="#10b981" fill="#10b981" fillOpacity={0.6} />
+                    <Radar name="Primary Vendor" dataKey="A" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} />
+                    <Radar name="Reserve Vendor" dataKey="B" stroke="#10b981" fill="#10b981" fillOpacity={0.6} />
                     <Legend wrapperStyle={{fontSize: '10px'}} />
                   </RadarChart>
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V29: Project Completion Scatter */}
-              <ChartCard title="Milestone Probability" icon={<Flag />}>
+              <ChartCard title="Milestone Confidence Scatter" icon={<Flag />}>
                  <ResponsiveContainer width="100%" height={280}>
                   <ScatterChart>
                     <XAxis dataKey="completion" name="Done %" unit="%" style={{fontSize: '10px'}} />
                     <YAxis dataKey="overrun" name="Overrun" unit="%" style={{fontSize: '10px'}} />
                     <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                    <Scatter name="Projects" data={opsBI.projectOverrun} fill="#10b981" />
+                    <Scatter name="Live Milestones" data={opsBI.projectAnalysis} fill="#10b981" />
                   </ScatterChart>
                 </ResponsiveContainer>
               </ChartCard>
 
-              {/* V30: Strategic Conclusion */}
-              <ChartCard title="Overall Site Health Score" icon={<Zap />}>
+              <ChartCard title="Global Enterprise Health" icon={<Zap />}>
                  <div className="flex flex-col items-center justify-center h-full">
-                    <div className="relative w-40 h-40">
+                    <div className="relative w-44 h-44">
                        <svg className="w-full h-full transform -rotate-90">
-                          <circle cx="80" cy="80" r="70" stroke="#f1f5f9" strokeWidth="12" fill="transparent" />
-                          <circle cx="80" cy="80" r="70" stroke="#3b82f6" strokeWidth="12" fill="transparent" strokeDasharray="440" strokeDashoffset={440 - (440 * 0.92)} />
+                          <circle cx="88" cy="88" r="80" stroke="#f1f5f9" strokeWidth="16" fill="transparent" />
+                          <circle cx="88" cy="88" r="80" stroke="#3b82f6" strokeWidth="16" fill="transparent" strokeDasharray="502" strokeDashoffset={502 - (502 * 0.94)} />
                        </svg>
                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                          <span className="text-4xl font-black text-slate-900">92%</span>
+                          <span className="text-4xl font-black text-slate-900">94%</span>
                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Optimized</span>
                        </div>
                     </div>
-                    <p className="text-[10px] font-black text-emerald-600 mt-6 uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100 italic">Enterprise Verified Status</p>
+                    <p className="text-[10px] font-black text-emerald-600 mt-8 uppercase tracking-widest bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100">Enterprise Verified State</p>
                  </div>
               </ChartCard>
             </>
@@ -655,33 +634,33 @@ const BIAnalytics: React.FC = () => {
         </motion.div>
       </AnimatePresence>
 
-      {/* FOOTER STRATEGIC STRIP */}
-      <div className="bg-slate-900 rounded-[40px] p-10 text-white relative overflow-hidden shadow-2xl border border-slate-800">
+      {/* STRATEGIC FORECAST FOOTER STRIP */}
+      <div className="bg-slate-900 rounded-[48px] p-12 text-white relative overflow-hidden shadow-2xl border border-slate-800">
         <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12">
-          <div className="max-w-2xl">
+          <div className="max-w-3xl">
              <div className="flex items-center gap-3 text-blue-400 mb-6">
                 <Sparkles size={24} fill="currentColor" />
-                <span className="text-xs font-black uppercase tracking-[0.3em]">Predictive Executive Intelligence</span>
+                <span className="text-xs font-black uppercase tracking-[0.4em]">Predictive Executive Intelligence</span>
              </div>
-             <h2 className="text-4xl font-black mb-6 leading-tight">Q4 Growth Forecast: <span className="text-blue-400">18.4% Efficiency Surge</span></h2>
-             <p className="text-slate-400 text-lg leading-relaxed font-medium">Site-level telemetry from Nagpur and Pune projects indicates a significant reduction in operational friction. AI model suggests allocating <span className="text-white font-black">₹4.2M</span> additional liquidity to Logistics to capitalize on Q1 vendor price drops.</p>
+             <h2 className="text-5xl font-black mb-6 leading-tight tracking-tighter">Q4 Fiscal Projection: <span className="text-blue-400">18.4% Efficiency Surge</span></h2>
+             <p className="text-slate-400 text-xl leading-relaxed font-medium">Real-time site telemetry from Pune and Nagpur deployments indicates a massive reduction in operational friction. AI model suggests re-allocating <span className="text-white font-black">₹4.85M</span> from General Overheads to Logistics to capitalize on Q1 vendor price drops.</p>
           </div>
-          <div className="grid grid-cols-2 gap-4 w-full lg:w-96 shrink-0">
-             <div className="bg-white/5 border border-white/10 p-5 rounded-3xl backdrop-blur-xl">
+          <div className="grid grid-cols-2 gap-4 w-full lg:w-[400px] shrink-0">
+             <div className="bg-white/5 border border-white/10 p-6 rounded-[32px] backdrop-blur-2xl">
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Liquidity Score</p>
-                <p className="text-2xl font-black text-white">94.2</p>
+                <p className="text-3xl font-black text-white">96.8</p>
              </div>
-             <div className="bg-white/5 border border-white/10 p-5 rounded-3xl backdrop-blur-xl">
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">System Integrity</p>
-                <p className="text-2xl font-black text-blue-400">AA+</p>
+             <div className="bg-white/5 border border-white/10 p-6 rounded-[32px] backdrop-blur-2xl">
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Integrity Status</p>
+                <p className="text-3xl font-black text-blue-400">AAA+</p>
              </div>
-             <div className="col-span-2 bg-blue-600 p-5 rounded-3xl flex items-center justify-between group cursor-pointer hover:bg-blue-500 transition-colors">
-                <span className="font-black text-xs uppercase tracking-widest">Generate Fiscal Audit</span>
-                <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
+             <div className="col-span-2 bg-blue-600 p-6 rounded-[32px] flex items-center justify-between group cursor-pointer hover:bg-blue-500 transition-all shadow-xl">
+                <span className="font-black text-sm uppercase tracking-widest">Generate Certified Fiscal Audit</span>
+                <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />
              </div>
           </div>
         </div>
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[140px] -translate-y-1/2 translate-x-1/2" />
       </div>
     </div>
   );
@@ -689,13 +668,12 @@ const BIAnalytics: React.FC = () => {
 
 // HELPER COMPONENTS
 const ChartCard = ({ title, icon, children }: any) => (
-  <div className="bg-white rounded-[40px] border border-slate-100 shadow-xl p-8 hover:shadow-2xl transition-all flex flex-col h-[400px] group border-b-4 hover:border-b-blue-500">
-    <div className="flex items-center gap-4 mb-8">
-      <div className="p-3 bg-slate-50 text-slate-400 rounded-2xl group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
-        {/* Fix: Cast icon to any to avoid type mismatch in React.cloneElement */}
-        {React.cloneElement(icon as any, { size: 20 })}
+  <div className="bg-white rounded-[48px] border border-slate-100 shadow-xl p-8 hover:shadow-2xl transition-all flex flex-col h-[420px] group border-b-8 hover:border-b-blue-600">
+    <div className="flex items-center gap-4 mb-10">
+      <div className="p-4 bg-slate-50 text-slate-400 rounded-2xl group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+        {React.cloneElement(icon as any, { size: 22 })}
       </div>
-      <h4 className="font-black text-slate-800 text-sm tracking-tight uppercase">{title}</h4>
+      <h4 className="font-black text-slate-800 text-sm tracking-tight uppercase tracking-wider">{title}</h4>
     </div>
     <div className="flex-1 min-h-0">
       {children}
