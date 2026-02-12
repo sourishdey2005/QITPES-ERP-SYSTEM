@@ -38,6 +38,9 @@ import EnterpriseCalendar from './pages/EnterpriseCalendar';
 import CollaborationSuite from './pages/CollaborationSuite';
 import RosterShifts from './pages/RosterShifts';
 
+// AI & Data Analysis
+import AIDataAnalysis from './pages/AIDataAnalysis';
+
 import { UserRole } from './types';
 
 interface AuthContextType {
@@ -179,6 +182,7 @@ const App: React.FC = () => {
           {/* Analytics Group */}
           <Route path="/bi" element={<BIAnalytics />} />
           <Route path="/ai" element={<AIStrategy />} />
+          <Route path="/ai-analysis" element={<AIDataAnalysis />} />
 
           {/* Admin Group */}
           <Route path="/workflows" element={<WorkflowBuilder />} />

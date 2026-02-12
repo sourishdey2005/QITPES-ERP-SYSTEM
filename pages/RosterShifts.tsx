@@ -138,7 +138,7 @@ const RosterShifts: React.FC = () => {
           </button>
           <button
             onClick={() => openAssignModal()}
-            className="bg-blue-600 text-white px-6 py-3.5 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-2xl shadow-blue-500/30 hover:bg-blue-700 transition-all flex items-center gap-3"
+            className="bg-orange-600 text-white px-6 py-3.5 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-2xl shadow-orange-500/30 hover:bg-orange-700 transition-all flex items-center gap-3"
           >
             <Plus size={18} /> Assign Deployment
           </button>
@@ -150,7 +150,7 @@ const RosterShifts: React.FC = () => {
           <div className="bg-white rounded-[40px] border border-slate-200 shadow-sm overflow-hidden">
             <div className="p-8 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
               <h3 className="font-black text-slate-900 uppercase tracking-tighter flex items-center gap-2">
-                <Monitor size={20} className="text-blue-600" /> Site Deployment: <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="bg-transparent border-none outline-none font-black text-blue-600 uppercase" />
+                <Monitor size={20} className="text-orange-600" /> Site Deployment: <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="bg-transparent border-none outline-none font-black text-orange-600 uppercase" />
               </h3>
             </div>
             <table className="w-full text-left">
@@ -164,7 +164,7 @@ const RosterShifts: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm font-medium">
                 {isLoading ? (
-                  <tr><td colSpan={5} className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-blue-600" /></td></tr>
+                  <tr><td colSpan={5} className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-orange-600" /></td></tr>
                 ) : assignments?.length === 0 ? (
                   <tr><td colSpan={5} className="p-20 text-center text-slate-400 italic">No personnel nodes assigned for this date.</td></tr>
                 ) : assignments?.map((a: any) => (
@@ -174,7 +174,7 @@ const RosterShifts: React.FC = () => {
                     <td className="px-10 py-6">
                       <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${a.shifts?.name.toLowerCase().includes('night') ? 'bg-indigo-50 text-indigo-600' :
                           a.shifts?.name.toLowerCase().includes('day') ? 'bg-emerald-50 text-emerald-600' :
-                            'bg-blue-50 text-blue-600'
+                            'bg-orange-50 text-orange-600'
                         }`}>
                         {a.shifts?.name}
                       </span>
@@ -183,7 +183,7 @@ const RosterShifts: React.FC = () => {
                       <div className="flex items-center justify-end gap-3">
                         <span className="px-2 py-1 bg-green-50 text-green-600 rounded text-[9px] font-black uppercase">Confirmed</span>
                         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                          <button onClick={() => openAssignModal(a)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg">
+                          <button onClick={() => openAssignModal(a)} className="p-1.5 text-orange-600 hover:bg-orange-50 rounded-lg">
                             <Edit2 size={14} />
                           </button>
                           <button onClick={() => { if (confirm('Remove assignment?')) deleteAssignment.mutate(a.id); }} className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg">
@@ -200,12 +200,12 @@ const RosterShifts: React.FC = () => {
         </div>
 
         <div className="space-y-8">
-          <div className="bg-white p-10 rounded-[40px] border border-slate-200 shadow-sm group hover:border-blue-200 transition-all">
+          <div className="bg-white p-10 rounded-[40px] border border-slate-200 shadow-sm group hover:border-orange-200 transition-all">
             <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-8 flex items-center gap-2">
-              <RotateCcw size={16} className="text-blue-500" /> Active Patterns
+              <RotateCcw size={16} className="text-orange-500" /> Active Patterns
             </h3>
             <div className="space-y-6">
-              {loadingShifts ? <Loader2 className="animate-spin mx-auto text-blue-600" /> :
+              {loadingShifts ? <Loader2 className="animate-spin mx-auto text-orange-600" /> :
                 shifts?.length === 0 ? <p className="text-xs text-slate-400 italic text-center">No patterns defined.</p> :
                   shifts?.map((s: any) => (
                     <div key={s.id} className="p-5 bg-slate-50 rounded-[24px] border border-slate-100 flex items-center justify-between hover:bg-white transition-all relative group/item">
@@ -255,7 +255,7 @@ const RosterShifts: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setIsShiftModalOpen(true)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-blue-600 font-black text-[10px] uppercase tracking-tighter bg-blue-50 px-3 py-2 rounded-full hover:bg-blue-100 transition-all"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-orange-600 font-black text-[10px] uppercase tracking-tighter bg-orange-50 px-3 py-2 rounded-full hover:bg-orange-100 transition-all"
                       >
                         <Plus size={12} /> Define Now
                       </button>
@@ -263,7 +263,7 @@ const RosterShifts: React.FC = () => {
                   </div>
                   {shifts?.length === 0 && <p className="text-[9px] text-rose-500 font-bold uppercase mt-2 tracking-widest px-2 flex items-center gap-1"><AlertTriangle size={10} /> Error: Define a shift pattern first.</p>}
                 </div>
-                <button disabled={assignShift.isPending || !assignForm.employee_id || !assignForm.shift_id} type="submit" className="w-full py-6 bg-blue-600 text-white rounded-[24px] font-black text-sm uppercase tracking-[0.3em] shadow-2xl shadow-blue-500/40 hover:bg-blue-700 transition-all flex items-center justify-center gap-4 disabled:opacity-50 disabled:cursor-not-allowed">
+                <button disabled={assignShift.isPending || !assignForm.employee_id || !assignForm.shift_id} type="submit" className="w-full py-6 bg-orange-600 text-white rounded-[24px] font-black text-sm uppercase tracking-[0.3em] shadow-2xl shadow-orange-500/40 hover:bg-orange-700 transition-all flex items-center justify-center gap-4 disabled:opacity-50 disabled:cursor-not-allowed">
                   {assignShift.isPending ? <Loader2 className="animate-spin" /> : editAssignmentId ? 'Confirm Modification' : 'Authorize Deployment'}
                 </button>
               </form>

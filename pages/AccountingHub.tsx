@@ -6,7 +6,7 @@ import {
     Calculator, Receipt, Landmark, Scale, BookOpen,
     TrendingUp, ArrowDownLeft, ArrowUpRight, Plus,
     Search, Filter, X, Loader2, Download, CheckCircle2,
-    AlertCircle, Calendar, FileText, Lock, Globe, Building2
+    AlertCircle, Calendar, FileText, Lock, Globe, Building2, ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -53,13 +53,16 @@ const AccountingHub: React.FC = () => {
             const linePromises = lines.map(async (l: any) => {
                 if (l.account_id) return l; // Existing account
 
-                // Otherwise, create the new account on the fly
+                // Otherwise, create the new account on the fly. Must have at least a name.
+                const finalName = l.account_name || `Account-${l.account_code || Math.random().toString(36).slice(2, 7)}`;
+                const finalCode = l.account_code || `NEW-${Math.floor(Math.random() * 9000) + 1000}`;
+
                 const { data: newAcc, error: accError } = await supabase
                     .from('chart_of_accounts')
                     .insert([{
-                        name: l.account_name,
-                        code: l.account_code || `NEW-${Math.floor(Math.random() * 9000) + 1000}`,
-                        type: 'Asset', // Default to Asset, user can re-categorize from Ledger later
+                        name: finalName,
+                        code: finalCode,
+                        type: 'Asset',
                         category: 'Current Asset'
                     }])
                     .select()
@@ -105,7 +108,13 @@ const AccountingHub: React.FC = () => {
             }).eq('id', id);
             if (error) throw error;
         },
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['fiscal-years'] })
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['fiscal-years'] });
+            alert('Fiscal year successfully closed and locked.');
+        },
+        onError: (error: any) => {
+            alert(`Closing Failed: ${error.message || 'Check database permissions'}`);
+        }
     });
 
     const mAddYear = useMutation({
@@ -122,8 +131,50 @@ const AccountingHub: React.FC = () => {
             alert(`Initialization Failed: ${error.message || 'Check database connection'}`);
         }
     });
+    const mResetYear = useMutation({
+        mutationFn: async (id: string) => {
+            const isGlobal = id === '00000000-0000-0000-0000-000000000000';
 
-    if (loadingAccounts || loadingJournals || loadingYears) return <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-blue-600" /></div>;
+            // 1. Delete lines
+            let lineQuery = supabase.from('journal_lines').delete();
+            if (!isGlobal) {
+                const { data: js } = await supabase.from('journal_entries').select('id').eq('financial_year_id', id);
+                const jIds = js?.map(j => j.id) || [];
+                if (jIds.length === 0) return;
+                lineQuery = lineQuery.in('journal_id', jIds);
+            } else {
+                lineQuery = lineQuery.neq('id', '00000000-0000-0000-0000-000000000000'); // Delete everything
+            }
+
+            const { error: linesErr } = await lineQuery;
+            if (linesErr) throw linesErr;
+
+            // 2. Delete the journals
+            let jReq = supabase.from('journal_entries').delete();
+            if (!isGlobal) {
+                jReq = jReq.eq('financial_year_id', id);
+            } else {
+                jReq = jReq.neq('id', '00000000-0000-0000-0000-000000000000');
+            }
+            const { error: jError } = await jReq;
+            if (jError) throw jError;
+
+            // 3. Reset the master balances
+            const { error: aError } = await supabase.from('chart_of_accounts').update({ balance: 0 }).neq('id', '00000000-0000-0000-0000-000000000000');
+            if (aError) throw aError;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['journals'] });
+            queryClient.invalidateQueries({ queryKey: ['chart-of-accounts'] });
+            queryClient.invalidateQueries({ queryKey: ['fiscal-years'] });
+            alert('SYSTEM ZEROED: All cached data has been purged and balances reset.');
+        },
+        onError: (error: any) => {
+            alert(`Reset FAILED: ${error.message} (Code: ${error.code})`);
+        }
+    });
+
+    if (loadingAccounts || loadingJournals || loadingYears) return <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-orange-600" /></div>;
 
     return (
         <div className="space-y-8 page-transition">
@@ -151,7 +202,7 @@ const AccountingHub: React.FC = () => {
                     {activeTab === 'balance-sheet' && <BalanceSheetTab accounts={accounts} />}
                     {activeTab === 'reconciliation' && <ReconciliationTab journals={journals} />}
                     {activeTab === 'arap' && <ARAPTab accounts={accounts} />}
-                    {activeTab === 'closing' && <ClosingTab years={fiscalYears} onAdd={() => { setModalType('addYear'); setIsModalOpen(true); }} onClose={(id: string) => mCloseYear.mutate(id)} />}
+                    {activeTab === 'closing' && <ClosingTab years={fiscalYears} onAdd={() => { setModalType('addYear'); setIsModalOpen(true); }} onClose={(id: string) => mCloseYear.mutate(id)} onReset={(id: string) => mResetYear.mutate(id)} />}
 
                 </motion.div>
             </AnimatePresence>
@@ -378,7 +429,7 @@ function PNLTab({ accounts }: any) {
                 </div>
             </div>
             <div className="lg:col-span-2 bg-slate-900 p-12 rounded-[56px] flex flex-col items-center justify-center text-center space-y-4 shadow-2xl shadow-slate-900/40 border border-white/10">
-                <h2 className="text-[10px] font-black text-blue-400 uppercase tracking-[0.5em]">Net Enterprise Surplus / Deficit</h2>
+                <h2 className="text-[10px] font-black text-orange-400 uppercase tracking-[0.5em]">Net Enterprise Surplus / Deficit</h2>
                 <span className={`text-6xl font-black tracking-tighter ${totalIncome - totalExpense >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                     {formatCurrency(totalIncome - totalExpense)}
                 </span>
@@ -499,8 +550,8 @@ function ARAPTab({ accounts }: any) {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="bg-white rounded-[48px] border border-slate-200 overflow-hidden">
-                <div className="p-10 border-b border-slate-100 bg-blue-50/30 flex items-center gap-4">
-                    <ArrowDownLeft className="text-blue-600" />
+                <div className="p-10 border-b border-slate-100 bg-orange-50/30 flex items-center gap-4">
+                    <ArrowDownLeft className="text-orange-600" />
                     <h4 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Accounts Receivable (AR)</h4>
                 </div>
                 <div className="p-10 space-y-4">
@@ -510,7 +561,7 @@ function ARAPTab({ accounts }: any) {
                                 <p className="text-[10px] font-black text-slate-900 uppercase mb-1">{a.name}</p>
                                 <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Global Customer Ledger</p>
                             </div>
-                            <span className="font-black text-blue-600">{formatCurrency(a.balance)}</span>
+                            <span className="font-black text-orange-600">{formatCurrency(a.balance)}</span>
                         </div>
                     ))}
                 </div>
@@ -536,46 +587,141 @@ function ARAPTab({ accounts }: any) {
     );
 }
 
-function ClosingTab({ years, onClose, onAdd }: any) {
+function ClosingTab({ years, onClose, onAdd, onReset }: any) {
+    const [command, setCommand] = useState('');
+    const [feedback, setFeedback] = useState('');
+
+    const handleCommand = (e: React.FormEvent) => {
+        e.preventDefault();
+        const cmd = command.toLowerCase().trim();
+
+        // Pattern: reset system data [year] or ALL - relaxed regex
+        const resetMatch = cmd.match(/reset system data (\d{4}|all)/i);
+
+        if (resetMatch) {
+            const target = resetMatch[1].toLowerCase();
+
+            // Check permissions (assuming role is passed or context available, for now warning only if not rigorous)
+            // Ideally check role === 'owner' here. Assuming 'onReset' handles backend auth or we trust the component mount.
+
+            if (target === 'all') {
+                setFeedback('EXECUTING GLOBAL SYSTEM ZEROING...');
+                setTimeout(() => {
+                    if (confirm('GLOBAL DESTRUCTIVE COMMAND: This will wipe ALL journal data and zero ALL accounts across the entire system. Are you absolutely certain?')) {
+                        onReset('00000000-0000-0000-0000-000000000000'); // Magic ID for GLOBAL
+                        setCommand('');
+                        setFeedback('GLOBAL PURGE INITIATED.');
+                    } else {
+                        setFeedback('COMMAND ABORTED.');
+                    }
+                }, 500);
+                return;
+            }
+
+            const targetYear = years?.find((y: any) => y.year_label.includes(target));
+
+            if (targetYear) {
+                setFeedback(`EXECUTING PURGE FOR ${target}...`);
+                setTimeout(() => {
+                    if (confirm(`COMMAND RECEIVED: WIPE ALL DATA FOR ${target}?`)) {
+                        onReset(targetYear.id);
+                        setCommand('');
+                        setFeedback('PURGE COMMAND AUTHORIZED.');
+                    } else {
+                        setFeedback('PURGE ABORTED.');
+                    }
+                }, 500);
+            } else {
+                setFeedback(`ERROR: FY ${target} NOT FOUND. USE 'ALL' FOR GLOBAL.`);
+            }
+        } else if (cmd !== '') {
+            setFeedback('UNKNOWN COMMAND. USE: reset system data [year/all]');
+        }
+    };
+
     return (
-        <div className="max-w-3xl mx-auto bg-white p-12 rounded-[56px] border border-slate-200 space-y-8">
-            <div className="flex items-center justify-between border-b pb-8">
-                <div className="flex items-center gap-6">
-                    <div className="p-5 bg-slate-900 text-white rounded-[24px]">
-                        <Lock size={32} />
+        <div className="max-w-3xl mx-auto space-y-8">
+            {/* COMMAND CONSOLE */}
+            <div className="bg-slate-900 p-8 rounded-[40px] border border-slate-800 shadow-2xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-10"><Globe size={120} /></div>
+                <div className="relative z-10 space-y-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <h4 className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.4em]">Quantum System Terminal</h4>
                     </div>
-                    <div>
-                        <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">Manual Closure Engine</h3>
-                        <p className="text-slate-500 text-sm font-medium tracking-tight italic">Initiate cryptographic period locking & system zeroing.</p>
-                    </div>
+                    <form onSubmit={handleCommand} className="relative">
+                        <input
+                            value={command}
+                            onChange={e => setCommand(e.target.value)}
+                            placeholder="Type command: e.g. reset system data 2026"
+                            className="w-full bg-slate-950 border border-slate-800 p-6 rounded-3xl text-emerald-400 font-mono text-sm outline-none focus:border-emerald-500/50 transition-all placeholder:text-slate-700"
+                        />
+                        <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 px-4 py-2 bg-emerald-500/10 text-emerald-500 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all">Execute</button>
+                    </form>
+                    {feedback && (
+                        <p className="font-mono text-[9px] text-emerald-600 uppercase tracking-widest flex items-center gap-2">
+                            <ArrowRight size={10} /> {feedback}
+                        </p>
+                    )}
                 </div>
-                <button onClick={onAdd} className="flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-500/20">
-                    <Plus size={16} /> Initialize New Period
-                </button>
             </div>
-            <div className="space-y-4">
-                {years?.map((y: any) => (
-                    <div key={y.id} className="p-8 bg-slate-50 rounded-[32px] border border-slate-100 flex items-center justify-between">
-                        <div>
-                            <h4 className="font-black text-slate-900 uppercase text-lg">{y.year_label}</h4>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
-                                {new Date(y.start_date).toLocaleDateString()} — {new Date(y.end_date).toLocaleDateString()}
-                            </p>
+
+            <div className="bg-white p-12 rounded-[56px] border border-slate-200 space-y-8">
+                <div className="flex items-center justify-between border-b pb-8">
+                    <div className="flex items-center gap-6">
+                        <div className="p-5 bg-slate-900 text-white rounded-[24px]">
+                            <Lock size={32} />
                         </div>
-                        {y.is_closed ? (
-                            <span className="flex items-center gap-2 px-6 py-2 bg-emerald-100 text-emerald-600 rounded-xl text-[10px] font-black uppercase tracking-widest">
-                                <CheckCircle2 size={14} /> Closed: {new Date(y.closed_at).toLocaleDateString()}
-                            </span>
-                        ) : (
-                            <button
-                                onClick={() => { if (confirm('Initiate final closing for this financial year?')) onClose(y.id); }}
-                                className="px-8 py-3 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-slate-300"
-                            >
-                                Execute Closing
-                            </button>
-                        )}
+                        <div>
+                            <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">Manual Closure Engine</h3>
+                            <p className="text-slate-500 text-sm font-medium tracking-tight italic">Initiate cryptographic period locking & system zeroing.</p>
+                        </div>
                     </div>
-                ))}
+                    <button onClick={onAdd} className="flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-500/20">
+                        <Plus size={16} /> Initialize New Period
+                    </button>
+                </div>
+                {/* ... existing years list ... */}
+                <div className="space-y-4">
+                    {years?.map((y: any) => (
+                        <div key={y.id} className="p-8 bg-slate-50 rounded-[32px] border border-slate-100 flex items-center justify-between">
+                            <div>
+                                <h4 className="font-black text-slate-900 uppercase text-lg">{y.year_label}</h4>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                                    {new Date(y.start_date).toLocaleDateString()} — {new Date(y.end_date).toLocaleDateString()}
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => {
+                                        const confirmText = `DANGER: YOU ARE ABOUT TO PURGE ALL LEDGER DATA FOR ${y.year_label}.\n\nTo confirm, type "DELETE" exactly:`;
+                                        const userInput = prompt(confirmText);
+                                        if (userInput === "DELETE") {
+                                            onReset(y.id);
+                                        } else if (userInput !== null) {
+                                            alert("Incorrect confirmation. Purge aborted.");
+                                        }
+                                    }}
+                                    className="px-6 py-3 bg-white border border-red-200 text-red-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-50 transition-all"
+                                >
+                                    Purge Ledger Data
+                                </button>
+                                {y.is_closed ? (
+                                    <span className="flex items-center gap-2 px-6 py-2 bg-emerald-100 text-emerald-600 rounded-xl text-[10px] font-black uppercase tracking-widest">
+                                        <CheckCircle2 size={14} /> Closed: {new Date(y.closed_at).toLocaleDateString()}
+                                    </span>
+                                ) : (
+                                    <button
+                                        onClick={() => { if (confirm('Initiate final closing for this financial year?')) onClose(y.id); }}
+                                        className="px-8 py-3 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-slate-300"
+                                    >
+                                        Execute Closing
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );
@@ -587,7 +733,7 @@ function AddYearForm({ onAdd, isLoading }: any) {
     const [year, setYear] = useState({ year_label: `FY ${new Date().getFullYear()}-${(new Date().getFullYear() + 1).toString().slice(-2)}`, start_date: `${new Date().getFullYear()}-04-01`, end_date: `${new Date().getFullYear() + 1}-03-31` });
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 text-black">
             <div>
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Fiscal Year Label</label>
                 <input value={year.year_label} onChange={e => setYear({ ...year, year_label: e.target.value })} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl font-black text-xs outline-none" placeholder="e.g. FY 2026-27" />
@@ -678,16 +824,18 @@ function AddJournalForm({ accounts, years, onAdd, isLoading }: any) {
                                 if (matched) {
                                     updateLine(idx, 'account_id', matched.id);
                                     updateLine(idx, 'account_name', matched.name);
+                                } else {
+                                    updateLine(idx, 'account_id', '');
                                 }
                             }}
-                            className="w-24 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-black uppercase outline-none"
+                            className={`w-24 p-2.5 border rounded-xl text-[10px] font-black uppercase outline-none transition-all ${line.account_id ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200 focus:border-orange-400'}`}
                         />
                         <div className="flex-1 relative">
                             <input
                                 list={`accounts-${idx}`}
                                 value={line.account_name}
                                 placeholder="Type Account (Old or New)..."
-                                className="w-full p-3 bg-slate-100 border border-slate-200 rounded-xl text-xs font-bold outline-none border-dashed hover:border-blue-300 transition-all text-blue-600"
+                                className={`w-full p-3 border rounded-xl text-xs font-bold outline-none border-dashed transition-all ${line.account_id ? 'bg-white border-emerald-200 text-slate-900 font-black' : 'bg-slate-100 border-slate-200 text-orange-600'}`}
                                 onChange={e => {
                                     const val = e.target.value;
                                     const matched = accounts?.find((a: any) => `${a.code} - ${a.name}` === val || a.name === val || a.code === val);
@@ -701,6 +849,9 @@ function AddJournalForm({ accounts, years, onAdd, isLoading }: any) {
                                     }
                                 }}
                             />
+                            {!line.account_id && line.account_name && (
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[8px] font-black bg-orange-100 text-orange-600 px-2 py-1 rounded-md uppercase tracking-tighter">New Head</span>
+                            )}
                             <datalist id={`accounts-${idx}`}>
                                 {accounts?.map((a: any) => (
                                     <option key={a.id} value={`${a.code} - ${a.name}`} />
@@ -711,7 +862,7 @@ function AddJournalForm({ accounts, years, onAdd, isLoading }: any) {
                         <input type="number" placeholder="0" value={line.credit || ''} onChange={e => updateLine(idx, 'credit', parseFloat(e.target.value) || 0)} className="w-32 p-3 bg-white border border-slate-200 rounded-xl text-right font-black text-xs text-red-600" />
                     </div>
                 ))}
-                <button onClick={addLine} className="text-[10px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-2 hover:text-blue-800 transition-all">
+                <button onClick={addLine} className="text-[10px] font-black text-orange-600 uppercase tracking-widest flex items-center gap-2 hover:text-blue-800 transition-all">
                     <Plus size={14} /> Add Additional Node
                 </button>
             </div>

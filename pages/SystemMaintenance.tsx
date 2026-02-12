@@ -138,7 +138,7 @@ const SystemMaintenance: React.FC = () => {
                                 <StatusItem icon={<ShieldAlert size={18} />} label="Access Control" status="Verified" />
                             </div>
                         </div>
-                        <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-blue-600/10 rounded-full blur-[80px] group-hover:bg-blue-600/20 transition-all duration-1000"></div>
+                        <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-orange-600/10 rounded-full blur-[80px] group-hover:bg-orange-600/20 transition-all duration-1000"></div>
                     </div>
 
                     <AnimatePresence>
@@ -179,7 +179,7 @@ const SystemMaintenance: React.FC = () => {
 const StatusItem = ({ icon, label, status }: any) => (
     <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
         <div className="flex items-center gap-3">
-            <div className="text-blue-400">{icon}</div>
+            <div className="text-orange-400">{icon}</div>
             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</span>
         </div>
         <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">{status}</span>

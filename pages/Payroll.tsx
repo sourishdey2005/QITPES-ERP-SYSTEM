@@ -218,7 +218,7 @@ const Payroll: React.FC = () => {
           </button>
           <button
             onClick={() => setIsPayModalOpen(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-500/20 hover:bg-blue-700 flex items-center gap-2 transition-all"
+            className="px-4 py-2 bg-orange-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-orange-500/20 hover:bg-orange-700 flex items-center gap-2 transition-all"
           >
             <Landmark size={18} /> Initiate Pay Cycle
           </button>
@@ -233,10 +233,10 @@ const Payroll: React.FC = () => {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatItem label="Next Pay Day" value={nextPayDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} sub={`${daysUntilPay} days left`} icon={<Calendar size={20} className="text-blue-500" />} />
+        <StatItem label="Next Pay Day" value={nextPayDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} sub={`${daysUntilPay} days left`} icon={<Calendar size={20} className="text-orange-500" />} />
         <StatItem label="Monthly Liability" value={formatCurrency(stats.totalSalaries)} sub="Gross Pipeline" icon={<TrendingUp size={20} className="text-slate-400" />} />
         <StatItem label="Cycle Authorizations" value={`${stats.paidThisMonth} / ${employees?.length || 0}`} sub="Cycle Completion" icon={<CheckCircle2 size={20} className="text-emerald-500" />} />
-        <StatItem label="Active Payees" value={employees?.length || 0} sub="Site Registry" icon={<Users size={20} className="text-blue-500" />} />
+        <StatItem label="Active Payees" value={employees?.length || 0} sub="Site Registry" icon={<Users size={20} className="text-orange-500" />} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -244,14 +244,14 @@ const Payroll: React.FC = () => {
           <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
             <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
               <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                <Users size={16} className="text-blue-500" /> Professional Salary Registry
+                <Users size={16} className="text-orange-500" /> Professional Salary Registry
               </h3>
               <div className="relative">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search staff..."
-                  className="pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs outline-none w-48 focus:ring-2 focus:ring-blue-500/20"
+                  className="pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs outline-none w-48 focus:ring-2 focus:ring-orange-500/20"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -270,7 +270,7 @@ const Payroll: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-sm">
                   {loadingEmployees ? (
-                    <tr><td colSpan={5} className="p-10 text-center"><Loader2 className="animate-spin mx-auto text-blue-600" /></td></tr>
+                    <tr><td colSpan={5} className="p-10 text-center"><Loader2 className="animate-spin mx-auto text-orange-600" /></td></tr>
                   ) : filteredStaff?.length === 0 ? (
                     <tr><td colSpan={5} className="px-6 py-10 text-center text-slate-400 italic">No payees found. Add staff to begin payroll engine.</td></tr>
                   ) : filteredStaff?.map((emp: any) => {
@@ -292,7 +292,7 @@ const Payroll: React.FC = () => {
                               <input
                                 type="number"
                                 autoFocus
-                                className="w-24 p-1 border rounded text-xs font-bold focus:ring-2 focus:ring-blue-500/20"
+                                className="w-24 p-1 border rounded text-xs font-bold focus:ring-2 focus:ring-orange-500/20"
                                 value={tempDeductionValue}
                                 onChange={(e) => setTempDeductionValue(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleSaveDeduction(emp.id)}
@@ -304,7 +304,7 @@ const Payroll: React.FC = () => {
                               <span className="text-red-600 font-bold">{formatCurrency(emp.monthly_deductions || 0)}</span>
                               <button
                                 onClick={() => { setEditingDeductionId(emp.id); setTempDeductionValue(emp.monthly_deductions?.toString() || '0'); }}
-                                className="p-1 text-slate-300 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="p-1 text-slate-300 hover:text-orange-600 opacity-0 group-hover:opacity-100 transition-opacity"
                               >
                                 <Edit2 size={12} />
                               </button>
@@ -343,7 +343,7 @@ const Payroll: React.FC = () => {
                   <span className="text-red-400 font-black">{formatCurrency(stats.totalDeductions)}</span>
                 </div>
                 <div className="pt-4 border-t border-white/10 flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400 border border-blue-500/20">
+                  <div className="w-10 h-10 bg-orange-500/10 rounded-xl flex items-center justify-center text-orange-400 border border-orange-500/20">
                     <Clock size={20} />
                   </div>
                   <div>
@@ -353,7 +353,7 @@ const Payroll: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl group-hover:bg-blue-600/20 transition-all duration-700"></div>
+            <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-orange-600/10 rounded-full blur-3xl group-hover:bg-orange-600/20 transition-all duration-700"></div>
           </div>
         </div>
       </div>
@@ -400,15 +400,15 @@ const Payroll: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4 pt-2">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-blue-600">Base Gross (₹)</label>
-                    <input required type="number" value={newStaff.gross_salary} onChange={(e) => setNewStaff({ ...newStaff, gross_salary: e.target.value })} className="w-full p-2.5 bg-blue-50/30 border border-blue-200 rounded-xl outline-none text-sm font-black" placeholder="50000" />
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-orange-600">Base Gross (₹)</label>
+                    <input required type="number" value={newStaff.gross_salary} onChange={(e) => setNewStaff({ ...newStaff, gross_salary: e.target.value })} className="w-full p-2.5 bg-orange-50/30 border border-orange-200 rounded-xl outline-none text-sm font-black" placeholder="50000" />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-red-600">Deductions (₹)</label>
                     <input required type="number" value={newStaff.monthly_deductions} onChange={(e) => setNewStaff({ ...newStaff, monthly_deductions: e.target.value })} className="w-full p-2.5 bg-red-50/30 border border-red-200 rounded-xl outline-none text-sm font-black text-red-600" placeholder="5000" />
                   </div>
                 </div>
-                <button disabled={addStaff.isPending} type="submit" className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all mt-4">
+                <button disabled={addStaff.isPending} type="submit" className="w-full py-4 bg-orange-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 hover:bg-orange-700 transition-all mt-4">
                   {addStaff.isPending ? <Loader2 className="animate-spin" /> : 'Register with Custom Deductions'}
                 </button>
               </form>
@@ -421,10 +421,10 @@ const Payroll: React.FC = () => {
 };
 
 const StatItem = ({ label, value, sub, icon }: any) => (
-  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm group hover:border-blue-200 transition-all">
+  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm group hover:border-orange-200 transition-all">
     <div className="flex items-start justify-between mb-2">
       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</p>
-      <div className="p-2 bg-slate-50 rounded-lg group-hover:bg-blue-50 transition-colors">{icon}</div>
+      <div className="p-2 bg-slate-50 rounded-lg group-hover:bg-orange-50 transition-colors">{icon}</div>
     </div>
     <h3 className="text-xl font-black text-slate-900">{typeof value === 'number' ? formatCurrency(value) : value}</h3>
     <p className="text-[10px] font-bold text-slate-400 mt-1">{sub}</p>

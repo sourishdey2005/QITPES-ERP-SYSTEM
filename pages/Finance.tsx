@@ -78,7 +78,7 @@ const Finance: React.FC = () => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold flex items-center shadow-lg transition-all"
+          className="px-4 py-2 bg-orange-600 text-white rounded-lg font-bold flex items-center shadow-lg transition-all"
         >
           <Plus size={18} className="mr-2" /> New Entry
         </motion.button>
@@ -110,7 +110,7 @@ const Finance: React.FC = () => {
                     </select>
                   </div>
                 </div>
-                <button disabled={createTransaction.isPending} type="submit" className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center">
+                <button disabled={createTransaction.isPending} type="submit" className="w-full py-3 bg-orange-600 text-white rounded-xl font-bold flex items-center justify-center">
                   {createTransaction.isPending ? <Loader2 className="animate-spin" /> : 'Record Transaction'}
                 </button>
               </form>

@@ -49,7 +49,7 @@ const TaxEngine: React.FC = () => {
           <p className="text-slate-500 text-sm">Managing GST, TDS, and Corporate Tax for Indian operations.</p>
         </div>
         <div className="flex gap-2">
-           <button onClick={() => setIsModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 shadow-lg">
+           <button onClick={() => setIsModalOpen(true)} className="bg-orange-600 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 shadow-lg">
              <Plus size={16} /> Log Tax Filing
            </button>
         </div>
@@ -89,7 +89,7 @@ const TaxEngine: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard label="Accumulated Tax Credits" value={totals.credits} icon={<Receipt />} color="bg-green-50 text-green-600" />
-        <StatCard label="Active Filings" value={totals.count} icon={<FileText />} color="bg-blue-50 text-blue-600" />
+        <StatCard label="Active Filings" value={totals.count} icon={<FileText />} color="bg-orange-50 text-orange-600" />
         <StatCard label="Compliance Status" value="Compliant" icon={<ShieldCheck />} color="bg-emerald-50 text-emerald-600" />
       </div>
 
@@ -101,7 +101,7 @@ const TaxEngine: React.FC = () => {
            {taxRecords?.length === 0 ? (
              <div className="text-center py-10 text-slate-400 font-medium">No records found. Initialize your first filing above.</div>
            ) : taxRecords?.map((row: any) => (
-             <div key={row.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-blue-200 transition-all">
+             <div key={row.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-orange-200 transition-all">
                 <div className="flex items-center gap-4">
                    <div className="p-2 bg-white rounded-lg border border-slate-200"><FileText size={20} className="text-slate-400" /></div>
                    <div>

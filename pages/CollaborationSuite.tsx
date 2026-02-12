@@ -94,7 +94,7 @@ const CollaborationSuite: React.FC = () => {
           </button>
           <button 
             onClick={() => setIsBookingOpen(true)}
-            className="bg-blue-600 text-white px-8 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-2xl shadow-blue-500/30 hover:bg-blue-700 transition-all flex items-center gap-3"
+            className="bg-orange-600 text-white px-8 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-2xl shadow-orange-500/30 hover:bg-orange-700 transition-all flex items-center gap-3"
           >
             <Plus size={18} /> Schedule Symposium
           </button>
@@ -107,23 +107,23 @@ const CollaborationSuite: React.FC = () => {
            <div className="bg-white rounded-[48px] border border-slate-200 shadow-sm overflow-hidden">
               <div className="p-8 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
                  <h3 className="font-black text-slate-900 uppercase tracking-tighter flex items-center gap-2">
-                    <Video size={20} className="text-blue-600" /> Active Session Registry
+                    <Video size={20} className="text-orange-600" /> Active Session Registry
                  </h3>
               </div>
               <div className="divide-y divide-slate-100">
                  {loadingMeetings ? (
-                   <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-blue-600" /></div>
+                   <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-orange-600" /></div>
                  ) : meetings?.length === 0 ? (
                    <div className="p-20 text-center text-slate-400 font-medium italic">No symposia scheduled for this interval.</div>
                  ) : meetings?.map((m: any) => (
                    <div key={m.id} className="p-8 hover:bg-slate-50/50 transition-all group">
                       <div className="flex items-start justify-between">
                          <div className="flex gap-6">
-                            <div className="w-16 h-16 bg-slate-100 rounded-[24px] flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
+                            <div className="w-16 h-16 bg-slate-100 rounded-[24px] flex items-center justify-center text-slate-400 group-hover:bg-orange-600 group-hover:text-white transition-all duration-500">
                                <Calendar size={28} />
                             </div>
                             <div>
-                               <h4 className="text-lg font-black text-slate-900 group-hover:text-blue-600 transition-colors">{m.title}</h4>
+                               <h4 className="text-lg font-black text-slate-900 group-hover:text-orange-600 transition-colors">{m.title}</h4>
                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">{m.department} Division ● {m.conference_rooms?.name || 'Virtual Portal'}</p>
                                <div className="flex items-center gap-4 mt-4 text-xs font-bold text-slate-500">
                                   <span className="flex items-center gap-1.5"><Clock size={14}/> {new Date(m.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
@@ -143,12 +143,12 @@ const CollaborationSuite: React.FC = () => {
                 <div className="col-span-full p-16 bg-slate-50 rounded-[40px] border-4 border-dashed border-slate-200 text-center">
                   <Monitor size={48} className="mx-auto text-slate-300 mb-4" />
                   <p className="text-slate-400 font-black uppercase text-xs tracking-widest">No Physical Nodes Defined</p>
-                  <button onClick={() => setIsRoomModalOpen(true)} className="mt-4 text-blue-600 font-bold hover:underline">Register your first room now</button>
+                  <button onClick={() => setIsRoomModalOpen(true)} className="mt-4 text-orange-600 font-bold hover:underline">Register your first room now</button>
                 </div>
                ) : rooms?.map((r: any) => (
-                <div key={r.id} className="bg-white p-8 rounded-[40px] border border-slate-200 shadow-sm group hover:border-blue-200 transition-all relative overflow-hidden">
+                <div key={r.id} className="bg-white p-8 rounded-[40px] border border-slate-200 shadow-sm group hover:border-orange-200 transition-all relative overflow-hidden">
                    <div className="flex items-center justify-between mb-6">
-                      <div className="w-14 h-14 bg-blue-50 rounded-[20px] flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
+                      <div className="w-14 h-14 bg-orange-50 rounded-[20px] flex items-center justify-center text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all duration-500">
                          <LayoutGrid size={28} />
                       </div>
                       <button onClick={() => deleteRoom.mutate(r.id)} className="p-2 text-slate-200 hover:text-rose-500 transition-colors">
@@ -165,7 +165,7 @@ const CollaborationSuite: React.FC = () => {
         <div className="space-y-8">
            <div className="bg-slate-900 rounded-[40px] p-10 text-white relative overflow-hidden shadow-2xl">
               <div className="relative z-10">
-                 <div className="flex items-center gap-3 text-blue-400 mb-8">
+                 <div className="flex items-center gap-3 text-orange-400 mb-8">
                     <Sparkles size={24} fill="currentColor" />
                     <span className="text-xs font-black uppercase tracking-[0.4em]">Resource Optimization</span>
                  </div>
@@ -212,7 +212,7 @@ const CollaborationSuite: React.FC = () => {
                         <button 
                           type="button"
                           onClick={() => setIsRoomModalOpen(true)}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-blue-600 font-black text-[10px] uppercase tracking-tighter bg-blue-50 px-3 py-2 rounded-full hover:bg-blue-100 transition-all"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-orange-600 font-black text-[10px] uppercase tracking-tighter bg-orange-50 px-3 py-2 rounded-full hover:bg-orange-100 transition-all"
                         >
                           <Plus size={12}/> Register Now
                         </button>
@@ -231,7 +231,7 @@ const CollaborationSuite: React.FC = () => {
                       <input required type="datetime-local" value={bookingForm.end_time} onChange={(e) => setBookingForm({...bookingForm, end_time: e.target.value})} className="w-full p-5 bg-slate-50 border border-slate-200 rounded-[20px] outline-none font-black text-xs" />
                    </div>
                 </div>
-                <button disabled={createMeeting.isPending || !bookingForm.room_id} type="submit" className="w-full py-6 bg-blue-600 text-white rounded-[24px] font-black text-sm uppercase tracking-[0.3em] shadow-2xl shadow-blue-500/40 hover:bg-blue-700 transition-all flex items-center justify-center gap-4 disabled:opacity-50 disabled:cursor-not-allowed">
+                <button disabled={createMeeting.isPending || !bookingForm.room_id} type="submit" className="w-full py-6 bg-orange-600 text-white rounded-[24px] font-black text-sm uppercase tracking-[0.3em] shadow-2xl shadow-orange-500/40 hover:bg-orange-700 transition-all flex items-center justify-center gap-4 disabled:opacity-50 disabled:cursor-not-allowed">
                   {createMeeting.isPending ? <Loader2 className="animate-spin" /> : 'Authorize Session'}
                 </button>
               </form>

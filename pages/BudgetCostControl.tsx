@@ -14,7 +14,7 @@ import {
 import { motion as motionBase, AnimatePresence } from 'framer-motion';
 
 const motion = motionBase as any;
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#14b8a6'];
+const COLORS = ['#f97316', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#14b8a6'];
 
 type Tab = 'overview' | 'budgets' | 'approvals' | 'costcenters' | 'pettycash' | 'fixed' | 'capex' | 'projects' | 'history';
 
@@ -150,7 +150,7 @@ const BudgetCostControl: React.FC = () => {
         setIsModalOpen(true);
     };
 
-    if (isLoading) return <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-blue-600" /></div>;
+    if (isLoading) return <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-orange-600" /></div>;
 
     return (
         <div className="space-y-8 page-transition p-2">
@@ -164,7 +164,7 @@ const BudgetCostControl: React.FC = () => {
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
-                            className={`px-5 py-2.5 rounded-[18px] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-white text-blue-600 shadow-sm border border-slate-200' : 'text-slate-400 hover:text-slate-600'}`}
+                            className={`px-5 py-2.5 rounded-[18px] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-white text-orange-600 shadow-sm border border-slate-200' : 'text-slate-400 hover:text-slate-600'}`}
                         >
                             {tab === 'pettycash' ? 'Petty Cash' : tab === 'costcenters' ? 'Centers' : tab === 'projects' ? 'Projects' : tab}
                         </button>
@@ -193,7 +193,7 @@ const BudgetCostControl: React.FC = () => {
                                                 <YAxis hide />
                                                 <Tooltip cursor={{ fill: '#f8fafc' }} />
                                                 <Bar dataKey="allocated" fill="#e2e8f0" radius={[4, 4, 0, 0]} />
-                                                <Bar dataKey="actual" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                                                <Bar dataKey="actual" fill="#f97316" radius={[4, 4, 0, 0]} />
                                             </BarChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -219,7 +219,7 @@ const BudgetCostControl: React.FC = () => {
                         <div className="bg-white rounded-[40px] border border-slate-200 overflow-hidden shadow-sm">
                             <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
                                 <h3 className="font-black text-slate-900 uppercase tracking-tighter flex items-center gap-2">Allocations</h3>
-                                <button onClick={() => openModal('addBudget')} className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest"><Plus size={14} /> Add New Budget</button>
+                                <button onClick={() => openModal('addBudget')} className="flex items-center gap-2 px-6 py-2 bg-orange-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest"><Plus size={14} /> Add New Budget</button>
                             </div>
                             <div className="p-8 space-y-6">
                                 {db?.budgets.map(b => <BudgetProgressItem key={b.id} item={b} onEdit={() => openModal('editBudget', b)} onDelete={() => budgetMutations.delete.mutate(b.id)} />)}
@@ -239,7 +239,7 @@ const BudgetCostControl: React.FC = () => {
                                         <div>
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{app.department} • Ref: {app.id.slice(0, 6)}</p>
                                             <h4 className="font-black text-slate-900 uppercase text-lg mb-1">{app.description}</h4>
-                                            <p className="text-xl font-black text-blue-600">{formatCurrency(app.amount)}</p>
+                                            <p className="text-xl font-black text-orange-600">{formatCurrency(app.amount)}</p>
                                             <div className={`mt-3 inline-block px-3 py-1 rounded-full text-[9px] font-black uppercase ${app.status === 'Pending' ? 'bg-amber-100 text-amber-600' : app.status === 'Approved' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
                                                 {app.status}
                                             </div>
@@ -259,19 +259,19 @@ const BudgetCostControl: React.FC = () => {
                     {activeTab === 'costcenters' && (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-black">
                             {db?.centers.map(center => (
-                                <div key={center.id} className="bg-white p-10 rounded-[48px] border border-slate-200 shadow-xl shadow-slate-200/20 group hover:border-blue-500 transition-all flex flex-col justify-between h-72">
+                                <div key={center.id} className="bg-white p-10 rounded-[48px] border border-slate-200 shadow-xl shadow-slate-200/20 group hover:border-orange-500 transition-all flex flex-col justify-between h-72">
                                     <div>
-                                        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6"><Zap size={20} fill="currentColor" /></div>
+                                        <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center mb-6"><Zap size={20} fill="currentColor" /></div>
                                         <h4 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">{center.name}</h4>
                                         <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">CODE: {center.code}</p>
                                     </div>
                                     <div className="flex justify-between items-center border-t pt-6">
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-blue-600">Active Audit node</span>
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-orange-600">Active Audit node</span>
                                         <button onClick={() => centerMutations.delete.mutate(center.id)} className="text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
                                     </div>
                                 </div>
                             ))}
-                            <button onClick={() => openModal('addCenter')} className="bg-slate-50 border-2 border-dashed border-slate-200 p-10 rounded-[48px] flex flex-col items-center justify-center text-slate-400 hover:text-blue-600 transition-all h-72 group">
+                            <button onClick={() => openModal('addCenter')} className="bg-slate-50 border-2 border-dashed border-slate-200 p-10 rounded-[48px] flex flex-col items-center justify-center text-slate-400 hover:text-orange-600 transition-all h-72 group">
                                 <Plus className="mb-2 group-hover:scale-125 transition-transform" />
                                 <span className="font-black uppercase text-[10px] tracking-widest">New Cost Center</span>
                             </button>
@@ -282,7 +282,7 @@ const BudgetCostControl: React.FC = () => {
                         <div className="bg-white rounded-[40px] border border-slate-200 overflow-hidden">
                             <div className="p-8 border-b border-slate-100 bg-slate-50/30 flex items-center justify-between">
                                 <h3 className="font-black text-slate-900 uppercase tracking-tighter">Liquidity: Petty Cash</h3>
-                                <button onClick={() => openModal('addPetty')} className="px-6 py-2 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest tracking-tighter">Log Entry</button>
+                                <button onClick={() => openModal('addPetty')} className="px-6 py-2 bg-orange-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest tracking-tighter">Log Entry</button>
                             </div>
                             <table className="w-full text-left">
                                 <thead className="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b">
@@ -318,11 +318,11 @@ const BudgetCostControl: React.FC = () => {
                                         <button onClick={() => fixedMutations.delete.mutate(f.id)} className="text-slate-300 hover:text-red-500"><Trash2 size={16} /></button>
                                     </div>
                                     <h4 className="text-xl font-black text-slate-900 uppercase tracking-tighter mb-1">{f.name}</h4>
-                                    <p className="text-2xl font-black text-blue-600">{formatCurrency(f.amount)}</p>
+                                    <p className="text-2xl font-black text-orange-600">{formatCurrency(f.amount)}</p>
                                     <p className="text-[10px] font-bold text-slate-400 uppercase mt-4">Recurring on Day: {f.due_day || 'N/A'}</p>
                                 </div>
                             ))}
-                            <button onClick={() => openModal('addFixed')} className="bg-slate-50 border-2 border-dashed border-slate-200 p-8 rounded-[40px] flex items-center justify-center text-slate-400 h-48 hover:text-blue-600">
+                            <button onClick={() => openModal('addFixed')} className="bg-slate-50 border-2 border-dashed border-slate-200 p-8 rounded-[40px] flex items-center justify-center text-slate-400 h-48 hover:text-orange-600">
                                 <Plus /> <span className="font-black uppercase text-[10px] ml-2">Add Fixed Obligation</span>
                             </button>
                         </div>
@@ -354,7 +354,7 @@ const BudgetCostControl: React.FC = () => {
                                             <td className="px-10 py-5 text-slate-500 font-bold text-xs uppercase">{c.category}</td>
                                             <td className="px-10 py-5 font-black text-slate-900">{formatCurrency(c.amount)}</td>
                                             <td className="px-10 py-5">
-                                                <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase ${c.status === 'Purchased' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>
+                                                <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase ${c.status === 'Purchased' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
                                                     {c.status}
                                                 </span>
                                             </td>
@@ -516,13 +516,13 @@ const PrimaryButton = ({ label, onClick, loading }: any) => (
 const StatCard = ({ label, value, icon, color }: any) => (
     <div className="bg-white p-8 rounded-[40px] border border-slate-200 shadow-sm relative overflow-hidden group">
         <div className="relative z-10">
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 ${color === 'blue' ? 'bg-blue-50 text-blue-600' : color === 'emerald' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 ${color === 'blue' ? 'bg-orange-50 text-orange-600' : color === 'emerald' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
                 {React.cloneElement(icon as any, { size: 22 })}
             </div>
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">{label}</p>
             <h3 className="text-2xl font-black text-slate-900 tracking-tight">{formatCurrency(value)}</h3>
         </div>
-        <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-blue-50 transition-all"></div>
+        <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-orange-50 transition-all"></div>
     </div>
 );
 
@@ -536,11 +536,11 @@ const VisualBox = ({ title, children }: any) => (
 const BudgetProgressItem = ({ item, onEdit, onDelete }: any) => {
     const percent = (Number(item.spent_amount) / Number(item.allocated_amount)) * 100;
     return (
-        <div className="bg-slate-50 p-6 rounded-[32px] border border-slate-100 hover:border-blue-200 transition-all">
+        <div className="bg-slate-50 p-6 rounded-[32px] border border-slate-100 hover:border-orange-200 transition-all">
             <div className="flex items-center justify-between mb-4">
                 <h4 className="font-black text-slate-900 uppercase text-lg tracking-tight">{item.department}</h4>
                 <div className="flex items-center gap-2">
-                    <button onClick={onEdit} className="p-2 text-slate-400 hover:text-blue-600"><Edit2 size={14} /></button>
+                    <button onClick={onEdit} className="p-2 text-slate-400 hover:text-orange-600"><Edit2 size={14} /></button>
                     <button onClick={onDelete} className="p-2 text-slate-400 hover:text-red-500"><Trash2 size={14} /></button>
                 </div>
             </div>
@@ -549,7 +549,7 @@ const BudgetProgressItem = ({ item, onEdit, onDelete }: any) => {
                 <span className="text-[9px] font-black text-slate-600 uppercase">Balance: {formatCurrency(item.allocated_amount - item.spent_amount)}</span>
             </div>
             <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden shadow-inner">
-                <motion.div initial={{ width: 0 }} animate={{ width: `${percent}%` }} className={`h-full ${percent > 90 ? 'bg-red-500' : 'bg-blue-600'}`} />
+                <motion.div initial={{ width: 0 }} animate={{ width: `${percent}%` }} className={`h-full ${percent > 90 ? 'bg-red-500' : 'bg-orange-600'}`} />
             </div>
         </div>
     );

@@ -82,7 +82,7 @@ const HR: React.FC = () => {
           <h1 className="text-2xl font-bold text-slate-900">HR & Workforce</h1>
           <p className="text-slate-500 text-sm">Employee lifecycle and corporate registry management.</p>
         </div>
-        <button onClick={() => openModal()} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold flex items-center shadow-lg transition-all">
+        <button onClick={() => openModal()} className="px-4 py-2 bg-orange-600 text-white rounded-lg font-bold flex items-center shadow-lg transition-all">
           <Plus size={18} className="mr-2" /> Onboard Employee
         </button>
       </div>
@@ -126,7 +126,7 @@ const HR: React.FC = () => {
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Salary (₹)</label>
                   <input required type="number" value={formData.gross_salary} onChange={(e) => setFormData({...formData, gross_salary: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg" />
                 </div>
-                <button disabled={onboard.isPending} type="submit" className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center">
+                <button disabled={onboard.isPending} type="submit" className="w-full py-3 bg-orange-600 text-white rounded-xl font-bold flex items-center justify-center">
                   {onboard.isPending ? <Loader2 className="animate-spin" /> : editId ? 'Save Changes' : 'Confirm Onboarding'}
                 </button>
               </form>
@@ -172,7 +172,7 @@ const HR: React.FC = () => {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <button onClick={() => openModal(emp)} className="text-blue-600 hover:text-blue-800 transition-colors">
+                    <button onClick={() => openModal(emp)} className="text-orange-600 hover:text-blue-800 transition-colors">
                       <Edit2 size={16} />
                     </button>
                     <button onClick={() => { if(confirm('Delete employee?')) deleteEmployee.mutate(emp.id); }} className="text-rose-500 hover:text-rose-700 transition-colors">

@@ -19,8 +19,8 @@ const AuditLogs: React.FC = () => {
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
          <div className="p-4 bg-slate-900 text-white flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs font-mono">
-               <Terminal size={14} className="text-blue-400" />
-               <span className="text-blue-400">root@qitpes:</span> tail -f audit.log
+               <Terminal size={14} className="text-orange-400" />
+               <span className="text-orange-400">root@qitpes:</span> tail -f audit.log
             </div>
             <div className="flex items-center bg-white/10 border border-white/20 rounded-lg px-3 py-1">
                <Search size={14} className="text-white/40 mr-2" />
@@ -48,7 +48,7 @@ const AuditLogs: React.FC = () => {
                   <tr key={i} className="hover:bg-slate-50 transition-colors">
                      <td className="px-6 py-4 text-slate-400">{log.time}</td>
                      <td className="px-6 py-4 font-bold text-slate-700">{log.user}</td>
-                     <td className="px-6 py-4"><span className="text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{log.event}</span></td>
+                     <td className="px-6 py-4"><span className="text-orange-600 bg-orange-50 px-2 py-0.5 rounded">{log.event}</span></td>
                      <td className="px-6 py-4 font-bold text-slate-500">{log.mod}</td>
                      <td className="px-6 py-4 text-slate-400">{log.ip}</td>
                      <td className="px-6 py-4 text-right"><ShieldCheck size={14} className="text-green-500 inline" /></td>

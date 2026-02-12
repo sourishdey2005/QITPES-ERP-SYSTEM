@@ -42,7 +42,7 @@ const OKR: React.FC = () => {
           <h1 className="text-2xl font-bold text-slate-900">Performance (OKR)</h1>
           <p className="text-slate-500 text-sm">Aligning enterprise objectives with site-level key results.</p>
         </div>
-        <button onClick={() => setIsModalOpen(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md flex items-center gap-2">
+        <button onClick={() => setIsModalOpen(true)} className="bg-orange-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md flex items-center gap-2">
            <Plus size={18} /> New Objective
         </button>
       </div>
@@ -68,7 +68,7 @@ const OKR: React.FC = () => {
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Progress (%)</label>
                   <input required type="number" min="0" max="100" value={formData.progress} onChange={(e) => setFormData({...formData, progress: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" />
                 </div>
-                <button disabled={createOKR.isPending} type="submit" className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center">
+                <button disabled={createOKR.isPending} type="submit" className="w-full py-3 bg-orange-600 text-white rounded-xl font-bold flex items-center justify-center">
                   {createOKR.isPending ? <Loader2 className="animate-spin" /> : 'Set Objective'}
                 </button>
               </form>
@@ -82,13 +82,13 @@ const OKR: React.FC = () => {
           <motion.div key={okr.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-blue-300 transition-all group">
              <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                   <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><Target size={24} /></div>
+                   <div className="p-2 bg-orange-50 text-orange-600 rounded-lg"><Target size={24} /></div>
                    <div>
-                      <h3 className="font-bold text-slate-900 text-lg group-hover:text-blue-600 transition-colors">{okr.objective}</h3>
+                      <h3 className="font-bold text-slate-900 text-lg group-hover:text-orange-600 transition-colors">{okr.objective}</h3>
                       <p className="text-xs text-slate-500 font-medium">Objective Owner: {okr.owner_name}</p>
                    </div>
                 </div>
-                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${okr.status === 'Completed' ? 'bg-green-50 text-green-600' : okr.status === 'At Risk' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}`}>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${okr.status === 'Completed' ? 'bg-green-50 text-green-600' : okr.status === 'At Risk' ? 'bg-red-50 text-red-600' : 'bg-orange-50 text-orange-600'}`}>
                   {okr.status}
                 </span>
              </div>
@@ -98,10 +98,10 @@ const OKR: React.FC = () => {
                    <span className="text-slate-900">{okr.progress}%</span>
                 </div>
                 <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                   <motion.div initial={{ width: 0 }} animate={{ width: `${okr.progress}%` }} className={`h-full ${okr.progress === 100 ? 'bg-green-500' : okr.progress < 50 ? 'bg-red-500' : 'bg-blue-500'}`} />
+                   <motion.div initial={{ width: 0 }} animate={{ width: `${okr.progress}%` }} className={`h-full ${okr.progress === 100 ? 'bg-green-500' : okr.progress < 50 ? 'bg-red-500' : 'bg-orange-500'}`} />
                 </div>
              </div>
-             <div className="mt-6 flex items-center justify-between pt-4 border-t border-slate-50 text-xs font-bold text-blue-600 uppercase">
+             <div className="mt-6 flex items-center justify-between pt-4 border-t border-slate-50 text-xs font-bold text-orange-600 uppercase">
                 View Key Results <ChevronRight size={14} className="ml-1" />
              </div>
           </motion.div>
