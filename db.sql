@@ -1,6 +1,6 @@
 
 -- QITPES ERP SYSTEM - ENTERPRISE BI SCHEMA (30-KPI OPTIMIZED)
--- VERSION: 2026.11 (Analytics Pro Edition)
+-- VERSION: 2026.12 (Ultimate Analytics Edition)
 
 -- 1. CORE IDENTITY
 CREATE TABLE IF NOT EXISTS profiles (
@@ -57,7 +57,6 @@ CREATE TABLE IF NOT EXISTS inventory (
   reorder_level NUMERIC(12, 2) DEFAULT 100,
   unit_price NUMERIC(12, 2) DEFAULT 0,
   cogs NUMERIC(15, 2) DEFAULT 0,
-  avg_inventory_val NUMERIC(15, 2) DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
