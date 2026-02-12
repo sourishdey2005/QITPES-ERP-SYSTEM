@@ -5,7 +5,7 @@ import { supabase, formatCurrency } from '../lib/supabase';
 import { 
   Users, UserPlus, Calendar, IndianRupee, Search, Filter, 
   X, Loader2, CheckCircle2, ChevronRight, Coins, Zap,
-  AlertTriangle, Hammer, HandMetal, Construction
+  AlertTriangle, Hammer, HandMetal, Construction, Trash2
 } from 'lucide-react';
 import { motion as motionBase, AnimatePresence } from 'framer-motion';
 
@@ -79,6 +79,18 @@ const SiteWages: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['contract_workers'] });
       setIsWorkerModalOpen(false);
       setWorkerForm({ worker_id: '', full_name: '', trade: 'General Labour', daily_wage: '500', site_location: '' });
+    }
+  });
+
+  const deleteWorker = useMutation({
+    mutationFn: async (id: string) => {
+      if (!confirm("Are you sure you want to decommission this contractor node? All attendance records will be purged.")) return;
+      const { error } = await supabase.from('contract_workers').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contract_workers'] });
+      queryClient.invalidateQueries({ queryKey: ['contract_attendance'] });
     }
   });
 
@@ -181,7 +193,18 @@ const SiteWages: React.FC = () => {
                                <td className="px-10 py-6 text-slate-500 font-bold uppercase text-xs">{w.trade}</td>
                                <td className="px-10 py-6 font-black text-slate-900">{formatCurrency(w.daily_wage)} / DAY</td>
                                <td className="px-10 py-6 text-slate-400 font-bold">{w.site_location || 'Global Pool'}</td>
-                               <td className="px-10 py-6 text-right"><button className="text-blue-600 hover:underline">Edit</button></td>
+                               <td className="px-10 py-6 text-right">
+                                  <div className="flex items-center justify-end gap-3">
+                                    <button className="text-blue-600 hover:underline font-bold text-xs">Edit</button>
+                                    <button 
+                                      onClick={() => deleteWorker.mutate(w.id)}
+                                      disabled={deleteWorker.isPending}
+                                      className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                                    >
+                                      <Trash2 size={16} />
+                                    </button>
+                                  </div>
+                               </td>
                             </tr>
                           ))}
                        </tbody>
