@@ -11,6 +11,9 @@ const Finance: React.FC = () => {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({ description: '', amount: '', type: 'income', category: 'Project Revenue' });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'year' | 'month' | 'day'>('all');
+  const [filterValue, setFilterValue] = useState('');
 
   const { data: transactions, isLoading } = useQuery({
     queryKey: ['transactions'],
@@ -34,12 +37,35 @@ const Finance: React.FC = () => {
     }
   });
 
+  const filteredTransactions = React.useMemo(() => {
+    if (!transactions) return [];
+    return transactions.filter((t: any) => {
+      const matchesSearch = t.description.toLowerCase().includes(searchTerm.toLowerCase());
+      if (!matchesSearch) return false;
+
+      if (filterType === 'all') return true;
+
+      const date = new Date(t.transaction_date);
+      if (filterType === 'year' && filterValue) {
+        return date.getFullYear().toString() === filterValue;
+      }
+      if (filterType === 'month' && filterValue) {
+        const monthStr = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+        return monthStr === filterValue;
+      }
+      if (filterType === 'day' && filterValue) {
+        const dayStr = date.toISOString().split('T')[0];
+        return dayStr === filterValue;
+      }
+      return true;
+    });
+  }, [transactions, searchTerm, filterType, filterValue]);
+
   const stats = React.useMemo(() => {
-    if (!transactions) return { income: 0, expense: 0, balance: 0 };
-    const income = transactions.filter((t: any) => t.type === 'income').reduce((s: number, t: any) => s + Number(t.amount), 0);
-    const expense = transactions.filter((t: any) => t.type === 'expense').reduce((s: number, t: any) => s + Number(t.amount), 0);
+    const income = filteredTransactions.filter((t: any) => t.type === 'income').reduce((s: number, t: any) => s + Number(t.amount), 0);
+    const expense = filteredTransactions.filter((t: any) => t.type === 'expense').reduce((s: number, t: any) => s + Number(t.amount), 0);
     return { income, expense, balance: income - expense };
-  }, [transactions]);
+  }, [filteredTransactions]);
 
   return (
     <div className="space-y-6 page-transition">
@@ -48,7 +74,7 @@ const Finance: React.FC = () => {
           <h1 className="text-2xl font-bold text-slate-900">Finance & Indian Accounts</h1>
           <p className="text-slate-500">Managing all corporate ledgers in Indian Rupees (₹).</p>
         </motion.div>
-        <motion.button 
+        <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsModalOpen(true)}
@@ -64,28 +90,28 @@ const Finance: React.FC = () => {
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
               <div className="p-6 border-b border-slate-100 flex items-center justify-between">
                 <h3 className="text-lg font-bold text-slate-900">New Financial Entry</h3>
-                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={20}/></button>
+                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
               </div>
               <form onSubmit={(e) => { e.preventDefault(); createTransaction.mutate({ ...formData, amount: parseFloat(formData.amount) }); }} className="p-6 space-y-4">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Description</label>
-                  <input required value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="e.g. Nagpur Phase II Milestone 1" />
+                  <input required value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="e.g. Nagpur Phase II Milestone 1" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Amount (₹)</label>
-                    <input required type="number" value={formData.amount} onChange={(e) => setFormData({...formData, amount: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg" />
+                    <input required type="number" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg" />
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Type</label>
-                    <select value={formData.type} onChange={(e) => setFormData({...formData, type: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                    <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
                       <option value="income">Receivable (Income)</option>
                       <option value="expense">Payable (Expense)</option>
                     </select>
                   </div>
                 </div>
                 <button disabled={createTransaction.isPending} type="submit" className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center">
-                   {createTransaction.isPending ? <Loader2 className="animate-spin" /> : 'Record Transaction'}
+                  {createTransaction.isPending ? <Loader2 className="animate-spin" /> : 'Record Transaction'}
                 </button>
               </form>
             </motion.div>
@@ -94,18 +120,67 @@ const Finance: React.FC = () => {
       </AnimatePresence>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <StatItem label="Current Balance" value={stats.balance} color="text-slate-900" bg="bg-white" />
-        <StatItem label="Total Receivables" value={stats.income} color="text-emerald-600" bg="bg-white" border="border-l-4 border-l-green-500" />
-        <StatItem label="Total Payables" value={stats.expense} color="text-red-600" bg="bg-white" border="border-l-4 border-l-red-500" />
+        <StatItem label="Filtered Balance" value={stats.balance} color="text-slate-900" bg="bg-white" />
+        <StatItem label="Filtered Receivables" value={stats.income} color="text-emerald-600" bg="bg-white" border="border-l-4 border-l-green-500" />
+        <StatItem label="Filtered Payables" value={stats.expense} color="text-red-600" bg="bg-white" border="border-l-4 border-l-red-500" />
       </div>
 
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-slate-100 flex items-center bg-slate-50/30">
-          <div className="flex items-center bg-white border border-slate-200 rounded-lg px-3 py-1.5 w-full max-w-xs">
+        <div className="p-4 border-b border-slate-100 flex flex-wrap items-center gap-4 bg-slate-50/30">
+          <div className="flex items-center bg-white border border-slate-200 rounded-lg px-3 py-1.5 flex-1 min-w-[200px] max-w-xs">
             <Search size={16} className="text-slate-400 mr-2" />
-            <input type="text" placeholder="Search Ledger..." className="text-sm outline-none w-full" />
+            <input
+              type="text"
+              placeholder="Search Ledger..."
+              className="text-sm outline-none w-full"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Filter size={16} className="text-slate-400" />
+            <select
+              value={filterType}
+              onChange={(e) => { setFilterType(e.target.value as any); setFilterValue(''); }}
+              className="text-xs font-bold p-2 border border-slate-200 rounded-lg outline-none bg-white"
+            >
+              <option value="all">Total Timeline</option>
+              <option value="year">By Year</option>
+              <option value="month">By Month</option>
+              <option value="day">By Day</option>
+            </select>
+
+            {filterType === 'year' && (
+              <input
+                type="number"
+                placeholder="Year (2026)"
+                className="text-xs p-2 border border-slate-200 rounded-lg w-24 outline-none"
+                value={filterValue}
+                onChange={(e) => setFilterValue(e.target.value)}
+              />
+            )}
+
+            {filterType === 'month' && (
+              <input
+                type="month"
+                className="text-xs p-2 border border-slate-200 rounded-lg outline-none"
+                value={filterValue}
+                onChange={(e) => setFilterValue(e.target.value)}
+              />
+            )}
+
+            {filterType === 'day' && (
+              <input
+                type="date"
+                className="text-xs p-2 border border-slate-200 rounded-lg outline-none"
+                value={filterValue}
+                onChange={(e) => setFilterValue(e.target.value)}
+              />
+            )}
           </div>
         </div>
+
         <table className="w-full text-left">
           <thead className="bg-slate-50 text-[10px] uppercase font-bold text-slate-400">
             <tr>
@@ -117,7 +192,11 @@ const Finance: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {transactions?.map((t: any) => (
+            {filteredTransactions.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-10 text-center text-slate-400 italic">No transactions found for the selected time range.</td>
+              </tr>
+            ) : filteredTransactions.map((t: any) => (
               <tr key={t.id} className="text-sm hover:bg-slate-50/50">
                 <td className="px-6 py-4 font-medium text-slate-900">{t.description}</td>
                 <td className="px-6 py-4 text-slate-500">{t.category}</td>

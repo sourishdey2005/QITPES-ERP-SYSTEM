@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase, formatCurrency } from '../lib/supabase';
-import { Users, Search, Plus, Filter, X, Loader2 } from 'lucide-react';
+import { Users, Search, Plus, Filter, X, Loader2, Edit2, Trash2 } from 'lucide-react';
 // Fix: Cast motion to any to resolve property missing errors
 import { motion as motionBase, AnimatePresence } from 'framer-motion';
 
@@ -11,6 +11,7 @@ const motion = motionBase as any;
 const HR: React.FC = () => {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ employee_id: '', full_name: '', department: 'Engineering', role: '', gross_salary: '', employee_status: 'Active' });
 
   const { data: staff, isLoading } = useQuery({
@@ -24,16 +25,55 @@ const HR: React.FC = () => {
 
   const onboard = useMutation({
     mutationFn: async (emp: any) => {
-      const { data, error } = await supabase.from('employees').insert([emp]).select();
-      if (error) throw error;
-      return data;
+      if (editId) {
+        const { data, error } = await supabase.from('employees').update(emp).eq('id', editId).select();
+        if (error) throw error;
+        return data;
+      } else {
+        const { data, error } = await supabase.from('employees').insert([emp]).select();
+        if (error) throw error;
+        return data;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employees'] });
-      setIsModalOpen(false);
-      setFormData({ employee_id: '', full_name: '', department: 'Engineering', role: '', gross_salary: '', employee_status: 'Active' });
+      closeModal();
     }
   });
+
+  const deleteEmployee = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('employees').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+    }
+  });
+
+  const openModal = (emp?: any) => {
+    if (emp) {
+      setEditId(emp.id);
+      setFormData({
+        employee_id: emp.employee_id,
+        full_name: emp.full_name,
+        department: emp.department,
+        role: emp.role || '',
+        gross_salary: emp.gross_salary.toString(),
+        employee_status: emp.employee_status
+      });
+    } else {
+      setEditId(null);
+      setFormData({ employee_id: '', full_name: '', department: 'Engineering', role: '', gross_salary: '', employee_status: 'Active' });
+    }
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditId(null);
+    setFormData({ employee_id: '', full_name: '', department: 'Engineering', role: '', gross_salary: '', employee_status: 'Active' });
+  };
 
   return (
     <div className="space-y-6 page-transition">
@@ -42,7 +82,7 @@ const HR: React.FC = () => {
           <h1 className="text-2xl font-bold text-slate-900">HR & Workforce</h1>
           <p className="text-slate-500 text-sm">Employee lifecycle and corporate registry management.</p>
         </div>
-        <button onClick={() => setIsModalOpen(true)} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold flex items-center shadow-lg transition-all">
+        <button onClick={() => openModal()} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold flex items-center shadow-lg transition-all">
           <Plus size={18} className="mr-2" /> Onboard Employee
         </button>
       </div>
@@ -52,8 +92,8 @@ const HR: React.FC = () => {
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
               <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                <h3 className="text-lg font-bold text-slate-900">Workforce Onboarding</h3>
-                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={20}/></button>
+                <h3 className="text-lg font-bold text-slate-900">{editId ? 'Update Workforce Info' : 'Workforce Onboarding'}</h3>
+                <button onClick={closeModal} className="text-slate-400 hover:text-slate-600"><X size={20}/></button>
               </div>
               <form onSubmit={(e) => { e.preventDefault(); onboard.mutate({...formData, gross_salary: parseFloat(formData.gross_salary)}); }} className="p-6 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -87,7 +127,7 @@ const HR: React.FC = () => {
                   <input required type="number" value={formData.gross_salary} onChange={(e) => setFormData({...formData, gross_salary: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg" />
                 </div>
                 <button disabled={onboard.isPending} type="submit" className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center">
-                  {onboard.isPending ? <Loader2 className="animate-spin" /> : 'Confirm Onboarding'}
+                  {onboard.isPending ? <Loader2 className="animate-spin" /> : editId ? 'Save Changes' : 'Confirm Onboarding'}
                 </button>
               </form>
             </motion.div>
@@ -130,7 +170,16 @@ const HR: React.FC = () => {
                     {emp.employee_status}
                   </span>
                 </td>
-                <td className="px-6 py-4"><button className="text-blue-600 font-bold hover:underline">Profile</button></td>
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <button onClick={() => openModal(emp)} className="text-blue-600 hover:text-blue-800 transition-colors">
+                      <Edit2 size={16} />
+                    </button>
+                    <button onClick={() => { if(confirm('Delete employee?')) deleteEmployee.mutate(emp.id); }} className="text-rose-500 hover:text-rose-700 transition-colors">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
