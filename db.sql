@@ -1,5 +1,5 @@
 
--- QITPES ERP - SCHEDULING & COLLABORATION SCHEMA (v2026.18)
+-- QITPES ERP - SCHEDULING & COLLABORATION SCHEMA (v2026.19)
 
 -- 0. EMPLOYEES CORE
 CREATE TABLE IF NOT EXISTS employees (
@@ -126,9 +126,9 @@ VALUES
 ('Meeting Pod 1', 4, 'Tech Zone', '["Smart Display"]')
 ON CONFLICT (name) DO NOTHING;
 
+-- Updated to Day and Night only
 INSERT INTO shifts (name, start_time, end_time, allowance_multiplier)
 VALUES 
-('Morning Dispatch', '08:00:00', '16:00:00', 1.0),
-('Evening Sync', '16:00:00', '00:00:00', 1.1),
-('Night Watch', '00:00:00', '08:00:00', 1.25)
+('Day Shift', '08:00:00', '20:00:00', 1.0),
+('Night Shift', '20:00:00', '08:00:00', 1.25)
 ON CONFLICT (name) DO NOTHING;

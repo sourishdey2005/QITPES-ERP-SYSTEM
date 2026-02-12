@@ -17,7 +17,7 @@ const RosterShifts: React.FC = () => {
   const [isAssignOpen, setIsAssignOpen] = useState(false);
   const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
   const [assignForm, setAssignForm] = useState({ employee_id: '', shift_id: '' });
-  const [shiftForm, setShiftForm] = useState({ name: '', start_time: '09:00:00', end_time: '17:00:00', allowance_multiplier: '1.0' });
+  const [shiftForm, setShiftForm] = useState({ name: 'Day Shift', start_time: '08:00:00', end_time: '20:00:00', allowance_multiplier: '1.0' });
 
   const { data: shifts, isLoading: loadingShifts } = useQuery({
     queryKey: ['shifts_list'],
@@ -74,8 +74,7 @@ const RosterShifts: React.FC = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['shifts_list'] });
       setIsShiftModalOpen(false);
-      setShiftForm({ name: '', start_time: '09:00:00', end_time: '17:00:00', allowance_multiplier: '1.0' });
-      // If we are currently in the assign modal, select this new shift
+      setShiftForm({ name: 'Day Shift', start_time: '08:00:00', end_time: '20:00:00', allowance_multiplier: '1.0' });
       if (isAssignOpen && data && data[0]) {
         setAssignForm(prev => ({ ...prev, shift_id: data[0].id }));
       }
@@ -138,7 +137,9 @@ const RosterShifts: React.FC = () => {
                         <td className="px-10 py-6 text-slate-500 font-bold">{a.employees?.department}</td>
                         <td className="px-10 py-6">
                            <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                             a.shifts?.name.toLowerCase().includes('night') ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'
+                             a.shifts?.name.toLowerCase().includes('night') ? 'bg-indigo-50 text-indigo-600' :
+                             a.shifts?.name.toLowerCase().includes('day') ? 'bg-emerald-50 text-emerald-600' :
+                             'bg-blue-50 text-blue-600'
                            }`}>
                               {a.shifts?.name}
                            </span>
@@ -238,7 +239,7 @@ const RosterShifts: React.FC = () => {
               <form onSubmit={(e) => { e.preventDefault(); createShiftPattern.mutate(shiftForm); }} className="p-12 space-y-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Shift Identifier</label>
-                  <input required value={shiftForm.name} onChange={(e) => setShiftForm({...shiftForm, name: e.target.value})} className="w-full p-5 bg-slate-50 border border-slate-200 rounded-[20px] outline-none font-bold" placeholder="e.g. Night Watch" />
+                  <input required value={shiftForm.name} onChange={(e) => setShiftForm({...shiftForm, name: e.target.value})} className="w-full p-5 bg-slate-50 border border-slate-200 rounded-[20px] outline-none font-bold" placeholder="e.g. Day Shift or Night Shift" />
                 </div>
                 <div className="grid grid-cols-2 gap-6">
                    <div className="space-y-2">
