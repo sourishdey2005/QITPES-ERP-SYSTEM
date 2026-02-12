@@ -59,10 +59,14 @@ const CollaborationSuite: React.FC = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['conference_rooms'] });
       setIsRoomModalOpen(false);
       setRoomForm({ name: '', capacity: '4', location: '', equipment: [] });
+      // If we are currently in the booking modal, select this new room
+      if (isBookingOpen && data && data[0]) {
+        setBookingForm(prev => ({ ...prev, room_id: data[0].id }));
+      }
     }
   });
 
@@ -84,9 +88,9 @@ const CollaborationSuite: React.FC = () => {
         <div className="flex gap-3">
           <button 
             onClick={() => setIsRoomModalOpen(true)}
-            className="bg-white border border-slate-200 text-slate-700 px-6 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-3"
+            className="bg-white border border-slate-200 text-slate-700 px-6 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-3 shadow-sm"
           >
-            <Building2 size={18} /> Add Room
+            <Building2 size={18} /> Register Room
           </button>
           <button 
             onClick={() => setIsBookingOpen(true)}
@@ -197,12 +201,24 @@ const CollaborationSuite: React.FC = () => {
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Resource Room</label>
-                    <select required value={bookingForm.room_id} onChange={(e) => setBookingForm({...bookingForm, room_id: e.target.value})} className="w-full p-5 bg-slate-50 border border-slate-200 rounded-[20px] outline-none font-black text-sm">
-                      <option value="">Select Resource Room</option>
-                      {rooms?.map((r: any) => (
-                        <option key={r.id} value={r.id}>{r.name} ({r.location})</option>
-                      ))}
-                    </select>
+                    <div className="relative group">
+                      <select required value={bookingForm.room_id} onChange={(e) => setBookingForm({...bookingForm, room_id: e.target.value})} className="w-full p-5 bg-slate-50 border border-slate-200 rounded-[20px] outline-none font-black text-sm appearance-none">
+                        <option value="">Select Resource Room</option>
+                        {rooms?.map((r: any) => (
+                          <option key={r.id} value={r.id}>{r.name} ({r.location})</option>
+                        ))}
+                      </select>
+                      {rooms?.length === 0 && (
+                        <button 
+                          type="button"
+                          onClick={() => setIsRoomModalOpen(true)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-blue-600 font-black text-[10px] uppercase tracking-tighter bg-blue-50 px-3 py-2 rounded-full hover:bg-blue-100 transition-all"
+                        >
+                          <Plus size={12}/> Register Now
+                        </button>
+                      )}
+                    </div>
+                    {rooms?.length === 0 && <p className="text-[9px] text-rose-500 font-bold uppercase mt-2 tracking-widest px-2 flex items-center gap-1"><AlertTriangle size={10}/> Error: Resource room registry is empty.</p>}
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-8">
@@ -215,7 +231,7 @@ const CollaborationSuite: React.FC = () => {
                       <input required type="datetime-local" value={bookingForm.end_time} onChange={(e) => setBookingForm({...bookingForm, end_time: e.target.value})} className="w-full p-5 bg-slate-50 border border-slate-200 rounded-[20px] outline-none font-black text-xs" />
                    </div>
                 </div>
-                <button disabled={createMeeting.isPending || !bookingForm.room_id} type="submit" className="w-full py-6 bg-blue-600 text-white rounded-[24px] font-black text-sm uppercase tracking-[0.3em] shadow-2xl shadow-blue-500/40 hover:bg-blue-700 transition-all flex items-center justify-center gap-4">
+                <button disabled={createMeeting.isPending || !bookingForm.room_id} type="submit" className="w-full py-6 bg-blue-600 text-white rounded-[24px] font-black text-sm uppercase tracking-[0.3em] shadow-2xl shadow-blue-500/40 hover:bg-blue-700 transition-all flex items-center justify-center gap-4 disabled:opacity-50 disabled:cursor-not-allowed">
                   {createMeeting.isPending ? <Loader2 className="animate-spin" /> : 'Authorize Session'}
                 </button>
               </form>
@@ -227,7 +243,7 @@ const CollaborationSuite: React.FC = () => {
       {/* ROOM MODAL */}
       <AnimatePresence>
         {isRoomModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md">
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xl">
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white rounded-[48px] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200">
               <div className="p-10 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                 <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">Physical Node Entry</h3>

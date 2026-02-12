@@ -1,5 +1,5 @@
 
--- QITPES ERP - SCHEDULING & COLLABORATION SCHEMA (v2026.17)
+-- QITPES ERP - SCHEDULING & COLLABORATION SCHEMA (v2026.18)
 
 -- 0. EMPLOYEES CORE
 CREATE TABLE IF NOT EXISTS employees (
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS leave_balances (
 -- 3. SMART MEETINGS & ROOMS
 CREATE TABLE IF NOT EXISTS conference_rooms (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL,
+  name TEXT UNIQUE NOT NULL,
   capacity INTEGER DEFAULT 4,
   location TEXT,
   equipment JSONB DEFAULT '[]', -- ['VC', 'Whiteboard', 'Projector']
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS meeting_attendees (
 -- 4. SHIFT & ROSTER ENGINE
 CREATE TABLE IF NOT EXISTS shifts (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT NOT NULL, -- 'Morning', 'Evening', 'Night'
+  name TEXT UNIQUE NOT NULL, -- 'Morning', 'Evening', 'Night'
   start_time TIME NOT NULL,
   end_time TIME NOT NULL,
   allowance_multiplier NUMERIC(3,2) DEFAULT 1.0
@@ -118,19 +118,17 @@ CREATE POLICY "Shift Access" ON shifts FOR ALL USING (auth.role() = 'authenticat
 CREATE POLICY "Assignment Access" ON shift_assignments FOR ALL USING (auth.role() = 'authenticated');
 CREATE POLICY "Notification Access" ON notifications FOR ALL USING (auth.uid() = user_id);
 
--- MISSION CRITICAL SEED DATA
--- Populate rooms for dropdowns
+-- SEED DATA (MISSION CRITICAL)
 INSERT INTO conference_rooms (name, capacity, location, equipment) 
 VALUES 
 ('Boardroom Alpha', 12, 'HQ Floor 4', '["VC", "Projector", "Whiteboard"]'),
 ('Strategy Hub B', 6, 'Operations Wing', '["VC", "Dual-Monitor"]'),
 ('Meeting Pod 1', 4, 'Tech Zone', '["Smart Display"]')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (name) DO NOTHING;
 
--- Populate shifts for dropdowns
 INSERT INTO shifts (name, start_time, end_time, allowance_multiplier)
 VALUES 
 ('Morning Dispatch', '08:00:00', '16:00:00', 1.0),
 ('Evening Sync', '16:00:00', '00:00:00', 1.1),
 ('Night Watch', '00:00:00', '08:00:00', 1.25)
-ON CONFLICT DO NOTHING;
+ON CONFLICT (name) DO NOTHING;
