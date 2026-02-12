@@ -1,5 +1,18 @@
 
--- QITPES ERP - SCHEDULING & COLLABORATION SCHEMA (v2026.16)
+-- QITPES ERP - SCHEDULING & COLLABORATION SCHEMA (v2026.17)
+
+-- 0. EMPLOYEES CORE
+CREATE TABLE IF NOT EXISTS employees (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  employee_id TEXT UNIQUE NOT NULL,
+  full_name TEXT NOT NULL,
+  department TEXT NOT NULL,
+  role TEXT,
+  gross_salary NUMERIC(12,2) DEFAULT 0,
+  monthly_deductions NUMERIC(12,2) DEFAULT 0,
+  employee_status TEXT DEFAULT 'Active' CHECK (employee_status IN ('Active', 'On Leave', 'Terminated')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
 
 -- 1. HOLIDAYS
 CREATE TABLE IF NOT EXISTS holidays (
@@ -84,6 +97,7 @@ CREATE TABLE IF NOT EXISTS notifications (
 );
 
 -- RLS Enablement
+ALTER TABLE employees ENABLE ROW LEVEL SECURITY;
 ALTER TABLE holidays ENABLE ROW LEVEL SECURITY;
 ALTER TABLE leave_balances ENABLE ROW LEVEL SECURITY;
 ALTER TABLE conference_rooms ENABLE ROW LEVEL SECURITY;
@@ -94,6 +108,7 @@ ALTER TABLE shift_assignments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
 -- Policies
+CREATE POLICY "Employee Access" ON employees FOR ALL USING (auth.role() = 'authenticated');
 CREATE POLICY "Enterprise Read" ON holidays FOR SELECT USING (auth.role() = 'authenticated');
 CREATE POLICY "Enterprise Full" ON holidays FOR ALL USING (auth.role() = 'authenticated');
 CREATE POLICY "Leave Balance Access" ON leave_balances FOR ALL USING (auth.role() = 'authenticated');

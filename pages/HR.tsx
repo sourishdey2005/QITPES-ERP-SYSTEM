@@ -11,7 +11,7 @@ const motion = motionBase as any;
 const HR: React.FC = () => {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ employee_id: '', full_name: '', department: 'Engineering', role: '', gross_salary: '' });
+  const [formData, setFormData] = useState({ employee_id: '', full_name: '', department: 'Engineering', role: '', gross_salary: '', employee_status: 'Active' });
 
   const { data: staff, isLoading } = useQuery({
     queryKey: ['employees'],
@@ -31,7 +31,7 @@ const HR: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employees'] });
       setIsModalOpen(false);
-      setFormData({ employee_id: '', full_name: '', department: 'Engineering', role: '', gross_salary: '' });
+      setFormData({ employee_id: '', full_name: '', department: 'Engineering', role: '', gross_salary: '', employee_status: 'Active' });
     }
   });
 
@@ -74,9 +74,17 @@ const HR: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Salary (₹)</label>
-                    <input required type="number" value={formData.gross_salary} onChange={(e) => setFormData({...formData, gross_salary: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg" />
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Status</label>
+                    <select value={formData.employee_status} onChange={(e) => setFormData({...formData, employee_status: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                      <option value="Active">Active</option>
+                      <option value="On Leave">On Leave</option>
+                      <option value="Terminated">Terminated</option>
+                    </select>
                   </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Salary (₹)</label>
+                  <input required type="number" value={formData.gross_salary} onChange={(e) => setFormData({...formData, gross_salary: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg" />
                 </div>
                 <button disabled={onboard.isPending} type="submit" className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center">
                   {onboard.isPending ? <Loader2 className="animate-spin" /> : 'Confirm Onboarding'}
@@ -100,7 +108,7 @@ const HR: React.FC = () => {
               <th className="px-6 py-3">Employee Identity</th>
               <th className="px-6 py-3">Department</th>
               <th className="px-6 py-3">Salary</th>
-              <th className="px-6 py-3">Status</th>
+              <th className="px-6 py-3">Lifecycle Status</th>
               <th className="px-6 py-4">Action</th>
             </tr>
           </thead>
@@ -114,7 +122,13 @@ const HR: React.FC = () => {
                 <td className="px-6 py-4 text-slate-600">{emp.department}</td>
                 <td className="px-6 py-4 font-bold">{formatCurrency(emp.gross_salary)}</td>
                 <td className="px-6 py-4">
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-green-50 text-green-600">{emp.status}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                    emp.employee_status === 'Active' ? 'bg-green-50 text-green-600' :
+                    emp.employee_status === 'On Leave' ? 'bg-amber-50 text-amber-600' :
+                    'bg-red-50 text-red-600'
+                  }`}>
+                    {emp.employee_status}
+                  </span>
                 </td>
                 <td className="px-6 py-4"><button className="text-blue-600 font-bold hover:underline">Profile</button></td>
               </tr>

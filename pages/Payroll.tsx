@@ -40,11 +40,11 @@ const Payroll: React.FC = () => {
   const nextPayDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
   const daysUntilPay = Math.ceil((nextPayDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
-  // 1. Fetch Employees
+  // 1. Fetch Employees - Filter by the new employee_status field
   const { data: employees, isLoading: loadingEmployees, error: employeesError } = useQuery({
     queryKey: ['employees'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('employees').select('*').eq('status', 'Active').order('full_name');
+      const { data, error } = await supabase.from('employees').select('*').eq('employee_status', 'Active').order('full_name');
       if (error) {
         console.error("Supabase Error fetching employees:", error);
         throw error;
@@ -67,7 +67,7 @@ const Payroll: React.FC = () => {
   });
 
   // 3. Mutation: Register Staff (Onboarding)
-  const [newStaff, setNewStaff] = useState({ employee_id: '', full_name: '', department: 'Operations', gross_salary: '', monthly_deductions: '0' });
+  const [newStaff, setNewStaff] = useState({ employee_id: '', full_name: '', department: 'Operations', gross_salary: '', monthly_deductions: '0', employee_status: 'Active' });
   const addStaff = useMutation({
     mutationFn: async (staff: any) => {
       const { data, error } = await supabase.from('employees').insert([staff]).select();
@@ -80,7 +80,7 @@ const Payroll: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employees'] });
       setIsAddStaffOpen(false);
-      setNewStaff({ employee_id: '', full_name: '', department: 'Operations', gross_salary: '', monthly_deductions: '0' });
+      setNewStaff({ employee_id: '', full_name: '', department: 'Operations', gross_salary: '', monthly_deductions: '0', employee_status: 'Active' });
       setFormError(null);
     },
     onError: (error: any) => {
@@ -126,7 +126,7 @@ const Payroll: React.FC = () => {
       department: newStaff.department,
       gross_salary: salary,
       monthly_deductions: deductions,
-      status: 'Active'
+      employee_status: newStaff.employee_status
     });
   };
 
@@ -216,7 +216,6 @@ const Payroll: React.FC = () => {
         <div className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-center gap-3 text-red-700 text-sm font-bold">
           <AlertCircle size={20} />
           <span>Critical Schema Error: {employeesError.message}</span>
-          <p className="ml-auto text-xs font-medium">Please ensure 'monthly_deductions' column is present.</p>
         </div>
       )}
 
@@ -343,87 +342,13 @@ const Payroll: React.FC = () => {
             </div>
             <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl group-hover:bg-blue-600/20 transition-all duration-700"></div>
           </div>
-
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-             <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-               <h3 className="font-bold text-slate-800 text-xs uppercase tracking-widest">Disbursement Archive</h3>
-               <Clock size={14} className="text-slate-400" />
-             </div>
-             <div className="p-2 space-y-1 max-h-[350px] overflow-y-auto custom-scrollbar">
-                {payrollHistory?.slice(0, 8).map((record: any) => (
-                  <div key={record.id} className="p-3 hover:bg-slate-50 rounded-xl flex items-center justify-between group transition-all border border-transparent hover:border-slate-100">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded flex items-center justify-center text-[10px] font-bold">
-                        {record.pay_month.slice(0, 3).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-slate-900 line-clamp-1">{record.employees?.full_name}</p>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">{new Date(record.payment_date).toLocaleDateString()}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                       <p className="text-xs font-bold text-emerald-600">{formatCurrency(record.net_amount)}</p>
-                       <p className="text-[10px] font-bold text-slate-300 uppercase tracking-tighter">SUCCESS</p>
-                    </div>
-                  </div>
-                ))}
-             </div>
-          </div>
         </div>
       </div>
 
       <AnimatePresence>
-        {isPayModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200">
-              <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900">Enterprise Payout Authorization</h3>
-                  <p className="text-xs text-slate-500 font-medium tracking-tight">Cycle Finalization for {currentPayMonth}</p>
-                </div>
-                <button onClick={() => setIsPayModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-100 rounded-full transition-all"><X size={20}/></button>
-              </div>
-              <div className="p-8 space-y-6">
-                <div className="p-5 bg-blue-50 border border-blue-200 rounded-2xl flex gap-4">
-                  <AlertCircle className="text-blue-600 shrink-0" size={24} />
-                  <div>
-                    <p className="text-xs font-black text-blue-800 uppercase tracking-widest mb-1">Individual Control Check</p>
-                    <p className="text-sm text-blue-700 leading-relaxed font-medium">Authorizing disbursements for <strong>{employees?.length || 0} employees</strong> using individual deduction overrides.</p>
-                  </div>
-                </div>
-
-                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                  <div className="flex justify-between items-center mb-4 pb-4 border-b border-slate-200/50">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Net Disbursement</span>
-                    <span className="text-2xl font-black text-slate-900">{formatCurrency(stats.totalSalaries - stats.totalDeductions)}</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Deductions Applied</p>
-                      <p className="text-sm font-bold text-red-600">{formatCurrency(stats.totalDeductions)}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Approval Context</p>
-                      <p className="text-sm font-bold text-blue-600 uppercase">FY26-Q1-READY</p>
-                    </div>
-                  </div>
-                </div>
-
-                <button 
-                  onClick={() => runPayroll.mutate()}
-                  disabled={runPayroll.isPending || !employees || employees.length === 0}
-                  className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-3 shadow-xl hover:bg-black disabled:bg-slate-300 transition-all"
-                >
-                  {runPayroll.isPending ? <Loader2 className="animate-spin" /> : <><CreditCard size={20} /> Authorize Individualized Payouts</>}
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-
         {isAddStaffOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="bg-white rounded-3xl shadow-2xl w-full max-md overflow-hidden border border-slate-200">
               <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
                 <h3 className="text-lg font-bold text-slate-900">Add Staff Member</h3>
                 <button onClick={() => { setIsAddStaffOpen(false); setFormError(null); }} className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-50 rounded-full transition-all"><X size={20}/></button>
@@ -444,11 +369,19 @@ const Payroll: React.FC = () => {
                     <input required value={newStaff.full_name} onChange={(e) => setNewStaff({...newStaff, full_name: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm" placeholder="e.g. Rahul Sharma" />
                   </div>
                 </div>
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Department</label>
                     <select value={newStaff.department} onChange={(e) => setNewStaff({...newStaff, department: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm font-bold">
                       <option>Operations</option><option>Finance</option><option>Engineering</option><option>Logistics</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</label>
+                    <select value={newStaff.employee_status} onChange={(e) => setNewStaff({...newStaff, employee_status: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm font-bold">
+                      <option value="Active">Active</option>
+                      <option value="On Leave">On Leave</option>
+                      <option value="Terminated">Terminated</option>
                     </select>
                   </div>
                 </div>
