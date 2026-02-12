@@ -105,11 +105,3 @@ ALTER TABLE contract_attendance ENABLE ROW LEVEL SECURITY;
 -- Policies
 CREATE POLICY "Contract Access" ON contract_workers FOR ALL USING (auth.role() = 'authenticated');
 CREATE POLICY "Attendance Access" ON contract_attendance FOR ALL USING (auth.role() = 'authenticated');
-
--- SEED DATA
-INSERT INTO contract_workers (worker_id, full_name, trade, daily_wage, site_location) 
-VALUES 
-('CW-101', 'Rajesh Kumar', 'Mason', 850.00, 'Nagpur Hub'),
-('CW-102', 'Amit Singh', 'Electrician', 950.00, 'Pune Site B'),
-('CW-103', 'Sunil Verma', 'Helper', 550.00, 'Nagpur Hub')
-ON CONFLICT (worker_id) DO NOTHING;
