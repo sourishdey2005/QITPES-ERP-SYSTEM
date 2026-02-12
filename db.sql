@@ -1,109 +1,104 @@
 
--- QITPES ERP - MASTER ENTERPRISE SCHEMA (v2026.14)
--- HCM, PAYROLL, FLEET, AND GOVERNANCE
+-- QITPES ERP - SCHEDULING & COLLABORATION SCHEMA (v2026.15)
 
--- 1. FLEET & LOGISTICS (Enhanced Lifecycle)
-CREATE TABLE IF NOT EXISTS fleet (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  vehicle_number TEXT UNIQUE NOT NULL,
-  vehicle_type TEXT DEFAULT 'Dump Truck',
-  current_location TEXT,
-  status TEXT DEFAULT 'Ready' CHECK (status IN ('Ready', 'In Transit', 'Maintenance', 'Returned')),
-  odometer_reading NUMERIC(15, 2) DEFAULT 0,
-  last_work_details TEXT,
-  return_notes TEXT,
-  last_updated_by UUID REFERENCES auth.users(id),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
-);
-
--- 2. HCM: MASTER REGISTRY
-CREATE TABLE IF NOT EXISTS employees (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  employee_id TEXT UNIQUE NOT NULL,
-  full_name TEXT NOT NULL,
-  department TEXT,
-  role TEXT,
-  employment_type TEXT DEFAULT 'Permanent', -- Permanent, Contract, Daily Wage
-  basic_salary NUMERIC(15, 2) DEFAULT 0,
-  hra NUMERIC(15, 2) DEFAULT 0,
-  allowances NUMERIC(15, 2) DEFAULT 0,
-  pf_applicable BOOLEAN DEFAULT true,
-  esi_applicable BOOLEAN DEFAULT true,
-  assigned_project_id UUID REFERENCES projects(id),
-  status TEXT DEFAULT 'Active',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
-);
-
--- 3. HCM: ATTENDANCE & LEAVES
-CREATE TABLE IF NOT EXISTS attendance_logs (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  employee_id UUID REFERENCES employees(id),
-  check_in TIMESTAMP WITH TIME ZONE DEFAULT now(),
-  check_out TIMESTAMP WITH TIME ZONE,
-  work_hours NUMERIC(5, 2),
-  ot_hours NUMERIC(5, 2) DEFAULT 0,
-  location_telemetry JSONB,
-  status TEXT DEFAULT 'Present'
-);
-
-CREATE TABLE IF NOT EXISTS leave_requests (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  employee_id UUID REFERENCES employees(id),
-  leave_type TEXT CHECK (leave_type IN ('Casual', 'Sick', 'Paid', 'Unpaid')),
-  start_date DATE NOT NULL,
-  end_date DATE NOT NULL,
-  reason TEXT,
-  status TEXT DEFAULT 'Pending', -- Pending, Approved, Rejected
-  approved_by UUID REFERENCES auth.users(id)
-);
-
--- 4. PAYROLL: SAP-STYLE AUTOMATION
-CREATE TABLE IF NOT EXISTS payroll_runs (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  pay_month TEXT NOT NULL, -- e.g. "October 2026"
-  total_disbursement NUMERIC(15, 2) DEFAULT 0,
-  status TEXT DEFAULT 'Draft', -- Draft, Authorized, Paid
-  authorized_by UUID REFERENCES auth.users(id),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
-);
-
-CREATE TABLE IF NOT EXISTS payroll_items (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  payroll_run_id UUID REFERENCES payroll_runs(id) ON DELETE CASCADE,
-  employee_id UUID REFERENCES employees(id),
-  gross_amount NUMERIC(15, 2),
-  deductions NUMERIC(15, 2),
-  tax_amount NUMERIC(15, 2),
-  net_amount NUMERIC(15, 2),
-  project_allocation_id UUID REFERENCES projects(id)
-);
-
--- 5. WORKFLOW ENGINE (Governance Logic)
-CREATE TABLE IF NOT EXISTS workflows (
+-- 1. HOLIDAYS
+CREATE TABLE IF NOT EXISTS holidays (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
-  module TEXT NOT NULL,
-  steps INTEGER DEFAULT 1,
-  config JSONB DEFAULT '[]', -- Approval chain structure
-  status TEXT DEFAULT 'Active',
-  description TEXT,
+  holiday_date DATE NOT NULL,
+  type TEXT DEFAULT 'National' CHECK (type IN ('National', 'Regional', 'Emergency')),
+  branch_id TEXT DEFAULT 'All',
+  is_recurring BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
--- RLS & POLICIES
-ALTER TABLE fleet ENABLE ROW LEVEL SECURITY;
-ALTER TABLE employees ENABLE ROW LEVEL SECURITY;
-ALTER TABLE attendance_logs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE leave_requests ENABLE ROW LEVEL SECURITY;
-ALTER TABLE payroll_runs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE payroll_items ENABLE ROW LEVEL SECURITY;
-ALTER TABLE workflows ENABLE ROW LEVEL SECURITY;
+-- 2. LEAVE MANAGEMENT (Enhanced)
+CREATE TABLE IF NOT EXISTS leave_balances (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  employee_id UUID REFERENCES employees(id) ON DELETE CASCADE,
+  casual_leave_balance NUMERIC(4,1) DEFAULT 12,
+  sick_leave_balance NUMERIC(4,1) DEFAULT 10,
+  paid_leave_balance NUMERIC(4,1) DEFAULT 15,
+  year INTEGER DEFAULT 2026,
+  UNIQUE(employee_id, year)
+);
 
-CREATE POLICY "Full Enterprise Access" ON fleet FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Full Enterprise Access" ON employees FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Full Enterprise Access" ON attendance_logs FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Full Enterprise Access" ON leave_requests FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Full Enterprise Access" ON payroll_runs FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Full Enterprise Access" ON payroll_items FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Full Enterprise Access" ON workflows FOR ALL USING (auth.role() = 'authenticated');
+-- 3. SMART MEETINGS & ROOMS
+CREATE TABLE IF NOT EXISTS conference_rooms (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  capacity INTEGER DEFAULT 4,
+  location TEXT,
+  equipment JSONB DEFAULT '[]', -- ['VC', 'Whiteboard', 'Projector']
+  status TEXT DEFAULT 'Available'
+);
+
+CREATE TABLE IF NOT EXISTS meetings (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT,
+  room_id UUID REFERENCES conference_rooms(id),
+  organizer_id UUID REFERENCES auth.users(id),
+  start_time TIMESTAMP WITH TIME ZONE NOT NULL,
+  end_time TIMESTAMP WITH TIME ZONE NOT NULL,
+  department TEXT DEFAULT 'General',
+  agenda_url TEXT,
+  status TEXT DEFAULT 'Scheduled'
+);
+
+CREATE TABLE IF NOT EXISTS meeting_attendees (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  meeting_id UUID REFERENCES meetings(id) ON DELETE CASCADE,
+  employee_id UUID REFERENCES employees(id),
+  rsvp_status TEXT DEFAULT 'Pending' CHECK (rsvp_status IN ('Pending', 'Accepted', 'Declined', 'Tentative')),
+  UNIQUE(meeting_id, employee_id)
+);
+
+-- 4. SHIFT & ROSTER ENGINE
+CREATE TABLE IF NOT EXISTS shifts (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL, -- 'Morning', 'Evening', 'Night'
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  allowance_multiplier NUMERIC(3,2) DEFAULT 1.0
+);
+
+CREATE TABLE IF NOT EXISTS shift_assignments (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  employee_id UUID REFERENCES employees(id),
+  shift_id UUID REFERENCES shifts(id),
+  assignment_date DATE NOT NULL,
+  status TEXT DEFAULT 'Active',
+  UNIQUE(employee_id, assignment_date)
+);
+
+-- 5. NOTIFICATIONS (Real-time Hub)
+CREATE TABLE IF NOT EXISTS notifications (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id),
+  title TEXT NOT NULL,
+  message TEXT,
+  type TEXT, -- 'Meeting', 'Leave', 'Payroll', 'System'
+  is_read BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- RLS Enablement
+ALTER TABLE holidays ENABLE ROW LEVEL SECURITY;
+ALTER TABLE leave_balances ENABLE ROW LEVEL SECURITY;
+ALTER TABLE conference_rooms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE meetings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE meeting_attendees ENABLE ROW LEVEL SECURITY;
+ALTER TABLE shifts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE shift_assignments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+
+-- Policies
+CREATE POLICY "Enterprise Read" ON holidays FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Enterprise Full" ON holidays FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "Leave Balance Access" ON leave_balances FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "Meeting Access" ON meetings FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "Room Access" ON conference_rooms FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "Shift Access" ON shifts FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "Assignment Access" ON shift_assignments FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "Notification Access" ON notifications FOR ALL USING (auth.uid() = user_id);

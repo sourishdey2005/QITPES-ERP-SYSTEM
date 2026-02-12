@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { 
   LayoutDashboard, FolderKanban, ShoppingCart, Users, Package, Factory, 
   Wrench, Truck, Landmark, Wallet, ReceiptText, PieChart, UserPlus, 
   Clock, FileText, Bell, ShieldCheck, Settings, BrainCircuit,
-  GitMerge, Target, Building2, Landmark as Bank
+  GitMerge, Target, Building2, Calendar, Coffee, Video, Monitor
 } from 'lucide-react';
 import { NavItem } from './types';
 
@@ -17,6 +18,11 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Purchasing', href: '/purchasing', icon: 'purchasing', roles: ['owner', 'director', 'accounting'], group: 'Operations' },
   { label: 'Production', href: '/production', icon: 'production', roles: ['owner', 'director'], group: 'Operations' },
   
+  // Scheduling & Collaboration Suite
+  { label: 'Enterprise Calendar', href: '/calendar', icon: 'calendar', roles: ['owner', 'director', 'accounting'], group: 'Finance' },
+  { label: 'Meetings & Rooms', href: '/collaboration', icon: 'collaboration', roles: ['owner', 'director', 'accounting'], group: 'Operations' },
+  { label: 'Roster & Shifts', href: '/roster', icon: 'attendance', roles: ['owner', 'director'], group: 'HR' },
+
   // Finance
   { label: 'General Ledger', href: '/ledger', icon: 'ledger', roles: ['owner', 'accounting'], group: 'Finance' },
   { label: 'Cost Centers', href: '/cost-centers', icon: 'costcenters', roles: ['owner', 'accounting'], group: 'Finance' },
@@ -61,6 +67,8 @@ export const ICON_MAP: Record<string, React.ReactNode> = {
   planning: <Clock size={18} />,
   workflows: <GitMerge size={18} />,
   okr: <Target size={18} />,
-  costcenters: <Bank size={18} />,
+  costcenters: <Landmark size={18} />,
   company: <Building2 size={18} />,
+  calendar: <Calendar size={18} />,
+  collaboration: <Video size={18} />,
 };

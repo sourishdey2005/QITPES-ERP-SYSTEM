@@ -28,6 +28,11 @@ import AIStrategy from './pages/AIStrategy';
 import Settings from './pages/Settings';
 import AuditLogs from './pages/AuditLogs';
 
+// Scheduling & Collaboration Suite
+import EnterpriseCalendar from './pages/EnterpriseCalendar';
+import CollaborationSuite from './pages/CollaborationSuite';
+import RosterShifts from './pages/RosterShifts';
+
 import { UserRole } from './types';
 
 interface AuthContextType {
@@ -128,6 +133,11 @@ const App: React.FC = () => {
           <Route path="/purchasing" element={<Purchasing />} />
           <Route path="/production" element={<Production />} />
           <Route path="/inventory" element={<Inventory />} />
+
+          {/* Collaboration Suite */}
+          <Route path="/calendar" element={<EnterpriseCalendar />} />
+          <Route path="/collaboration" element={<CollaborationSuite />} />
+          <Route path="/roster" element={<RosterShifts />} />
 
           {/* Finance Group */}
           <Route path="/ledger" element={<GeneralLedger />} />
