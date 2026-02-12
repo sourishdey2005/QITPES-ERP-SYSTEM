@@ -27,6 +27,7 @@ import BIAnalytics from './pages/BIAnalytics';
 import AIStrategy from './pages/AIStrategy';
 import Settings from './pages/Settings';
 import AuditLogs from './pages/AuditLogs';
+import SiteWages from './pages/SiteWages';
 
 // Scheduling & Collaboration Suite
 import EnterpriseCalendar from './pages/EnterpriseCalendar';
@@ -149,6 +150,7 @@ const App: React.FC = () => {
           <Route path="/hr" element={<HR />} />
           <Route path="/okr" element={<OKR />} />
           <Route path="/payroll" element={<Payroll />} />
+          <Route path="/site-wages" element={<SiteWages />} />
 
           {/* Assets Group */}
           <Route path="/machinery" element={<Machinery />} />

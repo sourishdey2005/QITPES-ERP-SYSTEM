@@ -1,5 +1,5 @@
 
--- QITPES ERP - SCHEDULING & COLLABORATION SCHEMA (v2026.19)
+-- QITPES ERP - SCHEDULING & COLLABORATION SCHEMA (v2026.20)
 
 -- 0. EMPLOYEES CORE
 CREATE TABLE IF NOT EXISTS employees (
@@ -14,6 +14,27 @@ CREATE TABLE IF NOT EXISTS employees (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
+-- NEW: CONTRACT WORKER REGISTRY
+CREATE TABLE IF NOT EXISTS contract_workers (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  worker_id TEXT UNIQUE NOT NULL,
+  full_name TEXT NOT NULL,
+  trade TEXT NOT NULL, -- e.g., 'Mason', 'Electrician', 'Labour'
+  daily_wage NUMERIC(10,2) NOT NULL DEFAULT 0,
+  site_location TEXT,
+  status TEXT DEFAULT 'Active' CHECK (status IN ('Active', 'Inactive')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- NEW: DAILY ATTENDANCE LOG FOR CONTRACTORS
+CREATE TABLE IF NOT EXISTS contract_attendance (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  worker_id UUID REFERENCES contract_workers(id) ON DELETE CASCADE,
+  attendance_date DATE NOT NULL,
+  status TEXT DEFAULT 'Present' CHECK (status IN ('Present', 'Absent')),
+  UNIQUE(worker_id, attendance_date)
+);
+
 -- 1. HOLIDAYS
 CREATE TABLE IF NOT EXISTS holidays (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -25,7 +46,7 @@ CREATE TABLE IF NOT EXISTS holidays (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
--- 2. LEAVE MANAGEMENT (Enhanced)
+-- 2. LEAVE MANAGEMENT
 CREATE TABLE IF NOT EXISTS leave_balances (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   employee_id UUID REFERENCES employees(id) ON DELETE CASCADE,
@@ -42,7 +63,7 @@ CREATE TABLE IF NOT EXISTS conference_rooms (
   name TEXT UNIQUE NOT NULL,
   capacity INTEGER DEFAULT 4,
   location TEXT,
-  equipment JSONB DEFAULT '[]', -- ['VC', 'Whiteboard', 'Projector']
+  equipment JSONB DEFAULT '[]',
   status TEXT DEFAULT 'Available'
 );
 
@@ -59,18 +80,10 @@ CREATE TABLE IF NOT EXISTS meetings (
   status TEXT DEFAULT 'Scheduled'
 );
 
-CREATE TABLE IF NOT EXISTS meeting_attendees (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  meeting_id UUID REFERENCES meetings(id) ON DELETE CASCADE,
-  employee_id UUID REFERENCES employees(id),
-  rsvp_status TEXT DEFAULT 'Pending' CHECK (rsvp_status IN ('Pending', 'Accepted', 'Declined', 'Tentative')),
-  UNIQUE(meeting_id, employee_id)
-);
-
 -- 4. SHIFT & ROSTER ENGINE
 CREATE TABLE IF NOT EXISTS shifts (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  name TEXT UNIQUE NOT NULL, -- 'Morning', 'Evening', 'Night'
+  name TEXT UNIQUE NOT NULL,
   start_time TIME NOT NULL,
   end_time TIME NOT NULL,
   allowance_multiplier NUMERIC(3,2) DEFAULT 1.0
@@ -85,50 +98,18 @@ CREATE TABLE IF NOT EXISTS shift_assignments (
   UNIQUE(employee_id, assignment_date)
 );
 
--- 5. NOTIFICATIONS (Real-time Hub)
-CREATE TABLE IF NOT EXISTS notifications (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id),
-  title TEXT NOT NULL,
-  message TEXT,
-  type TEXT, -- 'Meeting', 'Leave', 'Payroll', 'System'
-  is_read BOOLEAN DEFAULT false,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
-);
-
 -- RLS Enablement
-ALTER TABLE employees ENABLE ROW LEVEL SECURITY;
-ALTER TABLE holidays ENABLE ROW LEVEL SECURITY;
-ALTER TABLE leave_balances ENABLE ROW LEVEL SECURITY;
-ALTER TABLE conference_rooms ENABLE ROW LEVEL SECURITY;
-ALTER TABLE meetings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE meeting_attendees ENABLE ROW LEVEL SECURITY;
-ALTER TABLE shifts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE shift_assignments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contract_workers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contract_attendance ENABLE ROW LEVEL SECURITY;
 
 -- Policies
-CREATE POLICY "Employee Access" ON employees FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Enterprise Read" ON holidays FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Enterprise Full" ON holidays FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Leave Balance Access" ON leave_balances FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Meeting Access" ON meetings FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Room Access" ON conference_rooms FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Shift Access" ON shifts FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Assignment Access" ON shift_assignments FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Notification Access" ON notifications FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Contract Access" ON contract_workers FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "Attendance Access" ON contract_attendance FOR ALL USING (auth.role() = 'authenticated');
 
--- SEED DATA (MISSION CRITICAL)
-INSERT INTO conference_rooms (name, capacity, location, equipment) 
+-- SEED DATA
+INSERT INTO contract_workers (worker_id, full_name, trade, daily_wage, site_location) 
 VALUES 
-('Boardroom Alpha', 12, 'HQ Floor 4', '["VC", "Projector", "Whiteboard"]'),
-('Strategy Hub B', 6, 'Operations Wing', '["VC", "Dual-Monitor"]'),
-('Meeting Pod 1', 4, 'Tech Zone', '["Smart Display"]')
-ON CONFLICT (name) DO NOTHING;
-
--- Updated to Day and Night only
-INSERT INTO shifts (name, start_time, end_time, allowance_multiplier)
-VALUES 
-('Day Shift', '08:00:00', '20:00:00', 1.0),
-('Night Shift', '20:00:00', '08:00:00', 1.25)
-ON CONFLICT (name) DO NOTHING;
+('CW-101', 'Rajesh Kumar', 'Mason', 850.00, 'Nagpur Hub'),
+('CW-102', 'Amit Singh', 'Electrician', 950.00, 'Pune Site B'),
+('CW-103', 'Sunil Verma', 'Helper', 550.00, 'Nagpur Hub')
+ON CONFLICT (worker_id) DO NOTHING;

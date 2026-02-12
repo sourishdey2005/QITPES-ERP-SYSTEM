@@ -4,7 +4,8 @@ import {
   LayoutDashboard, FolderKanban, ShoppingCart, Users, Package, Factory, 
   Wrench, Truck, Landmark, Wallet, ReceiptText, PieChart, UserPlus, 
   Clock, FileText, Bell, ShieldCheck, Settings, BrainCircuit,
-  GitMerge, Target, Building2, Calendar, Coffee, Video, Monitor
+  GitMerge, Target, Building2, Calendar, Coffee, Video, Monitor,
+  Coins, UserCheck
 } from 'lucide-react';
 import { NavItem } from './types';
 
@@ -18,6 +19,9 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Purchasing', href: '/purchasing', icon: 'purchasing', roles: ['owner', 'director', 'accounting'], group: 'Operations' },
   { label: 'Production', href: '/production', icon: 'production', roles: ['owner', 'director'], group: 'Operations' },
   
+  // Site Wage & Workforce
+  { label: 'Site Wages', href: '/site-wages', icon: 'wages', roles: ['owner', 'accounting', 'director'], group: 'HR' },
+
   // Scheduling & Collaboration Suite
   { label: 'Enterprise Calendar', href: '/calendar', icon: 'calendar', roles: ['owner', 'director', 'accounting'], group: 'Finance' },
   { label: 'Meetings & Rooms', href: '/collaboration', icon: 'collaboration', roles: ['owner', 'director', 'accounting'], group: 'Operations' },
@@ -71,4 +75,6 @@ export const ICON_MAP: Record<string, React.ReactNode> = {
   company: <Building2 size={18} />,
   calendar: <Calendar size={18} />,
   collaboration: <Video size={18} />,
+  wages: <Coins size={18} />,
+  verify: <UserCheck size={18} />,
 };
