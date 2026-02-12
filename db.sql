@@ -1,5 +1,5 @@
 
--- QITPES ERP - SCHEDULING & COLLABORATION SCHEMA (v2026.15)
+-- QITPES ERP - SCHEDULING & COLLABORATION SCHEMA (v2026.16)
 
 -- 1. HOLIDAYS
 CREATE TABLE IF NOT EXISTS holidays (
@@ -102,3 +102,20 @@ CREATE POLICY "Room Access" ON conference_rooms FOR ALL USING (auth.role() = 'au
 CREATE POLICY "Shift Access" ON shifts FOR ALL USING (auth.role() = 'authenticated');
 CREATE POLICY "Assignment Access" ON shift_assignments FOR ALL USING (auth.role() = 'authenticated');
 CREATE POLICY "Notification Access" ON notifications FOR ALL USING (auth.uid() = user_id);
+
+-- MISSION CRITICAL SEED DATA
+-- Populate rooms for dropdowns
+INSERT INTO conference_rooms (name, capacity, location, equipment) 
+VALUES 
+('Boardroom Alpha', 12, 'HQ Floor 4', '["VC", "Projector", "Whiteboard"]'),
+('Strategy Hub B', 6, 'Operations Wing', '["VC", "Dual-Monitor"]'),
+('Meeting Pod 1', 4, 'Tech Zone', '["Smart Display"]')
+ON CONFLICT DO NOTHING;
+
+-- Populate shifts for dropdowns
+INSERT INTO shifts (name, start_time, end_time, allowance_multiplier)
+VALUES 
+('Morning Dispatch', '08:00:00', '16:00:00', 1.0),
+('Evening Sync', '16:00:00', '00:00:00', 1.1),
+('Night Watch', '00:00:00', '08:00:00', 1.25)
+ON CONFLICT DO NOTHING;

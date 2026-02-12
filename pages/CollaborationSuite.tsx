@@ -19,9 +19,9 @@ const CollaborationSuite: React.FC = () => {
   const { data: rooms, isLoading: loadingRooms } = useQuery({
     queryKey: ['conference_rooms'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('conference_rooms').select('*');
+      const { data, error } = await supabase.from('conference_rooms').select('*').order('name');
       if (error) throw error;
-      return data;
+      return data || [];
     }
   });
 
@@ -30,7 +30,7 @@ const CollaborationSuite: React.FC = () => {
     queryFn: async () => {
       const { data, error } = await supabase.from('meetings').select('*, conference_rooms(name)').order('start_time', { ascending: true });
       if (error) throw error;
-      return data;
+      return data || [];
     }
   });
 
@@ -43,6 +43,7 @@ const CollaborationSuite: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['upcoming_meetings'] });
       setIsBookingOpen(false);
+      setBookingForm({ title: '', room_id: '', start_time: '', end_time: '', department: 'Engineering' });
     }
   });
 
@@ -196,8 +197,10 @@ const CollaborationSuite: React.FC = () => {
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Resource Room</label>
                     <select required value={bookingForm.room_id} onChange={(e) => setBookingForm({...bookingForm, room_id: e.target.value})} className="w-full p-5 bg-slate-50 border border-slate-200 rounded-[20px] outline-none font-black text-sm">
-                      <option value="">Select Room</option>
-                      {rooms?.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}
+                      <option value="">Select Resource Room</option>
+                      {loadingRooms ? <option disabled>Loading rooms...</option> : rooms?.map((r: any) => (
+                        <option key={r.id} value={r.id}>{r.name} ({r.location})</option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -211,7 +214,7 @@ const CollaborationSuite: React.FC = () => {
                       <input required type="datetime-local" value={bookingForm.end_time} onChange={(e) => setBookingForm({...bookingForm, end_time: e.target.value})} className="w-full p-5 bg-slate-50 border border-slate-200 rounded-[20px] outline-none font-black text-xs" />
                    </div>
                 </div>
-                <button disabled={createMeeting.isPending} type="submit" className="w-full py-6 bg-blue-600 text-white rounded-[24px] font-black text-sm uppercase tracking-[0.3em] shadow-2xl shadow-blue-500/40 hover:bg-blue-700 transition-all flex items-center justify-center gap-4">
+                <button disabled={createMeeting.isPending || !bookingForm.room_id} type="submit" className="w-full py-6 bg-blue-600 text-white rounded-[24px] font-black text-sm uppercase tracking-[0.3em] shadow-2xl shadow-blue-500/40 hover:bg-blue-700 transition-all flex items-center justify-center gap-4">
                   {createMeeting.isPending ? <Loader2 className="animate-spin" /> : <><Video size={20} /> Authorize Session</>}
                 </button>
               </form>

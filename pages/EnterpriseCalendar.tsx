@@ -1,18 +1,24 @@
 
 import React, { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { 
   ChevronLeft, ChevronRight, Filter, Calendar as CalendarIcon, 
-  MapPin, Clock, Users, Coffee, Flag, Briefcase, Zap
+  MapPin, Clock, Users, Coffee, Flag, Briefcase, Zap, Plus, X, Loader2,
+  AlertCircle
 } from 'lucide-react';
 import { motion as motionBase, AnimatePresence } from 'framer-motion';
 
 const motion = motionBase as any;
 
 const EnterpriseCalendar: React.FC = () => {
+  const queryClient = useQueryClient();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [filter, setFilter] = useState<'All' | 'Meetings' | 'Leaves' | 'Holidays'>('All');
+  
+  // Holiday Modal State
+  const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
+  const [holidayForm, setHolidayForm] = useState({ name: '', holiday_date: '', type: 'National', branch_id: 'All' });
 
   // Real-time data aggregation
   const { data: events, isLoading } = useQuery({
@@ -32,6 +38,19 @@ const EnterpriseCalendar: React.FC = () => {
       ]);
 
       return { meetings, holidays, leaves };
+    }
+  });
+
+  const createHoliday = useMutation({
+    mutationFn: async (newHoliday: any) => {
+      const { data, error } = await supabase.from('holidays').insert([newHoliday]).select();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['enterprise-calendar-events'] });
+      setIsHolidayModalOpen(false);
+      setHolidayForm({ name: '', holiday_date: '', type: 'National', branch_id: 'All' });
     }
   });
 
@@ -76,10 +95,18 @@ const EnterpriseCalendar: React.FC = () => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter uppercase">Enterprise Planner</h1>
           <p className="text-slate-500 text-sm font-medium">Global synchronization of site milestones, personnel availability, and assets.</p>
         </div>
-        <div className="flex items-center bg-white p-2 rounded-2xl border border-slate-200 shadow-sm gap-2">
-          <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))} className="p-2 hover:bg-slate-50 rounded-xl transition-all"><ChevronLeft size={20}/></button>
-          <span className="text-sm font-black uppercase tracking-widest px-4">{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
-          <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))} className="p-2 hover:bg-slate-50 rounded-xl transition-all"><ChevronRight size={20}/></button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setIsHolidayModalOpen(true)}
+            className="flex items-center px-6 py-2.5 bg-rose-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-rose-500/20 hover:bg-rose-700 transition-all gap-2"
+          >
+            <Flag size={14} /> Declare Holiday
+          </button>
+          <div className="flex items-center bg-white p-2 rounded-2xl border border-slate-200 shadow-sm gap-2">
+            <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))} className="p-2 hover:bg-slate-50 rounded-xl transition-all"><ChevronLeft size={20}/></button>
+            <span className="text-sm font-black uppercase tracking-widest px-4">{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
+            <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))} className="p-2 hover:bg-slate-50 rounded-xl transition-all"><ChevronRight size={20}/></button>
+          </div>
         </div>
       </div>
 
@@ -154,7 +181,7 @@ const EnterpriseCalendar: React.FC = () => {
 
            <div className="bg-white rounded-[32px] border border-slate-200 p-8 shadow-sm">
               <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2">
-                <Flag size={16} className="text-rose-500" /> Upcoming Holidays
+                <Flag size={16} className="text-rose-500" /> Current Month Holidays
               </h3>
               <div className="space-y-4">
                  {events?.holidays?.map((h: any) => (
@@ -168,7 +195,7 @@ const EnterpriseCalendar: React.FC = () => {
                       </div>
                    </div>
                  ))}
-                 {!events?.holidays?.length && <p className="text-xs text-slate-400 font-medium italic">No holidays this month.</p>}
+                 {!events?.holidays?.length && <p className="text-xs text-slate-400 font-medium italic text-center py-4">No holidays declared for this period.</p>}
               </div>
            </div>
 
@@ -178,6 +205,48 @@ const EnterpriseCalendar: React.FC = () => {
            </div>
         </div>
       </div>
+
+      {/* DECLARE HOLIDAY MODAL */}
+      <AnimatePresence>
+        {isHolidayModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white rounded-[48px] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200">
+              <div className="p-10 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div>
+                  <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">Declare Holiday</h3>
+                  <p className="text-xs font-bold text-rose-600 uppercase tracking-widest mt-1">Global Site Synchronization</p>
+                </div>
+                <button onClick={() => setIsHolidayModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-3 hover:bg-white rounded-full transition-all shadow-sm"><X size={24}/></button>
+              </div>
+              <form onSubmit={(e) => { e.preventDefault(); createHoliday.mutate(holidayForm); }} className="p-12 space-y-8">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Holiday Identifier</label>
+                  <input required value={holidayForm.name} onChange={(e) => setHolidayForm({...holidayForm, name: e.target.value})} className="w-full p-5 bg-slate-50 border border-slate-200 rounded-[20px] outline-none font-bold text-slate-900 focus:ring-8 focus:ring-rose-500/5 transition-all text-lg" placeholder="e.g. Diwali Festival" />
+                </div>
+                <div className="grid grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Registry Type</label>
+                    <select value={holidayForm.type} onChange={(e) => setHolidayForm({...holidayForm, type: e.target.value})} className="w-full p-5 bg-slate-50 border border-slate-200 rounded-[20px] outline-none font-black text-sm">
+                      <option>National</option><option>Regional</option><option>Emergency</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Target Date</label>
+                    <input required type="date" value={holidayForm.holiday_date} onChange={(e) => setHolidayForm({...holidayForm, holiday_date: e.target.value})} className="w-full p-5 bg-slate-50 border border-slate-200 rounded-[20px] outline-none font-black" />
+                  </div>
+                </div>
+                <div className="p-6 bg-rose-50 border border-rose-100 rounded-[24px] flex items-start gap-4">
+                   <AlertCircle className="text-rose-500 shrink-0 mt-0.5" size={18} />
+                   <p className="text-[10px] text-rose-700 font-bold uppercase leading-relaxed">System Alert: Declaring a holiday will auto-block attendance logs and adjust payroll liability for the selected date.</p>
+                </div>
+                <button disabled={createHoliday.isPending} type="submit" className="w-full py-6 bg-slate-900 text-white rounded-[24px] font-black text-sm uppercase tracking-[0.3em] shadow-2xl shadow-rose-500/20 hover:bg-black transition-all flex items-center justify-center gap-4">
+                  {createHoliday.isPending ? <Loader2 className="animate-spin" /> : <><Flag size={20} /> Commit Declaration</>}
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

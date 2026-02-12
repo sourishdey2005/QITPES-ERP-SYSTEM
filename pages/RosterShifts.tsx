@@ -17,21 +17,21 @@ const RosterShifts: React.FC = () => {
   const [isAssignOpen, setIsAssignOpen] = useState(false);
   const [assignForm, setAssignForm] = useState({ employee_id: '', shift_id: '' });
 
-  const { data: shifts } = useQuery({
+  const { data: shifts, isLoading: loadingShifts } = useQuery({
     queryKey: ['shifts_list'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('shifts').select('*');
+      const { data, error } = await supabase.from('shifts').select('*').order('name');
       if (error) throw error;
-      return data;
+      return data || [];
     }
   });
 
-  const { data: employees } = useQuery({
+  const { data: employees, isLoading: loadingEmployees } = useQuery({
     queryKey: ['employees_roster'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('employees').select('id, full_name, department');
+      const { data, error } = await supabase.from('employees').select('id, full_name, department').order('full_name');
       if (error) throw error;
-      return data;
+      return data || [];
     }
   });
 
@@ -43,7 +43,7 @@ const RosterShifts: React.FC = () => {
         .select('*, employees(full_name, department), shifts(name, start_time, end_time)')
         .eq('assignment_date', selectedDate);
       if (error) throw error;
-      return data;
+      return data || [];
     }
   });
 
@@ -56,6 +56,7 @@ const RosterShifts: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shift_assignments'] });
       setIsAssignOpen(false);
+      setAssignForm({ employee_id: '', shift_id: '' });
     }
   });
 
@@ -108,8 +109,8 @@ const RosterShifts: React.FC = () => {
                         <td className="px-10 py-6 text-slate-500 font-bold">{a.employees?.department}</td>
                         <td className="px-10 py-6">
                            <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                             a.shifts?.name === 'Night' ? 'bg-indigo-50 text-indigo-600' :
-                             a.shifts?.name === 'Evening' ? 'bg-amber-50 text-amber-600' :
+                             a.shifts?.name.toLowerCase().includes('night') ? 'bg-indigo-50 text-indigo-600' :
+                             a.shifts?.name.toLowerCase().includes('evening') ? 'bg-amber-50 text-amber-600' :
                              'bg-emerald-50 text-emerald-600'
                            }`}>
                               {a.shifts?.name}
@@ -132,7 +133,7 @@ const RosterShifts: React.FC = () => {
                  <RotateCcw size={16} className="text-blue-500" /> Shift Patterns
               </h3>
               <div className="space-y-6">
-                 {shifts?.map((s: any) => (
+                 {loadingShifts ? <Loader2 className="animate-spin mx-auto text-blue-600" /> : shifts?.map((s: any) => (
                    <div key={s.id} className="p-5 bg-slate-50 rounded-[24px] border border-slate-100 flex items-center justify-between group-hover:bg-white group-hover:border-blue-100 transition-all">
                       <div>
                          <p className="text-xs font-black text-slate-900 uppercase tracking-tighter">{s.name}</p>
@@ -153,7 +154,7 @@ const RosterShifts: React.FC = () => {
                     <Coffee size={24} fill="currentColor" />
                     <span className="text-xs font-black uppercase tracking-[0.4em]">Health Metrics</span>
                  </div>
-                 <p className="text-xs text-slate-400 font-medium leading-relaxed">System tracking <span className="text-white font-black">2 Night-Cycle Nodes</span>. Fatigue mitigation protocol is <span className="text-emerald-400 font-black">ACTIVE</span>. Rotate personnel for Q4 optimization.</p>
+                 <p className="text-xs text-slate-400 font-medium leading-relaxed">System tracking <span className="text-white font-black">Shift-Cycle Nodes</span>. Fatigue mitigation protocol is <span className="text-emerald-400 font-black">ACTIVE</span>. Rotate personnel for Q4 optimization.</p>
               </div>
               <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-1000" />
            </div>
@@ -173,24 +174,28 @@ const RosterShifts: React.FC = () => {
               </div>
               <form onSubmit={(e) => { e.preventDefault(); assignShift.mutate(assignForm); }} className="p-12 space-y-8">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Personnel ID</label>
-                  <select required value={assignForm.employee_id} onChange={(e) => setAssignForm({...assignForm, employee_id: e.target.value})} className="w-full p-5 bg-slate-50 border border-slate-200 rounded-[20px] outline-none font-black text-sm">
-                    <option value="">Select Staff</option>
-                    {employees?.map((e: any) => <option key={e.id} value={e.id}>{e.full_name} ({e.department})</option>)}
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Personnel Identity</label>
+                  <select required value={assignForm.employee_id} onChange={(e) => setAssignForm({...assignForm, employee_id: e.target.value})} className="w-full p-5 bg-slate-50 border border-slate-200 rounded-[20px] outline-none font-black text-sm focus:ring-8 focus:ring-blue-500/5 transition-all">
+                    <option value="">Select Personnel Node</option>
+                    {loadingEmployees ? <option disabled>Synchronizing Workforce...</option> : employees?.map((e: any) => (
+                      <option key={e.id} value={e.id}>{e.full_name} ({e.department})</option>
+                    ))}
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Operational Shift</label>
-                  <select required value={assignForm.shift_id} onChange={(e) => setAssignForm({...assignForm, shift_id: e.target.value})} className="w-full p-5 bg-slate-50 border border-slate-200 rounded-[20px] outline-none font-black text-sm">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Operational Shift Node</label>
+                  <select required value={assignForm.shift_id} onChange={(e) => setAssignForm({...assignForm, shift_id: e.target.value})} className="w-full p-5 bg-slate-50 border border-slate-200 rounded-[20px] outline-none font-black text-sm focus:ring-8 focus:ring-blue-500/5 transition-all">
                     <option value="">Select Shift Node</option>
-                    {shifts?.map((s: any) => <option key={s.id} value={s.id}>{s.name} ({s.start_time.slice(0,5)} - {s.end_time.slice(0,5)})</option>)}
+                    {loadingShifts ? <option disabled>Syncing Shift Patterns...</option> : shifts?.map((s: any) => (
+                      <option key={s.id} value={s.id}>{s.name} ({s.start_time.slice(0,5)} - {s.end_time.slice(0,5)})</option>
+                    ))}
                   </select>
                 </div>
                 <div className="p-6 bg-blue-50 border border-blue-100 rounded-[24px] flex items-start gap-4">
                    <AlertCircle className="text-blue-500 shrink-0 mt-0.5" size={18} />
-                   <p className="text-[10px] text-blue-700 font-bold uppercase leading-relaxed">Enterprise Policy: This assignment will auto-sync with the monthly payroll burn-rate calculations.</p>
+                   <p className="text-[10px] text-blue-700 font-bold uppercase leading-relaxed">Enterprise Policy: This assignment will auto-sync with the monthly payroll burn-rate calculations and fatigue monitors.</p>
                 </div>
-                <button disabled={assignShift.isPending} type="submit" className="w-full py-6 bg-blue-600 text-white rounded-[24px] font-black text-sm uppercase tracking-[0.3em] shadow-2xl shadow-blue-500/40 hover:bg-blue-700 transition-all flex items-center justify-center gap-4">
+                <button disabled={assignShift.isPending || !assignForm.employee_id || !assignForm.shift_id} type="submit" className="w-full py-6 bg-blue-600 text-white rounded-[24px] font-black text-sm uppercase tracking-[0.3em] shadow-2xl shadow-blue-500/40 hover:bg-blue-700 transition-all flex items-center justify-center gap-4">
                   {assignShift.isPending ? <Loader2 className="animate-spin" /> : <><CheckCircle2 size={20} /> Authorize Deployment</>}
                 </button>
               </form>
