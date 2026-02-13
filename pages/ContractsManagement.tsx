@@ -518,8 +518,210 @@ const ContractsManagement: React.FC = () => {
                                             <label className="text-[10px] font-black text-slate-400 uppercase">Total Assigned Value (₹)</label>
                                             <input name="val" type="number" required placeholder="0.00" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
                                         </div>
-                                        <button type="submit" className="w-full py-5 bg-slate-900 text-white rounded-[24px] font-black uppercase text-[10px] tracking-widest">
+                                        <button type="submit" className="w-full py-5 bg-slate-900 text-white rounded-[24px] font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all">
                                             {mAddSubcontract.isPending ? <Loader2 className="animate-spin mx-auto" /> : 'Initialize Work Order Node'}
+                                        </button>
+                                    </form>
+                                )}
+                                {modalType === 'bill' && (
+                                    <form onSubmit={(e: any) => {
+                                        e.preventDefault();
+                                        const fd = new FormData(e.target);
+                                        const gross = parseFloat(fd.get('gross') as string);
+                                        const ret = parseFloat(fd.get('ret') as string);
+                                        const tds = parseFloat(fd.get('tds') as string);
+                                        mAddBill.mutate({
+                                            contract_type: fd.get('type'),
+                                            contract_id: fd.get('cid'),
+                                            bill_number: fd.get('num'),
+                                            bill_date: fd.get('date'),
+                                            gross_amount: gross,
+                                            retention_deduction: ret,
+                                            tds_deduction: tds,
+                                            net_payable: gross - ret - tds,
+                                            payment_status: 'Pending'
+                                        });
+                                    }} className="space-y-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase">Contract Type</label>
+                                                <select name="type" required className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs">
+                                                    <option value="Client">Client Contract</option>
+                                                    <option value="Subcontractor">Subcontractor WO</option>
+                                                </select>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase">Instrument No #</label>
+                                                <input name="num" required placeholder="RA-01" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase">Select Contract/WO</label>
+                                            <select name="cid" required className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs">
+                                                <optgroup label="Client Contracts">
+                                                    {clientContracts?.map((c: any) => <option key={c.id} value={c.id}>{c.contract_number} - {c.projects?.name}</option>)}
+                                                </optgroup>
+                                                <optgroup label="Subcontract Work Orders">
+                                                    {subcontracts?.map((s: any) => <option key={s.id} value={s.id}>{s.work_order_number} - {s.subcontractor_name}</option>)}
+                                                </optgroup>
+                                            </select>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase">Gross Val (₹)</label>
+                                                <input name="gross" type="number" required placeholder="0" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase">Ret. Ded (₹)</label>
+                                                <input name="ret" type="number" defaultValue="0" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase">TDS Ded (₹)</label>
+                                                <input name="tds" type="number" defaultValue="0" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase">Billing Date</label>
+                                            <input name="date" type="date" required className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
+                                        </div>
+                                        <button type="submit" className="w-full py-5 bg-red-600 text-white rounded-[24px] font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all">
+                                            {mAddBill.isPending ? <Loader2 className="animate-spin mx-auto" /> : 'Inject Disbursement Node'}
+                                        </button>
+                                    </form>
+                                )}
+                                {modalType === 'deposit' && (
+                                    <form onSubmit={(e: any) => {
+                                        e.preventDefault();
+                                        const fd = new FormData(e.target);
+                                        supabase.from('security_deposits').insert([{
+                                            contract_id: fd.get('cid'),
+                                            deposit_type: fd.get('type'),
+                                            amount: parseFloat(fd.get('val') as string),
+                                            release_date: fd.get('date'),
+                                            remarks: fd.get('rem')
+                                        }]).then(() => {
+                                            queryClient.invalidateQueries({ queryKey: ['contracts-deposits'] });
+                                            setIsModalOpen(false);
+                                        });
+                                    }} className="space-y-4">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase">Select Contract</label>
+                                            <select name="cid" required className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs">
+                                                {clientContracts?.map((c: any) => <option key={c.id} value={c.id}>{c.contract_number}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase">Instrument Type</label>
+                                                <select name="type" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs">
+                                                    <option value="Security Deposit">Security Deposit</option>
+                                                    <option value="Retention Money">Retention Money</option>
+                                                    <option value="Performance Bond">Performance Bond</option>
+                                                </select>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase">Amount (₹)</label>
+                                                <input name="val" type="number" required placeholder="0.00" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase">Release Forecast Date</label>
+                                            <input name="date" type="date" required className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase">Notes / Remarks</label>
+                                            <input name="rem" placeholder="EMD Reference..." className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
+                                        </div>
+                                        <button type="submit" className="w-full py-5 bg-slate-900 text-white rounded-[24px] font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all">
+                                            Lock Capital Node
+                                        </button>
+                                    </form>
+                                )}
+                                {modalType === 'variation' && (
+                                    <form onSubmit={(e: any) => {
+                                        e.preventDefault();
+                                        const fd = new FormData(e.target);
+                                        mAddVariation.mutate({
+                                            reference_id: fd.get('cid'),
+                                            vo_number: fd.get('num'),
+                                            vo_date: fd.get('date'),
+                                            description: fd.get('desc'),
+                                            impact_value: parseFloat(fd.get('val') as string),
+                                            approval_status: 'Draft'
+                                        });
+                                    }} className="space-y-4">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase">Associate Contract</label>
+                                            <select name="cid" required className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs">
+                                                {clientContracts?.map((c: any) => <option key={c.id} value={c.id}>{c.contract_number}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase">VO Reference #</label>
+                                                <input name="num" required placeholder="VO-01" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase">Variation Date</label>
+                                                <input name="date" type="date" required className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase">Deviation Description</label>
+                                            <input name="desc" required placeholder="Extra Piling Work at Sector 4" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase">Impact Value (Positive/Negative)</label>
+                                            <input name="val" type="number" required placeholder="0.00" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
+                                        </div>
+                                        <button type="submit" className="w-full py-5 bg-red-600 text-white rounded-[24px] font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all">
+                                            Authorize Variation Draft
+                                        </button>
+                                    </form>
+                                )}
+                                {modalType === 'claim' && (
+                                    <form onSubmit={(e: any) => {
+                                        e.preventDefault();
+                                        const fd = new FormData(e.target);
+                                        mAddClaim.mutate({
+                                            reference_id: fd.get('cid'),
+                                            claim_number: fd.get('num'),
+                                            claim_type: fd.get('type'),
+                                            value: parseFloat(fd.get('val') as string),
+                                            justification: fd.get('jus'),
+                                            status: 'Submitted'
+                                        });
+                                    }} className="space-y-4">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase">Select Reference</label>
+                                            <select name="cid" required className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs">
+                                                {clientContracts?.map((c: any) => <option key={c.id} value={c.id}>{c.contract_number}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase">Claim Protocol #</label>
+                                                <input name="num" required placeholder="CLM-22" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase">Claim Logic</label>
+                                                <select name="type" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs">
+                                                    <option value="Extra Item">Extra Item</option>
+                                                    <option value="Price Escalation">Price Escalation</option>
+                                                    <option value="EOT">EOT Costs</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase">Claim Value (₹)</label>
+                                            <input name="val" type="number" required placeholder="0.00" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase">Technical Justification</label>
+                                            <textarea name="jus" rows={3} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs resize-none" placeholder="Provide deterministic proof for claim..."></textarea>
+                                        </div>
+                                        <button type="submit" className="w-full py-5 bg-slate-900 text-white rounded-[24px] font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all">
+                                            Inject Claim Node
                                         </button>
                                     </form>
                                 )}
