@@ -145,7 +145,7 @@ const App: React.FC = () => {
         <Route path="/register" element={<Register />} />
 
         <Route element={
-          <ProtectedRoute>
+          <ProtectedRoute roles={['owner', 'director', 'accounting']}>
             <DashboardLayout />
           </ProtectedRoute>
         }>
