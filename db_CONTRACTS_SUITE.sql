@@ -91,9 +91,20 @@ ALTER TABLE contract_claims ENABLE ROW LEVEL SECURITY;
 ALTER TABLE security_deposits ENABLE ROW LEVEL SECURITY;
 
 -- POLICIES (Allow All for ERP Internal Sync)
+DROP POLICY IF EXISTS "Allow All Access" ON client_contracts;
 CREATE POLICY "Allow All Access" ON client_contracts FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow All Access" ON subcontracts;
 CREATE POLICY "Allow All Access" ON subcontracts FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow All Access" ON running_bills;
 CREATE POLICY "Allow All Access" ON running_bills FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow All Access" ON variation_orders;
 CREATE POLICY "Allow All Access" ON variation_orders FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow All Access" ON contract_claims;
 CREATE POLICY "Allow All Access" ON contract_claims FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow All Access" ON security_deposits;
 CREATE POLICY "Allow All Access" ON security_deposits FOR ALL USING (true) WITH CHECK (true);

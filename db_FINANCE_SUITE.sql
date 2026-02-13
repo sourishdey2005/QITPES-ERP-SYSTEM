@@ -51,6 +51,11 @@ ALTER TABLE cashflow_forecasts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE general_ledger ENABLE ROW LEVEL SECURITY;
 
 -- POLICIES
+DROP POLICY IF EXISTS "Allow All Access" ON client_invoices;
 CREATE POLICY "Allow All Access" ON client_invoices FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow All Access" ON cashflow_forecasts;
 CREATE POLICY "Allow All Access" ON cashflow_forecasts FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow All Access" ON general_ledger;
 CREATE POLICY "Allow All Access" ON general_ledger FOR ALL USING (true) WITH CHECK (true);

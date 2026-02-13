@@ -22,4 +22,5 @@ CREATE TABLE IF NOT EXISTS vendors (
 ALTER TABLE vendors ENABLE ROW LEVEL SECURITY;
 
 -- POLICIES
+DROP POLICY IF EXISTS "Allow All Access" ON vendors;
 CREATE POLICY "Allow All Access" ON vendors FOR ALL USING (true) WITH CHECK (true);
