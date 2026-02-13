@@ -5,7 +5,8 @@ import {
   Wrench, Truck, Landmark, Wallet, ReceiptText, PieChart, UserPlus,
   Clock, FileText, Bell, ShieldCheck, Settings, BrainCircuit,
   GitMerge, Target, Building2, Calendar, Coffee, Video, Monitor,
-  Coins, UserCheck, ShieldAlert, Sparkles, FileSpreadsheet, Calculator
+  Coins, UserCheck, ShieldAlert, Sparkles, FileSpreadsheet, Calculator,
+  TrendingUp
 } from 'lucide-react';
 import { NavItem } from './types';
 
@@ -46,6 +47,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Fleet & Fuel', href: '/fleet', icon: 'fleet', roles: ['owner', 'director', 'accounting'], group: 'Assets' },
 
   // Analytics
+  { label: 'Executive Monitor', href: '/executive-monitor', icon: 'executive', roles: ['owner', 'director', 'accounting'], group: 'Analytics' },
   { label: 'BI Analytics', href: '/bi', icon: 'bi', roles: ['owner', 'director', 'accounting'], group: 'Analytics' },
   { label: 'AI Strategy', href: '/ai', icon: 'ai', roles: ['owner', 'director', 'accounting'], group: 'Analytics' },
   { label: 'AI Data Analysis', href: '/ai-analysis', icon: 'aianalysis', roles: ['owner', 'director', 'accounting'], group: 'Analytics' },
@@ -91,4 +93,5 @@ export const ICON_MAP: Record<string, React.ReactNode> = {
   datainsights: <FileSpreadsheet size={18} />,
   access: <UserCheck size={18} />,
   tally: <Calculator size={18} />,
+  executive: <TrendingUp size={18} />,
 };

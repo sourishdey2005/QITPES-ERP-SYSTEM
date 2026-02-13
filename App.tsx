@@ -43,6 +43,7 @@ import RosterShifts from './pages/RosterShifts';
 import AIDataAnalysis from './pages/AIDataAnalysis';
 import DataInsights from './pages/DataInsights';
 import Tally from './pages/Tally';
+import ExecutiveMonitor from './pages/ExecutiveMonitor';
 
 import { UserRole } from './types';
 
@@ -184,6 +185,7 @@ const App: React.FC = () => {
           <Route path="/fleet" element={<Fleet />} />
 
           {/* Analytics Group */}
+          <Route path="/executive-monitor" element={<ExecutiveMonitor />} />
           <Route path="/bi" element={<BIAnalytics />} />
           <Route path="/ai" element={<AIStrategy />} />
           <Route path="/ai-analysis" element={<AIDataAnalysis />} />
