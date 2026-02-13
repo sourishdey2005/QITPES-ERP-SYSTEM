@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS running_bills (
     tds_deduction NUMERIC(15,2) DEFAULT 0,
     other_deductions NUMERIC(15,2) DEFAULT 0,
     net_payable NUMERIC(15,2) DEFAULT 0,
-    payment_status TEXT DEFAULT 'Pending' CHECK (status IN ('Pending', 'Certified', 'Paid')),
+    payment_status TEXT DEFAULT 'Pending' CHECK (payment_status IN ('Pending', 'Certified', 'Paid')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
