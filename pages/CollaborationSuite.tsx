@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../App';
 import {
   Video, Monitor, Users, MapPin, Plus, Clock,
   Search, X, Loader2, Calendar, LayoutGrid, CheckCircle2,
@@ -13,6 +14,7 @@ const motion = motionBase as any;
 
 const CollaborationSuite: React.FC = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
   const [bookingForm, setBookingForm] = useState({ title: '', room_id: '', start_time: '', end_time: '', department: 'Engineering' });
@@ -46,6 +48,10 @@ const CollaborationSuite: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['upcoming_meetings'] });
       setIsBookingOpen(false);
       setBookingForm({ title: '', room_id: '', start_time: '', end_time: '', department: 'Engineering' });
+    },
+    onError: (error: any) => {
+      console.error('Failed to create meeting:', error);
+      alert(`Failed to create session: ${error.message || 'Unknown error'}`);
     }
   });
 
@@ -187,7 +193,7 @@ const CollaborationSuite: React.FC = () => {
                 </div>
                 <button onClick={() => setIsBookingOpen(false)} className="text-slate-400 hover:text-slate-600 p-3 hover:bg-white rounded-full transition-all shadow-sm"><X size={24} /></button>
               </div>
-              <form onSubmit={(e) => { e.preventDefault(); createMeeting.mutate({ ...bookingForm, organizer_id: 'internal' }); }} className="p-12 space-y-8">
+              <form onSubmit={(e) => { e.preventDefault(); createMeeting.mutate({ ...bookingForm, organizer_id: user?.id }); }} className="p-12 space-y-8">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Session Title</label>
                   <input required value={bookingForm.title} onChange={(e) => setBookingForm({ ...bookingForm, title: e.target.value })} className="w-full p-5 bg-slate-50 border border-slate-200 rounded-[20px] outline-none font-bold text-slate-900 text-lg" placeholder="Strategy Hub Q4" />
