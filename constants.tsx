@@ -51,6 +51,7 @@ export const NAV_ITEMS: NavItem[] = [
 
   // Admin
   { label: 'Workflows', href: '/workflows', icon: 'workflows', roles: ['owner'], group: 'Admin' },
+  { label: 'Access Control', href: '/access-control', icon: 'access', roles: ['owner'], group: 'Admin' },
   { label: 'System Reset', href: '/maintenance', icon: 'maintenance', roles: ['owner'], group: 'Admin' },
   { label: 'Company Settings', href: '/settings', icon: 'settings', roles: ['owner'], group: 'Admin' },
   { label: 'Audit Logs', href: '/audit', icon: 'audit', roles: ['owner'], group: 'Admin' },
@@ -86,4 +87,5 @@ export const ICON_MAP: Record<string, React.ReactNode> = {
   maintenance: <ShieldAlert size={18} />,
   aianalysis: <Sparkles size={18} />,
   datainsights: <FileSpreadsheet size={18} />,
+  access: <UserCheck size={18} />,
 };

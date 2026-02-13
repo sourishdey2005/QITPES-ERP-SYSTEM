@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Shield, Lock, Mail, User, ArrowRight, Briefcase, CheckCircle2, AlertCircle, Clock, Settings } from 'lucide-react';
+import { Shield, Lock, Mail, User, ArrowRight, Briefcase, CheckCircle2, AlertCircle, Clock, Settings, UserCheck } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { UserRole } from '../types';
@@ -8,6 +8,9 @@ import { UserRole } from '../types';
 import { motion as motionBase, AnimatePresence } from 'framer-motion';
 
 const motion = motionBase as any;
+
+// Hardcoded owner details
+const OWNER_EMAIL = 'abhradeephazra99@gmail.com';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -17,7 +20,7 @@ const Register: React.FC = () => {
     role: 'accounting' as UserRole
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<{ message: string; type: 'standard' | 'rate-limit' | 'disabled' } | null>(null);
+  const [error, setError] = useState<{ message: string; type: 'standard' | 'rate-limit' | 'disabled' | 'not-approved' } | null>(null);
   const [isRegistered, setIsRegistered] = useState(false);
   const navigate = useNavigate();
 
@@ -27,6 +30,34 @@ const Register: React.FC = () => {
     setError(null);
 
     try {
+      // 1. Check if trying to register as owner (reserved email)
+      if (formData.email.toLowerCase() === OWNER_EMAIL.toLowerCase()) {
+        // Allow owner to register without approval check (bootstrapping)
+        // This is safe because only the owner knows their email password
+      } else {
+        // 2. For everyone else, check if email is pre-approved
+        const { data: approvedUser, error: approvalError } = await supabase
+          .from('approved_users')
+          .select('*')
+          .eq('email', formData.email.toLowerCase())
+          .eq('is_active', true)
+          .single();
+
+        if (approvalError || !approvedUser) {
+          setError({
+            message: 'Your email is not approved for registration. Please contact the system owner to get added to the approved list.',
+            type: 'not-approved'
+          });
+          setLoading(false);
+          return;
+        }
+
+        // 3. Auto-set role based on approval
+        if (approvedUser.role) {
+          formData.role = approvedUser.role as UserRole;
+        }
+      }
+
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -45,9 +76,9 @@ const Register: React.FC = () => {
       }
     } catch (err: any) {
       console.error('Registration Error:', err);
-      
+
       const msg = err.message?.toLowerCase() || '';
-      let errorType: 'standard' | 'rate-limit' | 'disabled' = 'standard';
+      let errorType: 'standard' | 'rate-limit' | 'disabled' | 'not-approved' = 'standard';
       let errorMessage = err.message || 'Registration failed.';
 
       if (msg.includes('rate limit')) {
@@ -66,7 +97,7 @@ const Register: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
@@ -74,7 +105,7 @@ const Register: React.FC = () => {
       >
         <div className="md:w-1/2 bg-red-700 p-12 text-white flex flex-col justify-between relative overflow-hidden">
           <div className="relative z-10">
-            <motion.div 
+            <motion.div
               initial={{ y: -10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
@@ -82,7 +113,7 @@ const Register: React.FC = () => {
             >
               <Shield size={24} />
             </motion.div>
-            <motion.h1 
+            <motion.h1
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
@@ -90,7 +121,7 @@ const Register: React.FC = () => {
             >
               Join QITPES
             </motion.h1>
-            <motion.p 
+            <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
@@ -99,16 +130,20 @@ const Register: React.FC = () => {
               Initialize your enterprise account for the 2026 fiscal year operations.
             </motion.p>
           </div>
-          
+
           <div className="relative z-10 mt-12 space-y-4">
             <div className="p-4 bg-white/10 rounded-lg border border-white/10">
-              <h4 className="font-bold text-sm text-white">Security Standards</h4>
-              <p className="text-xs text-red-200 mt-1">RLS Protected Database & End-to-End Encryption.</p>
+              <h4 className="font-bold text-sm text-white flex items-center gap-2">
+                <UserCheck size={16} /> Invite-Only Access
+              </h4>
+              <p className="text-xs text-red-100 mt-1 leading-relaxed">
+                Registration requires pre-approval. Your email must be on the approved list maintained by the system owner.
+              </p>
             </div>
             <p className="text-xs text-blue-300 italic">© 2026 QITPES International Systems.</p>
           </div>
 
-          <motion.div 
+          <motion.div
             animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
             transition={{ duration: 8, repeat: Infinity }}
             className="absolute -bottom-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl"
@@ -118,7 +153,7 @@ const Register: React.FC = () => {
         <div className="md:w-1/2 p-12 bg-white flex flex-col justify-center">
           <AnimatePresence mode="wait">
             {!isRegistered ? (
-              <motion.div 
+              <motion.div
                 key="form"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -126,33 +161,38 @@ const Register: React.FC = () => {
                 className="max-w-sm mx-auto w-full"
               >
                 <h2 className="text-2xl font-bold text-slate-900">Create Account</h2>
-                <p className="text-slate-500 mt-2 text-sm">Register your credentials for the ERP portal.</p>
+                <p className="text-slate-500 mt-2 text-sm">Register your pre-approved credentials.</p>
 
                 <form className="mt-8 space-y-4" onSubmit={handleRegister}>
                   {error && (
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
-                      className={`p-4 rounded-lg border font-medium flex gap-3 ${
-                        error.type === 'disabled' 
-                          ? 'bg-red-50 text-blue-800 border-red-200' 
+                      className={`p-4 rounded-lg border font-medium flex gap-3 ${error.type === 'disabled'
+                          ? 'bg-red-50 text-blue-800 border-red-200'
                           : error.type === 'rate-limit'
-                          ? 'bg-amber-50 text-amber-700 border-amber-200'
-                          : 'bg-red-50 text-red-700 border-red-100'
-                      }`}
+                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                            : error.type === 'not-approved'
+                              ? 'bg-orange-50 text-orange-700 border-orange-200'
+                              : 'bg-red-50 text-red-700 border-red-100'
+                        }`}
                     >
                       <div className="shrink-0 mt-0.5">
                         {error.type === 'disabled' ? <Settings size={16} /> : <AlertCircle size={16} />}
                       </div>
                       <div className="text-xs">
                         <p className="font-bold">
-                          {error.type === 'disabled' ? 'Admin Action Required' : 'Registration Error'}
+                          {error.type === 'disabled'
+                            ? 'Admin Action Required'
+                            : error.type === 'not-approved'
+                              ? 'Access Denied'
+                              : 'Registration Error'}
                         </p>
                         <p className="mt-1 opacity-90 leading-relaxed">{error.message}</p>
                       </div>
                     </motion.div>
                   )}
-                  
+
                   <div className="space-y-4">
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Full Name</label>
@@ -160,11 +200,11 @@ const Register: React.FC = () => {
                         <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 group-focus-within:text-red-500 transition-colors">
                           <User size={18} />
                         </span>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           required
                           value={formData.fullName}
-                          onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                          onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                           className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-red-500 outline-none transition-all"
                           placeholder="e.g. Abhradeep Hazra"
                         />
@@ -177,15 +217,16 @@ const Register: React.FC = () => {
                         <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 group-focus-within:text-red-500 transition-colors">
                           <Mail size={18} />
                         </span>
-                        <input 
-                          type="email" 
+                        <input
+                          type="email"
                           required
                           value={formData.email}
-                          onChange={(e) => setFormData({...formData, email: e.target.value})}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                           className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-red-500 outline-none transition-all"
                           placeholder="abhradeephazra99@gmail.com"
                         />
                       </div>
+                      <p className="text-[10px] text-slate-400 mt-1 ml-1">Must be a pre-approved email address.</p>
                     </div>
 
                     <div>
@@ -194,53 +235,55 @@ const Register: React.FC = () => {
                         <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 group-focus-within:text-red-500 transition-colors">
                           <Lock size={18} />
                         </span>
-                        <input 
-                          type="password" 
+                        <input
+                          type="password"
                           required
                           value={formData.password}
-                          onChange={(e) => setFormData({...formData, password: e.target.value})}
+                          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                           className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-red-500 outline-none transition-all"
                           placeholder="Min 6 characters"
                         />
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">System Role</label>
-                      <div className="relative group">
-                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 group-focus-within:text-red-500 transition-colors">
-                          <Briefcase size={18} />
-                        </span>
-                        <select
-                          value={formData.role}
-                          onChange={(e) => setFormData({...formData, role: e.target.value as UserRole})}
-                          className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-red-500 outline-none transition-all appearance-none"
-                        >
-                          <option value="owner">Owner / CEO</option>
-                          <option value="director">Site Director</option>
-                          <option value="accounting">Accounting Staff</option>
-                        </select>
+                    {formData.email.toLowerCase() === OWNER_EMAIL.toLowerCase() && (
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">System Role</label>
+                        <div className="relative group">
+                          <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 group-focus-within:text-red-500 transition-colors">
+                            <Briefcase size={18} />
+                          </span>
+                          <select
+                            value={formData.role}
+                            onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
+                            className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-red-500 outline-none transition-all appearance-none"
+                          >
+                            <option value="owner">Owner / CEO</option>
+                            <option value="director">Site Director</option>
+                            <option value="accounting">Accounting Staff</option>
+                          </select>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
 
-                  <motion.button 
+                  <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     type="submit"
                     disabled={loading}
                     className="w-full flex items-center justify-center py-3 px-4 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 disabled:bg-slate-400 transition-all shadow-lg shadow-red-500/20 mt-4"
                   >
-                    {loading ? 'Initializing...' : 'Initialize Account'} <ArrowRight size={18} className="ml-2" />
+                    {loading ? 'Validating...' : 'Register Account'} <ArrowRight size={18} className="ml-2" />
                   </motion.button>
 
                   <p className="text-center text-sm text-slate-500 mt-6">
-                    Already have an account? <Link to="/login" className="text-red-600 font-bold hover:underline transition-all">Log In</Link>
+                    Already registered? <Link to="/login" className="text-red-600 font-bold hover:underline transition-all">Log In</Link>
                   </p>
                 </form>
               </motion.div>
             ) : (
-              <motion.div 
+              <motion.div
                 key="success"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -249,11 +292,11 @@ const Register: React.FC = () => {
                 <div className="w-20 h-20 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
                   <CheckCircle2 size={40} />
                 </div>
-                <h2 className="text-2xl font-bold text-slate-900">Verification Sent!</h2>
+                <h2 className="text-2xl font-bold text-slate-900">Registered Successfully!</h2>
                 <p className="text-slate-600 mt-4 leading-relaxed">
                   We've sent a confirmation link to <span className="font-bold text-slate-900">{formData.email}</span>. Please verify your email to access the QITPES ERP platform.
                 </p>
-                <button 
+                <button
                   onClick={() => navigate('/login')}
                   className="mt-8 w-full py-3 px-4 bg-slate-900 text-white rounded-lg font-bold hover:bg-slate-800 transition-all"
                 >

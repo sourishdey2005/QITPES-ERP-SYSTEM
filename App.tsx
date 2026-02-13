@@ -32,6 +32,7 @@ import SiteWages from './pages/SiteWages';
 import BudgetCostControl from './pages/BudgetCostControl';
 import WorkforceManagement from './pages/WorkforceManagement';
 import SystemMaintenance from './pages/SystemMaintenance';
+import AccessControl from './pages/AccessControl';
 
 // Scheduling & Collaboration Suite
 import EnterpriseCalendar from './pages/EnterpriseCalendar';
@@ -191,6 +192,7 @@ const App: React.FC = () => {
           <Route path="/maintenance" element={<SystemMaintenance />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/audit" element={<AuditLogs />} />
+          <Route path="/access-control" element={<AccessControl />} />
 
           <Route path="*" element={
             <div className="p-8 text-center py-20">
