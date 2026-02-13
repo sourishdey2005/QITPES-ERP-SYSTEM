@@ -12,6 +12,7 @@ const Purchasing: React.FC = () => {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({ po_number: '', vendor_name: '', total_amount: '', status: 'Draft' });
+  const [error, setError] = useState<string | null>(null);
 
   const { data: pos, isLoading } = useQuery({
     queryKey: ['purchasing'],
@@ -24,6 +25,7 @@ const Purchasing: React.FC = () => {
 
   const createPO = useMutation({
     mutationFn: async (newPO: any) => {
+      setError(null);
       const { data, error } = await supabase.from('purchase_orders').insert([newPO]).select();
       if (error) throw error;
       return data;
@@ -32,6 +34,11 @@ const Purchasing: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['purchasing'] });
       setIsModalOpen(false);
       setFormData({ po_number: '', vendor_name: '', total_amount: '', status: 'Draft' });
+      alert('Purchase Order Created Successfully!');
+    },
+    onError: (err: any) => {
+      console.error('PO Creation Error:', err);
+      setError(err.message || 'Failed to create Purchase Order. Please check the data and try again.');
     }
   });
 
@@ -42,7 +49,7 @@ const Purchasing: React.FC = () => {
           <h1 className="text-2xl font-bold text-slate-900">Purchase Management</h1>
           <p className="text-slate-500 text-sm">Centralized procurement and vendor relations portal.</p>
         </div>
-        <button onClick={() => setIsModalOpen(true)} className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-red-700 shadow-md flex items-center gap-2">
+        <button onClick={() => { setError(null); setIsModalOpen(true); }} className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-red-700 shadow-md flex items-center gap-2">
           <FilePlus size={18} /> New Purchase Order
         </button>
       </div>
@@ -53,23 +60,37 @@ const Purchasing: React.FC = () => {
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
               <div className="p-6 border-b border-slate-100 flex items-center justify-between">
                 <h3 className="text-lg font-bold text-slate-900">Issue Purchase Order</h3>
-                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={20}/></button>
+                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
               </div>
-              <form onSubmit={(e) => { e.preventDefault(); createPO.mutate({...formData, total_amount: parseFloat(formData.total_amount)}); }} className="p-6 space-y-4">
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                const amount = parseFloat(formData.total_amount);
+                createPO.mutate({
+                  po_number: formData.po_number,
+                  vendor_name: formData.vendor_name,
+                  total_amount: isNaN(amount) ? 0 : amount,
+                  status: formData.status
+                });
+              }} className="p-6 space-y-4">
+                {error && (
+                  <div className="p-3 bg-red-50 text-red-600 text-xs font-bold rounded-lg border border-red-100 italic">
+                    {error}
+                  </div>
+                )}
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">PO Number</label>
-                  <input required value={formData.po_number} onChange={(e) => setFormData({...formData, po_number: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="PO-2026-001" />
+                  <input required value={formData.po_number} onChange={(e) => setFormData({ ...formData, po_number: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="PO-2026-001" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Vendor Name</label>
-                  <input required value={formData.vendor_name} onChange={(e) => setFormData({...formData, vendor_name: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="Tata Steel Ltd." />
+                  <input required value={formData.vendor_name} onChange={(e) => setFormData({ ...formData, vendor_name: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="Tata Steel Ltd." />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Total Amount (₹)</label>
-                  <input required type="number" value={formData.total_amount} onChange={(e) => setFormData({...formData, total_amount: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="0" />
+                  <input required type="number" step="0.01" value={formData.total_amount} onChange={(e) => setFormData({ ...formData, total_amount: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="0" />
                 </div>
                 <button disabled={createPO.isPending} type="submit" className="w-full py-3 bg-red-600 text-white rounded-xl font-bold flex items-center justify-center">
-                  {createPO.isPending ? <Loader2 className="animate-spin" /> : 'Confirm PO'}
+                  {createPO.isPending ? <Loader2 className="animate-spin text-white" /> : 'Confirm PO'}
                 </button>
               </form>
             </motion.div>
@@ -94,32 +115,32 @@ const Purchasing: React.FC = () => {
 
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
         <table className="w-full text-left">
-           <thead className="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase">
-             <tr>
-               <th className="px-6 py-4">PO Reference</th>
-               <th className="px-6 py-4">Vendor</th>
-               <th className="px-6 py-4">Amount</th>
-               <th className="px-6 py-4">Status</th>
-               <th className="px-6 py-4">Created At</th>
-               <th className="px-6 py-4"></th>
-             </tr>
-           </thead>
-           <tbody className="divide-y divide-slate-100 text-sm">
-             {pos?.map((po: any) => (
-               <tr key={po.id} className="hover:bg-slate-50">
-                 <td className="px-6 py-4 font-mono font-bold text-red-600">{po.po_number}</td>
-                 <td className="px-6 py-4 font-bold text-slate-900">{po.vendor_name}</td>
-                 <td className="px-6 py-4 font-bold">{formatCurrency(po.total_amount)}</td>
-                 <td className="px-6 py-4">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${po.status === 'Draft' ? 'bg-slate-100 text-slate-500' : 'bg-green-50 text-green-600'}`}>
-                      {po.status}
-                    </span>
-                 </td>
-                 <td className="px-6 py-4 text-slate-500">{new Date(po.created_at).toLocaleDateString()}</td>
-                 <td className="px-6 py-4"><MoreVertical size={16} className="text-slate-400" /></td>
-               </tr>
-             ))}
-           </tbody>
+          <thead className="bg-slate-50 text-[10px] font-bold text-slate-400 uppercase">
+            <tr>
+              <th className="px-6 py-4">PO Reference</th>
+              <th className="px-6 py-4">Vendor</th>
+              <th className="px-6 py-4">Amount</th>
+              <th className="px-6 py-4">Status</th>
+              <th className="px-6 py-4">Created At</th>
+              <th className="px-6 py-4"></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100 text-sm">
+            {pos?.map((po: any) => (
+              <tr key={po.id} className="hover:bg-slate-50">
+                <td className="px-6 py-4 font-mono font-bold text-red-600">{po.po_number}</td>
+                <td className="px-6 py-4 font-bold text-slate-900">{po.vendor_name}</td>
+                <td className="px-6 py-4 font-bold">{formatCurrency(po.total_amount)}</td>
+                <td className="px-6 py-4">
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${po.status === 'Draft' ? 'bg-slate-100 text-slate-500' : 'bg-green-50 text-green-600'}`}>
+                    {po.status}
+                  </span>
+                </td>
+                <td className="px-6 py-4 text-slate-500">{new Date(po.created_at).toLocaleDateString()}</td>
+                <td className="px-6 py-4"><MoreVertical size={16} className="text-slate-400" /></td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       </div>
     </div>
