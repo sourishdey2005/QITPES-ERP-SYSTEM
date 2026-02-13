@@ -18,6 +18,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Projects', href: '/projects', icon: 'projects', roles: ['owner', 'director', 'accounting'], group: 'Operations' },
   { label: 'Planning', href: '/planning', icon: 'planning', roles: ['owner', 'director', 'accounting'], group: 'Operations' },
   { label: 'Production', href: '/production', icon: 'production', roles: ['owner', 'director', 'accounting'], group: 'Operations' },
+  { label: 'Contracts & Sub-Work', href: '/contracts', icon: 'contracts', roles: ['owner', 'director', 'accounting'], group: 'Contracts' },
 
   // Procurement
   { label: 'Procurement & Supply', href: '/procurement', icon: 'procurement', roles: ['owner', 'director', 'accounting'], group: 'Procurement' },
@@ -104,4 +105,5 @@ export const ICON_MAP: Record<string, React.ReactNode> = {
   executive: <TrendingUp size={18} />,
   bizdev: <Briefcase size={18} />,
   procurement: <Truck size={18} />,
+  contracts: <ShieldCheck size={18} />,
 };

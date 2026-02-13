@@ -53,5 +53,5 @@ export interface NavItem {
   href: string;
   icon: string;
   roles: UserRole[];
-  group: 'Operations' | 'Finance' | 'HR' | 'Assets' | 'Analytics' | 'Admin' | 'Sales & Marketing' | 'Procurement';
+  group: 'Operations' | 'Finance' | 'HR' | 'Assets' | 'Analytics' | 'Admin' | 'Sales & Marketing' | 'Procurement' | 'Contracts';
 }
