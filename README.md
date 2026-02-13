@@ -1,4 +1,4 @@
-# 🏢 QITPES ERP System
+n th# 🏢 QITPES ERP System
 
 A comprehensive, production-ready Enterprise Resource Planning (ERP) system built with React, TypeScript, and Supabase, featuring AI-powered data analysis and insights.
 

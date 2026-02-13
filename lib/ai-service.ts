@@ -1,7 +1,7 @@
 // AI Service for QITPES ERP using Google Generative AI SDK
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const GEMINI_API_KEY = import.meta.env.VITE_API_KEY;
 
 // Initialize the Generative AI client
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY || '');
@@ -49,8 +49,7 @@ Provide concise, actionable, and friendly responses. Use the context provided wh
         console.log('🔵 API Key exists:', !!GEMINI_API_KEY);
 
         // Use the model that works with your API key
-        // Try these in order: gemini-1.5-pro, gemini-1.5-flash, gemini-pro
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         console.log('🔵 Sending request to Gemini...');
         const result = await model.generateContent(fullPrompt);
@@ -107,7 +106,7 @@ Provide a comprehensive analysis in the following JSON format:
 Respond ONLY with valid JSON, no additional text.`;
 
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const result = await model.generateContent(prompt);
         const response = await result.response;

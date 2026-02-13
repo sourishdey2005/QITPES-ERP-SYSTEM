@@ -1,31 +1,42 @@
 
-import React, { useState } from 'react';
-// Fix: Use correct import style for GoogleGenAI
-import {GoogleGenAI} from "@google/genai";
-import { Sparkles, Send, X, Bot, Loader2 } from 'lucide-react';
-// Fix: Cast motion to any to resolve property missing errors
+import React, { useState, useEffect, useRef } from 'react';
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { Sparkles, Send, X, Bot, Loader2, User } from 'lucide-react';
 import { motion as motionBase, AnimatePresence } from 'framer-motion';
 
 const motion = motionBase as any;
 
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 const AIAssistant: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [response, setResponse] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   const handleAskAI = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
 
+    const userMessage: Message = { role: 'user', content: query };
+    setMessages(prev => [...prev, userMessage]);
+    setQuery('');
     setLoading(true);
-    setResponse(null);
 
     try {
-      // Fix: Initialize GoogleGenAI strictly with process.env.API_KEY as a named parameter
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const model = 'gemini-3-flash-preview';
-      
+      const genAI = new GoogleGenerativeAI(import.meta.env.VITE_API_KEY);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
       const prompt = `You are the QITPES ERP Intelligence Assistant.
       The user is asking: "${query}"
       
@@ -34,16 +45,16 @@ const AIAssistant: React.FC = () => {
       If asked about data you don't have, explain that you can query active site ledgers once configured.
       Format: Use clear bullet points if needed.`;
 
-      const result = await ai.models.generateContent({
-        model,
-        contents: prompt,
-      });
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
 
-      // Fix: Access response text as a property, not a method
-      setResponse(result.text || "I'm sorry, I couldn't process that request.");
+      const assistantMessage: Message = { role: 'assistant', content: text || "I'm sorry, I couldn't process that request." };
+      setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       console.error('AI Assistant Error:', error);
-      setResponse("System Error: Unable to connect to AI Strategy engine.");
+      const errorMessage: Message = { role: 'assistant', content: "System Error: Unable to connect to AI Strategy engine." };
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setLoading(false);
     }
@@ -74,8 +85,8 @@ const AIAssistant: React.FC = () => {
               <button onClick={() => setIsOpen(false)} className="hover:text-slate-400"><X size={20} /></button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {!response && !loading && (
+            <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+              {messages.length === 0 && !loading && (
                 <div className="text-center py-10 px-6">
                   <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Sparkles size={24} />
@@ -84,22 +95,30 @@ const AIAssistant: React.FC = () => {
                   <p className="text-xs text-slate-500 mt-2">"What is our current burn rate for the Nagpur project?"</p>
                 </div>
               )}
+              
+              <AnimatePresence>
+                {messages.map((msg, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+                    {msg.role === 'assistant' && <div className="w-8 h-8 bg-slate-900 text-white rounded-full flex items-center justify-center flex-shrink-0"><Bot size={20} /></div>}
+                    <div className={`p-3 rounded-2xl max-w-[80%] ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-700'}`}>
+                      <p className="text-sm leading-relaxed">{msg.content}</p>
+                    </div>
+                    {msg.role === 'user' && <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center flex-shrink-0"><User size={20} /></div>}
+                  </motion.div>
+                ))}
+              </AnimatePresence>
 
               {loading && (
-                <div className="flex flex-col items-center justify-center py-20">
-                  <Loader2 size={32} className="text-blue-600 animate-spin mb-4" />
-                  <p className="text-xs text-slate-500 font-medium">Analyzing enterprise data...</p>
+                <div className="flex items-center gap-2 p-4">
+                    <div className="w-8 h-8 bg-slate-900 text-white rounded-full flex items-center justify-center flex-shrink-0"><Bot size={20} /></div>
+                    <div className="bg-slate-50 p-3 rounded-2xl">
+                      <Loader2 size={20} className="text-blue-600 animate-spin" />
+                    </div>
                 </div>
-              )}
-
-              {response && (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="bg-slate-50 p-4 rounded-xl text-sm text-slate-700 leading-relaxed"
-                >
-                  {response}
-                </motion.div>
               )}
             </div>
 
