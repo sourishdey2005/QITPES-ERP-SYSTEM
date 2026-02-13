@@ -9,7 +9,7 @@ import { useAuth } from '../App';
 const motion = motionBase as any;
 
 const AccessControl: React.FC = () => {
-    const { role } = useAuth();
+    const { role, user } = useAuth();
     const queryClient = useQueryClient();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [formData, setFormData] = useState({ email: '', full_name: '', role: 'accounting', initial_password: '' });
@@ -17,7 +17,9 @@ const AccessControl: React.FC = () => {
     const [copiedId, setCopiedId] = useState<string | null>(null);
 
     // Protect page - only owners can access (or use hardcoded owner check)
-    if (role !== 'owner') {
+    const isOwner = role === 'owner' || user?.email?.toLowerCase() === 'abhradeephazra99@gmail.com';
+
+    if (!isOwner) {
         return (
             <div className="flex h-[80vh] items-center justify-center p-6">
                 <div className="text-center max-w-md">
@@ -229,10 +231,10 @@ const AccessControl: React.FC = () => {
                                         </td>
                                         <td className="px-8 py-4">
                                             <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border capitalize ${user.role === 'owner'
-                                                    ? 'bg-purple-50 text-purple-700 border-purple-200'
-                                                    : user.role === 'director'
-                                                        ? 'bg-blue-50 text-blue-700 border-blue-200'
-                                                        : 'bg-slate-50 text-slate-700 border-slate-200'
+                                                ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                                : user.role === 'director'
+                                                    ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                                    : 'bg-slate-50 text-slate-700 border-slate-200'
                                                 }`}>
                                                 {user.role}
                                             </span>
@@ -256,13 +258,22 @@ const AccessControl: React.FC = () => {
                                             )}
                                         </td>
                                         <td className="px-8 py-4">
-                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${user.is_active
-                                                    ? 'bg-green-50 text-green-700 border-green-200'
-                                                    : 'bg-red-50 text-red-700 border-red-200'
-                                                }`}>
-                                                <span className={`w-1.5 h-1.5 rounded-full ${user.is_active ? 'bg-green-600' : 'bg-red-600'}`} />
-                                                {user.is_active ? 'Active' : 'Revoked'}
-                                            </span>
+                                            {user.is_active ? (
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border bg-green-50 text-green-700 border-green-200">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-green-600" />
+                                                    Active
+                                                </span>
+                                            ) : user.initial_password === 'Pending Approval' ? (
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border bg-blue-50 text-blue-700 border-blue-200">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+                                                    Pending Request
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border bg-red-50 text-red-700 border-red-200">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-red-600" />
+                                                    Revoked
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-8 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
@@ -271,10 +282,10 @@ const AccessControl: React.FC = () => {
                                                         <button
                                                             onClick={() => toggleStatus.mutate({ id: user.id, is_active: !user.is_active })}
                                                             className={`p-2 rounded-lg transition-colors border ${user.is_active
-                                                                    ? 'text-red-600 border-red-200 hover:bg-red-50'
-                                                                    : 'text-green-600 border-green-200 hover:bg-green-50'
+                                                                ? 'text-red-600 border-red-200 hover:bg-red-50'
+                                                                : 'text-green-600 border-green-200 hover:bg-green-50'
                                                                 }`}
-                                                            title={user.is_active ? 'Revoke Access' : 'Restore Access'}
+                                                            title={user.is_active ? 'Revoke Access' : 'Approve / Restore Access'}
                                                         >
                                                             {user.is_active ? <UserX size={16} /> : <CheckCircle size={16} />}
                                                         </button>

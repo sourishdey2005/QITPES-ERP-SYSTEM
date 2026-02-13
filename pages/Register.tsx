@@ -4,7 +4,6 @@ import { Shield, Lock, Mail, User, ArrowRight, Briefcase, CheckCircle2, AlertCir
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { UserRole } from '../types';
-// Fix: Cast motion to any to resolve property missing errors
 import { motion as motionBase, AnimatePresence } from 'framer-motion';
 
 const motion = motionBase as any;
@@ -20,7 +19,7 @@ const Register: React.FC = () => {
     role: 'accounting' as UserRole
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<{ message: string; type: 'standard' | 'rate-limit' | 'disabled' | 'not-approved' } | null>(null);
+  const [error, setError] = useState<{ message: string; type: 'standard' | 'rate-limit' | 'disabled' | 'pending' } | null>(null);
   const [isRegistered, setIsRegistered] = useState(false);
   const navigate = useNavigate();
 
@@ -30,41 +29,37 @@ const Register: React.FC = () => {
     setError(null);
 
     try {
-      // 1. Check if trying to register as owner (reserved email)
-      if (formData.email.toLowerCase() === OWNER_EMAIL.toLowerCase()) {
-        // Allow owner to register without approval check (bootstrapping)
-        // This is safe because only the owner knows their email password
-      } else {
-        // 2. For everyone else, check if email is pre-approved
-        const { data: approvedUser, error: approvalError } = await supabase
-          .from('approved_users')
-          .select('*')
-          .eq('email', formData.email.toLowerCase())
-          .eq('is_active', true)
-          .single();
+      // 1. Check if email is already pending approval or approved
+      const { data: existingUser } = await supabase
+        .from('approved_users')
+        .select('*')
+        .eq('email', formData.email.toLowerCase())
+        .single();
 
-        if (approvalError || !approvedUser) {
+      if (existingUser) {
+        if (!existingUser.is_active) {
           setError({
-            message: 'Your email is not approved for registration. Please contact the system owner to get added to the approved list.',
-            type: 'not-approved'
+            message: 'Your registration request is already received and pending approval from the System Owner.',
+            type: 'pending'
           });
           setLoading(false);
           return;
         }
-
-        // 3. Auto-set role based on approval
-        if (approvedUser.role) {
-          formData.role = approvedUser.role as UserRole;
-        }
+        // If approved but not registered in Auth, proceed.
+        // If approved and registered, signUp will fail with "User already registered".
       }
 
+      // 2. Proceed with Registration
+      // The database trigger 'handle_new_user' will automatically create:
+      // - A Profile entry
+      // - An approved_users entry (Pending/Inactive) for the owner to review later.
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
           data: {
             full_name: formData.fullName,
-            role: formData.role
+            role: formData.role // This role is requested, but owner will confirm it
           }
         }
       });
@@ -78,7 +73,7 @@ const Register: React.FC = () => {
       console.error('Registration Error:', err);
 
       const msg = err.message?.toLowerCase() || '';
-      let errorType: 'standard' | 'rate-limit' | 'disabled' | 'not-approved' = 'standard';
+      let errorType: 'standard' | 'rate-limit' | 'disabled' | 'pending' = 'standard';
       let errorMessage = err.message || 'Registration failed.';
 
       if (msg.includes('rate limit')) {
@@ -87,6 +82,8 @@ const Register: React.FC = () => {
       } else if (msg.includes('disabled') || msg.includes('signups_disabled')) {
         errorType = 'disabled';
         errorMessage = 'System Configuration: Signups are disabled in Supabase. Go to Auth > Providers > Email and enable "Allow new users to sign up".';
+      } else if (msg.includes('already registered')) {
+        errorMessage = 'An account with this email already exists. Please Log In.';
       }
 
       setError({ message: errorMessage, type: errorType });
@@ -127,17 +124,17 @@ const Register: React.FC = () => {
               transition={{ delay: 0.4 }}
               className="text-red-100 mt-4 text-lg max-w-sm"
             >
-              Initialize your enterprise account for the 2026 fiscal year operations.
+              Request access to the enterprise portal for the 2026 fiscal year.
             </motion.p>
           </div>
 
           <div className="relative z-10 mt-12 space-y-4">
             <div className="p-4 bg-white/10 rounded-lg border border-white/10">
               <h4 className="font-bold text-sm text-white flex items-center gap-2">
-                <UserCheck size={16} /> Invite-Only Access
+                <UserCheck size={16} /> Approval Required
               </h4>
               <p className="text-xs text-red-100 mt-1 leading-relaxed">
-                Registration requires pre-approval. Your email must be on the approved list maintained by the system owner.
+                New registrations are automatically sent to the System Owner for approval before login is granted.
               </p>
             </div>
             <p className="text-xs text-blue-300 italic">© 2026 QITPES International Systems.</p>
@@ -160,8 +157,8 @@ const Register: React.FC = () => {
                 exit={{ opacity: 0, x: -20 }}
                 className="max-w-sm mx-auto w-full"
               >
-                <h2 className="text-2xl font-bold text-slate-900">Create Account</h2>
-                <p className="text-slate-500 mt-2 text-sm">Register your pre-approved credentials.</p>
+                <h2 className="text-2xl font-bold text-slate-900">Request Access</h2>
+                <p className="text-slate-500 mt-2 text-sm">Submit your details for owner approval.</p>
 
                 <form className="mt-8 space-y-4" onSubmit={handleRegister}>
                   {error && (
@@ -172,8 +169,8 @@ const Register: React.FC = () => {
                           ? 'bg-red-50 text-blue-800 border-red-200'
                           : error.type === 'rate-limit'
                             ? 'bg-amber-50 text-amber-700 border-amber-200'
-                            : error.type === 'not-approved'
-                              ? 'bg-orange-50 text-orange-700 border-orange-200'
+                            : error.type === 'pending'
+                              ? 'bg-blue-50 text-blue-700 border-blue-200'
                               : 'bg-red-50 text-red-700 border-red-100'
                         }`}
                     >
@@ -184,8 +181,8 @@ const Register: React.FC = () => {
                         <p className="font-bold">
                           {error.type === 'disabled'
                             ? 'Admin Action Required'
-                            : error.type === 'not-approved'
-                              ? 'Access Denied'
+                            : error.type === 'pending'
+                              ? 'Request Pending'
                               : 'Registration Error'}
                         </p>
                         <p className="mt-1 opacity-90 leading-relaxed">{error.message}</p>
@@ -226,7 +223,6 @@ const Register: React.FC = () => {
                           placeholder="abhradeephazra99@gmail.com"
                         />
                       </div>
-                      <p className="text-[10px] text-slate-400 mt-1 ml-1">Must be a pre-approved email address.</p>
                     </div>
 
                     <div>
@@ -274,11 +270,11 @@ const Register: React.FC = () => {
                     disabled={loading}
                     className="w-full flex items-center justify-center py-3 px-4 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 disabled:bg-slate-400 transition-all shadow-lg shadow-red-500/20 mt-4"
                   >
-                    {loading ? 'Validating...' : 'Register Account'} <ArrowRight size={18} className="ml-2" />
+                    {loading ? 'Submitting...' : 'Request Registration'} <ArrowRight size={18} className="ml-2" />
                   </motion.button>
 
                   <p className="text-center text-sm text-slate-500 mt-6">
-                    Already registered? <Link to="/login" className="text-red-600 font-bold hover:underline transition-all">Log In</Link>
+                    Check status? <Link to="/login" className="text-red-600 font-bold hover:underline transition-all">Log In</Link>
                   </p>
                 </form>
               </motion.div>
@@ -289,18 +285,18 @@ const Register: React.FC = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 className="max-w-sm mx-auto w-full text-center"
               >
-                <div className="w-20 h-20 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
-                  <CheckCircle2 size={40} />
+                <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                  <UserCheck size={40} />
                 </div>
-                <h2 className="text-2xl font-bold text-slate-900">Registered Successfully!</h2>
+                <h2 className="text-2xl font-bold text-slate-900">Request Sent!</h2>
                 <p className="text-slate-600 mt-4 leading-relaxed">
-                  We've sent a confirmation link to <span className="font-bold text-slate-900">{formData.email}</span>. Please verify your email to access the QITPES ERP platform.
+                  Your registration request has been sent to the System Owner. You will be able to log in once your access is approved.
                 </p>
                 <button
                   onClick={() => navigate('/login')}
                   className="mt-8 w-full py-3 px-4 bg-slate-900 text-white rounded-lg font-bold hover:bg-slate-800 transition-all"
                 >
-                  Return to Login
+                  Back to Login
                 </button>
               </motion.div>
             )}
