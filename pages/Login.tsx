@@ -115,9 +115,30 @@ const Login: React.FC = () => {
         password,
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        if (authError.message === 'Invalid login credentials') {
+          // Check if user is in approved_users table
+          const { data: approvedButNotReg } = await supabase
+            .from('approved_users')
+            .select('*')
+            .eq('email', email.toLowerCase())
+            .single();
+
+          if (approvedButNotReg && approvedButNotReg.is_active) {
+            setError({
+              message: 'You are approved but have not created your account yet. Please Click "Register New Account" below.',
+              type: 'standard'
+            });
+            setLoading(false);
+            return;
+          }
+        }
+        throw authError;
+      }
+
       navigate('/');
     } catch (err: any) {
+
       console.error('Login Error:', err);
       const isRateLimit = err.message?.toLowerCase().includes('rate limit');
       const isUnconfirmed = err.message?.toLowerCase().includes('email not confirmed');
@@ -261,9 +282,12 @@ const Login: React.FC = () => {
               <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="flex items-start gap-2">
                   <CheckCircle size={16} className="text-blue-600 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-xs font-bold text-blue-900 mb-1">Need Access?</p>
-                    <p className="text-xs text-blue-700">Contact the system owner to get your email approved for access.</p>
+                  <div className="flex flex-col gap-3">
+                    <p className="text-xs font-bold text-blue-900 mb-1">New User / Need Access?</p>
+                    <p className="text-xs text-blue-700">If you are approved but haven't set up your password, register now.</p>
+                    <Link to="/register" className="text-xs font-black text-blue-800 underline hover:text-blue-900 uppercase tracking-wider">
+                      Create New Account →
+                    </Link>
                   </div>
                 </div>
               </div>
