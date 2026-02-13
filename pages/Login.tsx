@@ -27,16 +27,61 @@ const Login: React.FC = () => {
     try {
       // Check if this is the owner using hardcoded credentials
       if (email.toLowerCase() === OWNER_EMAIL.toLowerCase() && password === OWNER_PASSWORD) {
-        // Owner login with hardcoded credentials
+        // 1. Try to Login first
         const { data, error: authError } = await supabase.auth.signInWithPassword({
           email: OWNER_EMAIL,
           password: OWNER_PASSWORD,
         });
 
         if (authError) {
-          // If owner account doesn't exist in Supabase, show special message
+          console.log("Owner login failed, attempting auto-registration...", authError.message);
+
+          // 2. If Login fails (account doesn't exist or wrong pass), try to Register/Recover
+          if (authError.message.includes("Invalid login credentials")) {
+            // Attempt to create the owner account with the correct password
+            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+              email: OWNER_EMAIL,
+              password: OWNER_PASSWORD,
+              options: {
+                data: {
+                  full_name: 'System Owner',
+                  role: 'owner'
+                }
+              }
+            });
+
+            if (signUpError) {
+              // If registration also fails (e.g. user exists but wrong pass), we can't do much automatically
+              setError({
+                message: `Owner account exists but password doesn't match 'Ahazra@987'. Please use 'Forgot Password' or reset via Supabase dashboard. Error: ${signUpError.message}`,
+                type: 'standard'
+              });
+              setLoading(false);
+              return;
+            }
+
+            // If registration succeeded (or sent magic link depending on config), let them in
+            if (signUpData.user) {
+              // If auto-confirm is on, we are good. If not, they might need to confirm email.
+              // But usually for owner we want instant access. 
+              // For now, assume it worked or check session.
+              const { data: session } = await supabase.auth.getSession();
+              if (session.session) {
+                navigate('/');
+                return;
+              } else {
+                setError({
+                  message: 'Owner account created! Please check your email to confirm the account, then log in.',
+                  type: 'unconfirmed'
+                });
+                setLoading(false);
+                return;
+              }
+            }
+          }
+
           setError({
-            message: 'Owner account not found in database. Please ensure the owner account is created in Supabase Auth.',
+            message: `Owner login error: ${authError.message}`,
             type: 'standard'
           });
           setLoading(false);
@@ -154,12 +199,12 @@ const Login: React.FC = () => {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   className={`p-3 text-xs rounded-lg border font-medium flex items-start gap-3 ${error.type === 'rate-limit'
-                      ? 'bg-amber-50 text-amber-700 border-amber-200'
-                      : error.type === 'unconfirmed'
-                        ? 'bg-amber-50 text-amber-700 border-amber-100'
-                        : error.type === 'not-approved'
-                          ? 'bg-orange-50 text-orange-700 border-orange-200'
-                          : 'bg-red-50 text-red-600 border-red-100'
+                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                    : error.type === 'unconfirmed'
+                      ? 'bg-amber-50 text-amber-700 border-amber-100'
+                      : error.type === 'not-approved'
+                        ? 'bg-orange-50 text-orange-700 border-orange-200'
+                        : 'bg-red-50 text-red-600 border-red-100'
                     }`}
                 >
                   {error.type === 'rate-limit' ? <Clock size={16} className="shrink-0 mt-0.5" /> : <AlertCircle size={16} className="shrink-0 mt-0.5" />}
