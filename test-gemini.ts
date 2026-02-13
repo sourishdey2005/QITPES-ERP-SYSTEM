@@ -1,31 +1,30 @@
 // Test script to check available Gemini models
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import * as GenAI from "@google/genai";
 
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_API_KEY;
 
 console.log('Testing Gemini API...');
 console.log('API Key exists:', !!GEMINI_API_KEY);
-console.log('API Key (first 10 chars):', GEMINI_API_KEY?.substring(0, 10));
 
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY || '');
+const ai = new GenAI.GoogleGenAI({ apiKey: GEMINI_API_KEY || '' });
 
 // Try different model names
 const modelsToTry = [
-    'gemini-pro',
-    'gemini-1.5-pro',
+    'gemini-2.5-flash',
+    'gemini-2.0-flash',
     'gemini-1.5-flash',
-    'gemini-1.5-flash-latest',
-    'gemini-2.0-flash-exp',
+    'gemini-pro',
 ];
 
 async function testModels() {
     for (const modelName of modelsToTry) {
         try {
             console.log(`\n🔵 Testing model: ${modelName}`);
-            const model = genAI.getGenerativeModel({ model: modelName });
-            const result = await model.generateContent('Say hello');
-            const response = await result.response;
-            const text = response.text();
+            const result = await ai.models.generateContent({
+                model: modelName,
+                contents: [{ role: 'user', parts: [{ text: 'Say hello' }] }]
+            });
+            const text = result.text;
             console.log(`✅ ${modelName} WORKS! Response:`, text.substring(0, 50));
             break; // Stop at first working model
         } catch (error: any) {

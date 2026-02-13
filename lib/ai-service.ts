@@ -1,11 +1,10 @@
-
 // AI Service for QITPES ERP using Google Generative AI SDK
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import * as GenAI from "@google/genai";
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_API_KEY;
 
 // Initialize the Generative AI client
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY || '');
+const ai = new GenAI.GoogleGenAI({ apiKey: GEMINI_API_KEY || '' });
 
 export interface ChatMessage {
     role: 'user' | 'assistant';
@@ -31,18 +30,18 @@ export async function sendChatMessage(
     }
 
     try {
-        // Use the latest stable flash model
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-
         const fullMessage = context ? `${message}\n\nContext:\n${context}` : message;
 
-        const result = await model.generateContent(fullMessage);
-        const response = await result.response;
-        const text = response.text();
-        return text;
+        // Using the New SDK and Model
+        const result = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: [{ role: 'user', parts: [{ text: fullMessage }] }]
+        });
+
+        return result.text || '';
     } catch (error: any) {
         console.error("Gemini API Error:", error);
-        if (error.message.includes('API key not valid')) {
+        if (error.message && error.message.includes('API key not valid')) {
             throw new Error('API_KEY_INVALID: The provided API key is not valid. Please check your .env configuration.');
         }
         throw new Error(`Connection failed: ${error.message}`);

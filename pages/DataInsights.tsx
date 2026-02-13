@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Upload, FileSpreadsheet, Sparkles, TrendingUp, BarChart3, PieChart, LineChart, Loader2, Download, Trash2, Eye } from 'lucide-react';
 import { motion as motionBase, AnimatePresence } from 'framer-motion';
 import * as XLSX from 'xlsx';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import * as GenAI from '@google/genai';
 import { BarChart, Bar, LineChart as RechartsLineChart, Line, PieChart as RechartsPieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const motion = motionBase as any;
@@ -108,14 +108,13 @@ const DataInsights: React.FC = () => {
         setError(null);
 
         try {
-            const apiKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY || (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : null);
+            const apiKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_API_KEY;
 
             if (!apiKey || apiKey === 'your_gemini_api_key_here') {
-                throw new Error('Gemini API key not configured. Please ensure VITE_GEMINI_API_KEY is set in your .env file and restart the dev server.');
+                throw new Error('Gemini API key not configured. Please ensure VITE_API_KEY is set in your .env file and restart the dev server.');
             }
 
-            const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+            const ai = new GenAI.GoogleGenAI({ apiKey });
 
             // Prepare data summary for Gemini
             const dataSample = uploadedFile.data.slice(0, 10); // First 10 rows
@@ -153,9 +152,13 @@ Dataset Information:
 
 Provide actionable insights and suggest 2-3 meaningful visualizations based on the data. Make sure the visualization data uses actual column names from the dataset. Return ONLY valid JSON, no markdown formatting.`;
 
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            let text = response.text();
+            // New SDK call structure
+            const result = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: [{ role: 'user', parts: [{ text: prompt }] }]
+            });
+
+            let text = result.text || '';
 
             // Clean up the response - remove markdown code blocks if present
             text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
