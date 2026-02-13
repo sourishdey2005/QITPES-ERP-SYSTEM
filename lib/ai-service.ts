@@ -26,7 +26,7 @@ export async function sendChatMessage(
 ): Promise<string> {
     // Validate API key
     if (!GEMINI_API_KEY || GEMINI_API_KEY === 'undefined') {
-        throw new Error('API_KEY_MISSING: Please configure VITE_GEMINI_API_KEY in your .env file and restart the dev server');
+        throw new Error('API_KEY_MISSING: Please configure VITE_API_KEY in your .env file and restart the dev server');
     }
 
     const systemPrompt = `You are QITPES AI Assistant, an intelligent ERP assistant for QITPES ERP System. 
@@ -72,7 +72,7 @@ Provide concise, actionable, and friendly responses. Use the context provided wh
         }
 
         if (error.message?.includes('API key not valid')) {
-            throw new Error('API Error: Invalid API key. Please check your GEMINI_API_KEY in .env file');
+            throw new Error('API Error: Invalid API key. Please check your VITE_API_KEY in .env file');
         }
 
         throw new Error(`Connection failed: ${error.message || 'Unknown error'}`);

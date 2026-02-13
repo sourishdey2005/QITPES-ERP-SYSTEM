@@ -1,10 +1,8 @@
 
 import React, { useState } from 'react';
 import { BrainCircuit, Sparkles, Send, Bot, Loader2, ArrowRight } from 'lucide-react';
-// Fix: Cast motion to any to resolve property missing errors
 import { motion as motionBase } from 'framer-motion';
-// Fix: Use standardized import for GoogleGenAI
-import {GoogleGenAI} from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const motion = motionBase as any;
 
@@ -18,15 +16,18 @@ const AIStrategy: React.FC = () => {
     setLoading(true);
     setResult(null);
     try {
-      // Fix: Initialize GoogleGenAI strictly with process.env.API_KEY as a named parameter
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-preview',
-        contents: `Act as a senior ERP strategist. Based on the 2026 enterprise roadmap for QITPES, analyze this: ${prompt}. Provide high-level organizational insights.`,
-      });
-      // Fix: Access response text property directly from GenerateContentResponse
-      setResult(response.text || "Unable to formulate strategy at this time.");
+      const genAI = new GoogleGenerativeAI(import.meta.env.VITE_API_KEY);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+      const fullPrompt = `Act as a senior ERP strategist. Based on the 2026 enterprise roadmap for QITPES, analyze this: ${prompt}. Provide high-level organizational insights.`;
+      
+      const generationResult = await model.generateContent(fullPrompt);
+      const response = await generationResult.response;
+      const text = response.text();
+
+      setResult(text || "Unable to formulate strategy at this time.");
     } catch (e) {
+        console.error("AI Strategy Error:", e);
       setResult("Strategic engine offline. Check configuration.");
     } finally {
       setLoading(false);
