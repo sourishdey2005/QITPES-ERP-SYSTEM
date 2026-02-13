@@ -46,6 +46,7 @@ import Tally from './pages/Tally';
 import ExecutiveMonitor from './pages/ExecutiveMonitor';
 import BusinessDevelopment from './pages/BusinessDevelopment';
 import Procurement from './pages/Procurement';
+import CRM from './pages/CRM';
 
 import { UserRole } from './types';
 
@@ -159,6 +160,7 @@ const App: React.FC = () => {
           <Route path="/projects" element={<Projects />} />
           <Route path="/biz-dev" element={<BusinessDevelopment />} />
           <Route path="/procurement" element={<Procurement />} />
+          <Route path="/crm" element={<CRM />} />
           <Route path="/planning" element={<Planning />} />
           <Route path="/purchasing" element={<Purchasing />} />
           <Route path="/production" element={<Production />} />
