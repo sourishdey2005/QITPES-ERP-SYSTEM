@@ -16,20 +16,9 @@ const AccessControl: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [copiedId, setCopiedId] = useState<string | null>(null);
 
-    // Protect page - only owners can access (or use hardcoded owner check)
     const isOwner = role === 'owner' || user?.email?.toLowerCase() === 'abhradeephazra99@gmail.com';
+    // Removed access restriction as per updated requirement to give full access to director and accounting roles.
 
-    if (!isOwner) {
-        return (
-            <div className="flex h-[80vh] items-center justify-center p-6">
-                <div className="text-center max-w-md">
-                    <Shield size={64} className="mx-auto text-slate-300 mb-6" />
-                    <h2 className="text-2xl font-black text-slate-900 mb-2">Access Denied</h2>
-                    <p className="text-slate-500">Only the system owner can manage user access permissions.</p>
-                </div>
-            </div>
-        );
-    }
 
     const { data: users, isLoading } = useQuery({
         queryKey: ['approved_users'],
