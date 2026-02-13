@@ -39,6 +39,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'CRM Master', href: '/crm', icon: 'users', roles: ['owner', 'director', 'accounting'], group: 'Sales & Marketing' },
 
   // Finance
+  { label: 'Finance & Accounts', href: '/finance', icon: 'finance', roles: ['owner', 'director', 'accounting'], group: 'Finance' },
   { label: 'Tally', href: '/tally', icon: 'tally', roles: ['owner', 'director', 'accounting'], group: 'Finance' },
   { label: 'Accounting Hub', href: '/ledger', icon: 'ledger', roles: ['owner', 'director', 'accounting'], group: 'Finance' },
   { label: 'Cost Centers', href: '/cost-centers', icon: 'costcenters', roles: ['owner', 'director', 'accounting'], group: 'Finance' },
@@ -107,4 +108,5 @@ export const ICON_MAP: Record<string, React.ReactNode> = {
   procurement: <Truck size={18} />,
   contracts: <ShieldCheck size={18} />,
   suppliers: <Building2 size={18} />,
+  finance: <Landmark size={18} />,
 };

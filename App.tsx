@@ -49,6 +49,7 @@ import Procurement from './pages/Procurement';
 import CRM from './pages/CRM';
 import ContractsManagement from './pages/ContractsManagement';
 import Vendors from './pages/Vendors';
+import FinanceManagement from './pages/FinanceManagement';
 
 import { UserRole } from './types';
 
@@ -181,6 +182,7 @@ const App: React.FC = () => {
           <Route path="/cost-centers" element={<CostCenters />} />
           <Route path="/tax" element={<TaxEngine />} />
           <Route path="/accounts" element={<Finance />} />
+          <Route path="/finance" element={<FinanceManagement />} />
           <Route path="/budget-control" element={<BudgetCostControl />} />
 
           {/* HR Group */}
