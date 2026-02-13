@@ -81,3 +81,19 @@ CREATE TABLE IF NOT EXISTS security_deposits (
     remarks TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
+
+-- ENABLE RLS
+ALTER TABLE client_contracts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE subcontracts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE running_bills ENABLE ROW LEVEL SECURITY;
+ALTER TABLE variation_orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contract_claims ENABLE ROW LEVEL SECURITY;
+ALTER TABLE security_deposits ENABLE ROW LEVEL SECURITY;
+
+-- POLICIES (Allow All for ERP Internal Sync)
+CREATE POLICY "Allow All Access" ON client_contracts FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow All Access" ON subcontracts FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow All Access" ON running_bills FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow All Access" ON variation_orders FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow All Access" ON contract_claims FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow All Access" ON security_deposits FOR ALL USING (true) WITH CHECK (true);

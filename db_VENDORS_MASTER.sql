@@ -18,3 +18,8 @@ CREATE TABLE IF NOT EXISTS vendors (
 
 -- Migration: Update vendor_performance to link to vendors table if possible
 -- For now, we will just ensure the vendors table exists for the new module.
+-- ENABLE RLS
+ALTER TABLE vendors ENABLE ROW LEVEL SECURITY;
+
+-- POLICIES
+CREATE POLICY "Allow All Access" ON vendors FOR ALL USING (true) WITH CHECK (true);
