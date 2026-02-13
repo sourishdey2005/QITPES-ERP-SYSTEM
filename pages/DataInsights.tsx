@@ -108,9 +108,10 @@ const DataInsights: React.FC = () => {
         setError(null);
 
         try {
-            const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-            if (!apiKey) {
-                throw new Error('Gemini API key not configured. Please add VITE_GEMINI_API_KEY to your .env file');
+            const apiKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY || (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : null);
+
+            if (!apiKey || apiKey === 'your_gemini_api_key_here') {
+                throw new Error('Gemini API key not configured. Please ensure VITE_GEMINI_API_KEY is set in your .env file and restart the dev server.');
             }
 
             const genAI = new GoogleGenerativeAI(apiKey);

@@ -1,5 +1,8 @@
 -- FINAL INTEGRATION FIX: Registration -> Approval -> Login Flow
--- This script ensures the trigger correctly places new registrations into the pending list.
+-- This script ensures the profiles table is ready and the trigger correctly places new registrations into the pending list.
+
+-- 0. Ensure profiles table has the email column
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email TEXT;
 
 -- 1. Ensure 'email' is UNIQUE in approved_users to handle ON CONFLICT properly
 -- (If there are duplicates already, we clean them up first)
