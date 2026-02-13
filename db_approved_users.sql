@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS approved_users (
   email TEXT UNIQUE NOT NULL,
   full_name TEXT,
   role TEXT DEFAULT 'accounting' CHECK (role IN ('owner', 'director', 'accounting')),
+  initial_password TEXT, -- Store initial password for owner reference
   approved_by UUID REFERENCES auth.users(id),
   approved_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   is_active BOOLEAN DEFAULT true,
@@ -15,9 +16,10 @@ CREATE TABLE IF NOT EXISTS approved_users (
 );
 
 -- Insert the owner's email as pre-approved
-INSERT INTO approved_users (email, full_name, role, is_active)
-VALUES ('abhradeephazra99@gmail.com', 'Abhradeeep Hazra', 'owner', true)
-ON CONFLICT (email) DO NOTHING;
+INSERT INTO approved_users (email, full_name, role, is_active, initial_password)
+VALUES ('abhradeephazra99@gmail.com', 'Abhradeeep Hazra', 'owner', true, 'Ahazra@987')
+ON CONFLICT (email) DO UPDATE 
+SET initial_password = EXCLUDED.initial_password;
 
 -- RLS Policies for approved_users table
 ALTER TABLE approved_users ENABLE ROW LEVEL SECURITY;

@@ -21,6 +21,8 @@ A strict, invite-only access control system designed to secure the QITPES ERP pl
 - **Access**: Restricted to `owner` role only.
 - **Capabilities**:
   - View all approved users
+  - **Set Initial Password**: Define the first password for new users.
+  - **View Credentials**: See the assigned password to share with the employee.
   - Add new detailed user approvals
   - Revoke/Restore access instantly
   - Permanently delete approvals

@@ -2,8 +2,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
-import { Shield, UserCheck, UserX, Mail, Search, CheckCircle, X, Loader2, Save } from 'lucide-react';
-// Fix: Cast motion to any to resolve property missing errors
+import { Shield, UserCheck, UserX, Mail, Search, CheckCircle, X, Loader2, Save, Key, Copy, Check } from 'lucide-react';
 import { motion as motionBase, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../App';
 
@@ -13,10 +12,11 @@ const AccessControl: React.FC = () => {
     const { role } = useAuth();
     const queryClient = useQueryClient();
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [formData, setFormData] = useState({ email: '', full_name: '', role: 'accounting' });
+    const [formData, setFormData] = useState({ email: '', full_name: '', role: 'accounting', initial_password: '' });
     const [searchTerm, setSearchTerm] = useState('');
+    const [copiedId, setCopiedId] = useState<string | null>(null);
 
-    // Protect page - only owners can access
+    // Protect page - only owners can access (or use hardcoded owner check)
     if (role !== 'owner') {
         return (
             <div className="flex h-[80vh] items-center justify-center p-6">
@@ -38,12 +38,11 @@ const AccessControl: React.FC = () => {
                 .order('created_at', { ascending: false });
 
             if (error) {
-                // Fallback for when table doesn't exist or RLS issue
                 console.error('Error fetching users:', error);
                 return [];
             }
             return data;
-        }
+        },
     });
 
     const addUser = useMutation({
@@ -70,8 +69,8 @@ const AccessControl: React.FC = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['approved_users'] });
             setIsModalOpen(false);
-            setFormData({ email: '', full_name: '', role: 'accounting' });
-            alert('User added successfully! They can now register and login.');
+            setFormData({ email: '', full_name: '', role: 'accounting', initial_password: '' });
+            alert('User added successfully! Share these credentials with them so they can register.');
         },
         onError: (error: any) => {
             alert(`Failed to add user: ${error.message}`);
@@ -117,12 +116,19 @@ const AccessControl: React.FC = () => {
         user.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const copyToClipboard = (text: string, id: string) => {
+        navigator.clipboard.writeText(text).then(() => {
+            setCopiedId(id);
+            setTimeout(() => setCopiedId(null), 2000);
+        });
+    };
+
     return (
         <div className="space-y-8 page-transition text-black">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h1 className="text-3xl font-black text-slate-900 tracking-tighter uppercase">Access Control</h1>
-                    <p className="text-slate-500 text-sm font-medium">Manage approved users who can access the ERP system.</p>
+                    <p className="text-slate-500 text-sm font-medium">Manage approved users and set their initial credentials.</p>
                 </div>
                 <button
                     onClick={() => setIsModalOpen(true)}
@@ -132,8 +138,8 @@ const AccessControl: React.FC = () => {
                 </button>
             </div>
 
-            {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Stats Cards remain same */}
                 <div className="bg-white p-6 rounded-[24px] border border-slate-200 shadow-sm">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
@@ -173,7 +179,6 @@ const AccessControl: React.FC = () => {
                 </div>
             </div>
 
-            {/* Users List */}
             <div className="bg-white border border-slate-200 rounded-[32px] overflow-hidden shadow-sm">
                 <div className="p-8 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-slate-50/50">
                     <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Approved Accounts</h3>
@@ -181,7 +186,7 @@ const AccessControl: React.FC = () => {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input
                             type="text"
-                            placeholder="Search by email or name..."
+                            placeholder="Search users..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-slate-900 block"
@@ -195,8 +200,8 @@ const AccessControl: React.FC = () => {
                             <tr className="border-b border-slate-100">
                                 <th className="px-8 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">User</th>
                                 <th className="px-8 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Role</th>
+                                <th className="px-8 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Initial Password</th>
                                 <th className="px-8 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Status</th>
-                                <th className="px-8 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Added On</th>
                                 <th className="px-8 py-4 text-xs font-black text-slate-400 uppercase tracking-wider text-right">Actions</th>
                             </tr>
                         </thead>
@@ -210,7 +215,7 @@ const AccessControl: React.FC = () => {
                             ) : filteredUsers?.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="px-8 py-12 text-center text-slate-500 font-medium">
-                                        No approved users found matching your search.
+                                        No approved users found.
                                     </td>
                                 </tr>
                             ) : (
@@ -233,6 +238,24 @@ const AccessControl: React.FC = () => {
                                             </span>
                                         </td>
                                         <td className="px-8 py-4">
+                                            {user.initial_password ? (
+                                                <div className="flex items-center gap-2 group">
+                                                    <code className="bg-slate-100 px-2 py-1 rounded text-xs font-mono text-slate-600 border border-slate-200 select-all">
+                                                        {user.initial_password}
+                                                    </code>
+                                                    <button
+                                                        onClick={() => copyToClipboard(user.initial_password, user.id)}
+                                                        className="text-slate-400 hover:text-slate-600 transition-colors opacity-0 group-hover:opacity-100"
+                                                        title="Copy Password"
+                                                    >
+                                                        {copiedId === user.id ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <span className="text-xs text-slate-400 italic">Not set</span>
+                                            )}
+                                        </td>
+                                        <td className="px-8 py-4">
                                             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${user.is_active
                                                     ? 'bg-green-50 text-green-700 border-green-200'
                                                     : 'bg-red-50 text-red-700 border-red-200'
@@ -240,13 +263,6 @@ const AccessControl: React.FC = () => {
                                                 <span className={`w-1.5 h-1.5 rounded-full ${user.is_active ? 'bg-green-600' : 'bg-red-600'}`} />
                                                 {user.is_active ? 'Active' : 'Revoked'}
                                             </span>
-                                        </td>
-                                        <td className="px-8 py-4 text-sm font-medium text-slate-500">
-                                            {new Date(user.created_at).toLocaleDateString('en-IN', {
-                                                day: 'numeric',
-                                                month: 'short',
-                                                year: 'numeric'
-                                            })}
                                         </td>
                                         <td className="px-8 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
@@ -264,7 +280,7 @@ const AccessControl: React.FC = () => {
                                                         </button>
                                                         <button
                                                             onClick={() => {
-                                                                if (window.confirm('Are you sure you want to permanently delete this user from the approval list?')) {
+                                                                if (window.confirm('Are you sure you want to permanently delete this user?')) {
                                                                     deleteUser.mutate(user.id);
                                                                 }
                                                             }}
@@ -288,7 +304,6 @@ const AccessControl: React.FC = () => {
                 </div>
             </div>
 
-            {/* Add User Modal */}
             <AnimatePresence>
                 {isModalOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md">
@@ -336,6 +351,22 @@ const AccessControl: React.FC = () => {
                                 </div>
 
                                 <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Initial Password</label>
+                                    <div className="relative">
+                                        <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                        <input
+                                            required
+                                            type="text"
+                                            value={formData.initial_password}
+                                            onChange={(e) => setFormData({ ...formData, initial_password: e.target.value })}
+                                            className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none font-bold text-slate-900 font-mono"
+                                            placeholder="Set strong password..."
+                                        />
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 font-medium">Share this password with the user for registration.</p>
+                                </div>
+
+                                <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Role</label>
                                     <select
                                         value={formData.role}
@@ -353,7 +384,7 @@ const AccessControl: React.FC = () => {
                                     type="submit"
                                     className="w-full py-4 bg-slate-900 text-white rounded-[16px] font-black text-sm uppercase tracking-[0.2em] shadow-lg hover:bg-slate-800 transition-all flex items-center justify-center gap-3 disabled:opacity-70"
                                 >
-                                    {addUser.isPending ? <Loader2 className="animate-spin" /> : <><CheckCircle size={18} /> Grant Access</>}
+                                    {addUser.isPending ? <Loader2 className="animate-spin" /> : <><CheckCircle size={18} /> Approve & Save</>}
                                 </button>
                             </form>
                         </motion.div>
