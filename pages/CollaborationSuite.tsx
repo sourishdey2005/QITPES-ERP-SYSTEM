@@ -6,7 +6,7 @@ import { useAuth } from '../App';
 import {
   Video, Monitor, Users, MapPin, Plus, Clock,
   Search, X, Loader2, Calendar, LayoutGrid, CheckCircle2,
-  ChevronRight, AlertTriangle, Coffee, Sparkles, Trash2, Building2
+  ChevronRight, AlertTriangle, Coffee, Sparkles, Trash2, Building2, Edit
 } from 'lucide-react';
 import { motion as motionBase, AnimatePresence } from 'framer-motion';
 
@@ -17,6 +17,7 @@ const CollaborationSuite: React.FC = () => {
   const { user } = useAuth();
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
+  const [editingMeeting, setEditingMeeting] = useState<any>(null);
   const [bookingForm, setBookingForm] = useState({ title: '', room_id: '', start_time: '', end_time: '', department: 'Engineering' });
   const [roomForm, setRoomForm] = useState({ name: '', capacity: '4', location: '', equipment: [] });
 
@@ -84,6 +85,69 @@ const CollaborationSuite: React.FC = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['conference_rooms'] })
   });
 
+  const updateMeeting = useMutation({
+    mutationFn: async ({ id, ...updates }: any) => {
+      const { data, error } = await supabase.from('meetings').update(updates).eq('id', id).select();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['upcoming_meetings'] });
+      setIsBookingOpen(false);
+      setEditingMeeting(null);
+      setBookingForm({ title: '', room_id: '', start_time: '', end_time: '', department: 'Engineering' });
+    },
+    onError: (error: any) => {
+      console.error('Failed to update meeting:', error);
+      alert(`Failed to update session: ${error.message || 'Unknown error'}`);
+    }
+  });
+
+  const deleteMeeting = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('meetings').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['upcoming_meetings'] });
+    },
+    onError: (error: any) => {
+      console.error('Failed to delete meeting:', error);
+      alert(`Failed to delete session: ${error.message || 'Unknown error'}`);
+    }
+  });
+
+  // Helper function to format datetime for input
+  const formatDateTimeLocal = (dateString: string) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  // Helper function to handle edit
+  const handleEditMeeting = (meeting: any) => {
+    setEditingMeeting(meeting);
+    setBookingForm({
+      title: meeting.title,
+      room_id: meeting.room_id,
+      start_time: formatDateTimeLocal(meeting.start_time),
+      end_time: formatDateTimeLocal(meeting.end_time),
+      department: meeting.department
+    });
+    setIsBookingOpen(true);
+  };
+
+  // Helper function to handle delete with confirmation
+  const handleDeleteMeeting = (id: string, title: string) => {
+    if (window.confirm(`Are you sure you want to delete "${title}"?`)) {
+      deleteMeeting.mutate(id);
+    }
+  };
+
   return (
     <div className="space-y-8 page-transition text-black">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -135,6 +199,22 @@ const CollaborationSuite: React.FC = () => {
                           <span className="flex items-center gap-1.5"><Clock size={14} /> {new Date(m.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                       </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleEditMeeting(m)}
+                        className="p-3 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all"
+                        title="Edit Session"
+                      >
+                        <Edit size={18} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteMeeting(m.id, m.title)}
+                        className="p-3 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-all"
+                        title="Delete Session"
+                      >
+                        <Trash2 size={18} />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -189,11 +269,18 @@ const CollaborationSuite: React.FC = () => {
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white rounded-[48px] shadow-2xl w-full max-w-xl overflow-hidden border border-slate-200">
               <div className="p-10 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                 <div>
-                  <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">Symposium Registry</h3>
+                  <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">{editingMeeting ? 'Update Symposium' : 'Symposium Registry'}</h3>
                 </div>
-                <button onClick={() => setIsBookingOpen(false)} className="text-slate-400 hover:text-slate-600 p-3 hover:bg-white rounded-full transition-all shadow-sm"><X size={24} /></button>
+                <button onClick={() => { setIsBookingOpen(false); setEditingMeeting(null); setBookingForm({ title: '', room_id: '', start_time: '', end_time: '', department: 'Engineering' }); }} className="text-slate-400 hover:text-slate-600 p-3 hover:bg-white rounded-full transition-all shadow-sm"><X size={24} /></button>
               </div>
-              <form onSubmit={(e) => { e.preventDefault(); createMeeting.mutate({ ...bookingForm, organizer_id: user?.id }); }} className="p-12 space-y-8">
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                if (editingMeeting) {
+                  updateMeeting.mutate({ id: editingMeeting.id, ...bookingForm, organizer_id: user?.id });
+                } else {
+                  createMeeting.mutate({ ...bookingForm, organizer_id: user?.id });
+                }
+              }} className="p-12 space-y-8">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Session Title</label>
                   <input required value={bookingForm.title} onChange={(e) => setBookingForm({ ...bookingForm, title: e.target.value })} className="w-full p-5 bg-slate-50 border border-slate-200 rounded-[20px] outline-none font-bold text-slate-900 text-lg" placeholder="Strategy Hub Q4" />
@@ -237,8 +324,8 @@ const CollaborationSuite: React.FC = () => {
                     <input required type="datetime-local" value={bookingForm.end_time} onChange={(e) => setBookingForm({ ...bookingForm, end_time: e.target.value })} className="w-full p-5 bg-slate-50 border border-slate-200 rounded-[20px] outline-none font-black text-xs" />
                   </div>
                 </div>
-                <button disabled={createMeeting.isPending} type="submit" className="w-full py-6 bg-red-600 text-white rounded-[24px] font-black text-sm uppercase tracking-[0.3em] shadow-2xl shadow-red-500/40 hover:bg-red-700 transition-all flex items-center justify-center gap-4 disabled:opacity-50 disabled:cursor-not-allowed">
-                  {createMeeting.isPending ? <Loader2 className="animate-spin" /> : 'Authorize Session'}
+                <button disabled={createMeeting.isPending || updateMeeting.isPending} type="submit" className="w-full py-6 bg-red-600 text-white rounded-[24px] font-black text-sm uppercase tracking-[0.3em] shadow-2xl shadow-red-500/40 hover:bg-red-700 transition-all flex items-center justify-center gap-4 disabled:opacity-50 disabled:cursor-not-allowed">
+                  {(createMeeting.isPending || updateMeeting.isPending) ? <Loader2 className="animate-spin" /> : (editingMeeting ? 'Update Session' : 'Authorize Session')}
                 </button>
               </form>
             </motion.div>
