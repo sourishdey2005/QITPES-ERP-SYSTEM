@@ -1,5 +1,5 @@
-
 -- QITPES EXECUTIVE MONITORING SUITE - DATABASE LAYER
+-- REMOVED SAMPLE SEEDS - USER-DRIVEN DATA ONLY
 
 -- 1. COMPANY TARGETS (Monthly/Annual)
 CREATE TABLE IF NOT EXISTS company_targets (
@@ -40,13 +40,3 @@ CREATE TABLE IF NOT EXISTS project_risks (
     status TEXT DEFAULT 'Open' CHECK (status IN ('Open', 'Mitigated', 'Closed')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
-
--- Seed some initial targets for 2026
-INSERT INTO company_targets (period_start, period_end, revenue_target, profit_target, new_contracts_target)
-VALUES ('2026-01-01', '2026-12-31', 50000000, 15000000, 12)
-ON CONFLICT DO NOTHING;
-
--- Seed a sample tender
-INSERT INTO tenders (tender_no, authority_name, description, estimated_value, bid_submission_date, technical_status, financial_status, probability_percentage)
-VALUES ('TND/2026/088', 'NHAI Highway Authority', 'Smart Toll Integration Phase 4', 12500000, '2026-04-15', 'Submitted', 'Pending', 75)
-ON CONFLICT DO NOTHING;
