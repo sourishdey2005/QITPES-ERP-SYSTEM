@@ -50,11 +50,11 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Data Insights', href: '/data-insights', icon: 'datainsights', roles: ['owner', 'director', 'accounting'], group: 'Analytics' },
 
   // Admin
-  { label: 'Workflows', href: '/workflows', icon: 'workflows', roles: ['owner', 'director', 'accounting'], group: 'Admin' },
-  { label: 'Access Control', href: '/access-control', icon: 'access', roles: ['owner'], group: 'Admin' },
-  { label: 'System Reset', href: '/maintenance', icon: 'maintenance', roles: ['owner', 'director', 'accounting'], group: 'Admin' },
-  { label: 'Company Settings', href: '/settings', icon: 'settings', roles: ['owner', 'director', 'accounting'], group: 'Admin' },
-  { label: 'Audit Logs', href: '/audit', icon: 'audit', roles: ['owner', 'director', 'accounting'], group: 'Admin' },
+  { label: 'Workflows', href: '/workflows', icon: 'workflows', roles: ['owner'], group: 'Admin' },
+  { label: 'User Approval', href: '/access-control', icon: 'access', roles: ['owner'], group: 'Admin' },
+  { label: 'System Reset', href: '/maintenance', icon: 'maintenance', roles: ['owner'], group: 'Admin' },
+  { label: 'Company Settings', href: '/settings', icon: 'settings', roles: ['owner'], group: 'Admin' },
+  { label: 'Audit Logs', href: '/audit', icon: 'audit', roles: ['owner'], group: 'Admin' },
 ];
 
 export const ICON_MAP: Record<string, React.ReactNode> = {
