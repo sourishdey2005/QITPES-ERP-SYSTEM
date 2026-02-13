@@ -174,7 +174,7 @@ const AccountingHub: React.FC = () => {
         }
     });
 
-    if (loadingAccounts || loadingJournals || loadingYears) return <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-orange-600" /></div>;
+    if (loadingAccounts || loadingJournals || loadingYears) return <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-red-600" /></div>;
 
     return (
         <div className="space-y-8 page-transition">
@@ -429,7 +429,7 @@ function PNLTab({ accounts }: any) {
                 </div>
             </div>
             <div className="lg:col-span-2 bg-slate-900 p-12 rounded-[56px] flex flex-col items-center justify-center text-center space-y-4 shadow-2xl shadow-slate-900/40 border border-white/10">
-                <h2 className="text-[10px] font-black text-orange-400 uppercase tracking-[0.5em]">Net Enterprise Surplus / Deficit</h2>
+                <h2 className="text-[10px] font-black text-red-400 uppercase tracking-[0.5em]">Net Enterprise Surplus / Deficit</h2>
                 <span className={`text-6xl font-black tracking-tighter ${totalIncome - totalExpense >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                     {formatCurrency(totalIncome - totalExpense)}
                 </span>
@@ -550,8 +550,8 @@ function ARAPTab({ accounts }: any) {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="bg-white rounded-[48px] border border-slate-200 overflow-hidden">
-                <div className="p-10 border-b border-slate-100 bg-orange-50/30 flex items-center gap-4">
-                    <ArrowDownLeft className="text-orange-600" />
+                <div className="p-10 border-b border-slate-100 bg-red-50/30 flex items-center gap-4">
+                    <ArrowDownLeft className="text-red-600" />
                     <h4 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Accounts Receivable (AR)</h4>
                 </div>
                 <div className="p-10 space-y-4">
@@ -561,7 +561,7 @@ function ARAPTab({ accounts }: any) {
                                 <p className="text-[10px] font-black text-slate-900 uppercase mb-1">{a.name}</p>
                                 <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Global Customer Ledger</p>
                             </div>
-                            <span className="font-black text-orange-600">{formatCurrency(a.balance)}</span>
+                            <span className="font-black text-red-600">{formatCurrency(a.balance)}</span>
                         </div>
                     ))}
                 </div>
@@ -828,14 +828,14 @@ function AddJournalForm({ accounts, years, onAdd, isLoading }: any) {
                                     updateLine(idx, 'account_id', '');
                                 }
                             }}
-                            className={`w-24 p-2.5 border rounded-xl text-[10px] font-black uppercase outline-none transition-all ${line.account_id ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200 focus:border-orange-400'}`}
+                            className={`w-24 p-2.5 border rounded-xl text-[10px] font-black uppercase outline-none transition-all ${line.account_id ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200 focus:border-red-400'}`}
                         />
                         <div className="flex-1 relative">
                             <input
                                 list={`accounts-${idx}`}
                                 value={line.account_name}
                                 placeholder="Type Account (Old or New)..."
-                                className={`w-full p-3 border rounded-xl text-xs font-bold outline-none border-dashed transition-all ${line.account_id ? 'bg-white border-emerald-200 text-slate-900 font-black' : 'bg-slate-100 border-slate-200 text-orange-600'}`}
+                                className={`w-full p-3 border rounded-xl text-xs font-bold outline-none border-dashed transition-all ${line.account_id ? 'bg-white border-emerald-200 text-slate-900 font-black' : 'bg-slate-100 border-slate-200 text-red-600'}`}
                                 onChange={e => {
                                     const val = e.target.value;
                                     const matched = accounts?.find((a: any) => `${a.code} - ${a.name}` === val || a.name === val || a.code === val);
@@ -850,7 +850,7 @@ function AddJournalForm({ accounts, years, onAdd, isLoading }: any) {
                                 }}
                             />
                             {!line.account_id && line.account_name && (
-                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[8px] font-black bg-orange-100 text-orange-600 px-2 py-1 rounded-md uppercase tracking-tighter">New Head</span>
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[8px] font-black bg-red-100 text-red-600 px-2 py-1 rounded-md uppercase tracking-tighter">New Head</span>
                             )}
                             <datalist id={`accounts-${idx}`}>
                                 {accounts?.map((a: any) => (
@@ -862,7 +862,7 @@ function AddJournalForm({ accounts, years, onAdd, isLoading }: any) {
                         <input type="number" placeholder="0" value={line.credit || ''} onChange={e => updateLine(idx, 'credit', parseFloat(e.target.value) || 0)} className="w-32 p-3 bg-white border border-slate-200 rounded-xl text-right font-black text-xs text-red-600" />
                     </div>
                 ))}
-                <button onClick={addLine} className="text-[10px] font-black text-orange-600 uppercase tracking-widest flex items-center gap-2 hover:text-blue-800 transition-all">
+                <button onClick={addLine} className="text-[10px] font-black text-red-600 uppercase tracking-widest flex items-center gap-2 hover:text-blue-800 transition-all">
                     <Plus size={14} /> Add Additional Node
                 </button>
             </div>

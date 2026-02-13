@@ -128,7 +128,7 @@ const Planning: React.FC = () => {
           <h1 className="text-2xl font-bold text-slate-900">Site Planning & Scheduling</h1>
           <p className="text-slate-500 text-sm">Orchestrating 2026 site milestones and resource timelines.</p>
         </div>
-        <button onClick={() => { setIsFormOpen(!isFormOpen); setEditingTask(null); setFormData({ task_name: '', project_name: '', due_date: '', owner_name: '' }); }} className={`px-4 py-2 rounded-lg font-bold shadow-md flex items-center gap-2 transition-all ${isFormOpen ? 'bg-slate-100 text-slate-600' : 'bg-orange-600 text-white hover:bg-orange-700'}`}>
+        <button onClick={() => { setIsFormOpen(!isFormOpen); setEditingTask(null); setFormData({ task_name: '', project_name: '', due_date: '', owner_name: '' }); }} className={`px-4 py-2 rounded-lg font-bold shadow-md flex items-center gap-2 transition-all ${isFormOpen ? 'bg-slate-100 text-slate-600' : 'bg-red-600 text-white hover:bg-red-700'}`}>
           {isFormOpen ? <X size={18} /> : <Plus size={18} />}
           {isFormOpen ? 'Cancel' : 'Schedule Milestone'}
         </button>
@@ -144,26 +144,26 @@ const Planning: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Task Name</label>
-                    <input required value={formData.task_name} onChange={(e) => setFormData({ ...formData, task_name: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-orange-500/20" placeholder="e.g. Concrete Pouring" />
+                    <input required value={formData.task_name} onChange={(e) => setFormData({ ...formData, task_name: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-red-500/20" placeholder="e.g. Concrete Pouring" />
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Project</label>
-                    <input required list="projects-list" value={formData.project_name} onChange={(e) => setFormData({ ...formData, project_name: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-orange-500/20" placeholder="Type or select project..." />
+                    <input required list="projects-list" value={formData.project_name} onChange={(e) => setFormData({ ...formData, project_name: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-red-500/20" placeholder="Type or select project..." />
                     <datalist id="projects-list">
                       {projects?.map((p: any) => <option key={p.id} value={p.name} />)}
                     </datalist>
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Due Date</label>
-                    <input required type="date" value={formData.due_date} onChange={(e) => setFormData({ ...formData, due_date: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-orange-500/20" />
+                    <input required type="date" value={formData.due_date} onChange={(e) => setFormData({ ...formData, due_date: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-red-500/20" />
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Owner</label>
-                    <input required value={formData.owner_name} onChange={(e) => setFormData({ ...formData, owner_name: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-orange-500/20" placeholder="Person Responsible" />
+                    <input required value={formData.owner_name} onChange={(e) => setFormData({ ...formData, owner_name: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-red-500/20" placeholder="Person Responsible" />
                   </div>
                 </div>
                 <div className="flex justify-end pt-2">
-                  <button disabled={saveTask.isPending} type="submit" className="px-6 py-2.5 bg-orange-600 text-white rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-orange-500/20 hover:bg-orange-700 transition-all">
+                  <button disabled={saveTask.isPending} type="submit" className="px-6 py-2.5 bg-red-600 text-white rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-red-500/20 hover:bg-red-700 transition-all">
                     {saveTask.isPending ? <Loader2 className="animate-spin" size={18} /> : (editingTask ? <Pencil size={18} /> : <Plus size={18} />)}
                     {editingTask ? 'Update Task' : 'Schedule Task'}
                   </button>
@@ -192,14 +192,14 @@ const Planning: React.FC = () => {
                 <td className="px-6 py-4 font-semibold text-slate-900">{task.task_name}</td>
                 <td className="px-6 py-4 text-slate-500">{task.projects?.name}</td>
                 <td className="px-6 py-4">
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${task.status === 'Completed' ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'}`}>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${task.status === 'Completed' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
                     {task.status}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-slate-500">{task.due_date}</td>
                 <td className="px-6 py-4 text-slate-500">{task.owner_name}</td>
                 <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
-                  <button onClick={() => handleEdit(task)} className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"><Pencil size={16} /></button>
+                  <button onClick={() => handleEdit(task)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Pencil size={16} /></button>
                   <button onClick={() => { if (confirm('Are you sure?')) deleteTask.mutate(task.id); }} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
                 </td>
               </tr>

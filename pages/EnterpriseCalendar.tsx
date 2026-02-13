@@ -133,23 +133,23 @@ const EnterpriseCalendar: React.FC = () => {
             </div>
             <div className="grid grid-cols-7 divide-x divide-y divide-slate-100 min-h-[700px]">
               {calendarGrid.map((date, idx) => (
-                <div key={idx} className={`p-4 min-h-[140px] group transition-all ${!date ? 'bg-slate-50/20' : 'hover:bg-orange-50/30'}`}>
+                <div key={idx} className={`p-4 min-h-[140px] group transition-all ${!date ? 'bg-slate-50/20' : 'hover:bg-red-50/30'}`}>
                   {date && (
                     <>
                       <div className="flex justify-between items-center mb-3">
-                        <span className={`text-sm font-black ${date.toDateString() === new Date().toDateString() ? 'bg-orange-600 text-white w-7 h-7 rounded-full flex items-center justify-center shadow-lg' : 'text-slate-400'}`}>
+                        <span className={`text-sm font-black ${date.toDateString() === new Date().toDateString() ? 'bg-red-600 text-white w-7 h-7 rounded-full flex items-center justify-center shadow-lg' : 'text-slate-400'}`}>
                           {date.getDate()}
                         </span>
-                        {getDayEvents(date).length > 0 && <span className="w-1.5 h-1.5 bg-orange-400 rounded-full" />}
+                        {getDayEvents(date).length > 0 && <span className="w-1.5 h-1.5 bg-red-400 rounded-full" />}
                       </div>
                       <div className="space-y-1.5">
                         {getDayEvents(date).slice(0, 3).map((event, eIdx) => (
                           <div key={eIdx} className={`text-[10px] p-2 rounded-lg font-bold border truncate flex items-center gap-1.5 ${
-                            event.color === 'blue' ? 'bg-orange-50 border-orange-100 text-orange-700' :
+                            event.color === 'blue' ? 'bg-red-50 border-red-100 text-red-700' :
                             event.color === 'rose' ? 'bg-rose-50 border-rose-100 text-rose-700' :
                             'bg-emerald-50 border-emerald-100 text-emerald-700'
                           }`}>
-                            <div className={`w-1 h-1 rounded-full ${event.color === 'blue' ? 'bg-orange-400' : event.color === 'rose' ? 'bg-rose-400' : 'bg-emerald-400'}`} />
+                            <div className={`w-1 h-1 rounded-full ${event.color === 'blue' ? 'bg-red-400' : event.color === 'rose' ? 'bg-rose-400' : 'bg-emerald-400'}`} />
                             {event.title || event.name || event.employees?.full_name}
                           </div>
                         ))}
@@ -165,7 +165,7 @@ const EnterpriseCalendar: React.FC = () => {
         <div className="space-y-8">
            <div className="bg-slate-900 rounded-[32px] p-8 text-white relative overflow-hidden shadow-2xl border border-slate-800">
               <div className="relative z-10">
-                 <div className="flex items-center gap-2 text-orange-400 mb-6">
+                 <div className="flex items-center gap-2 text-red-400 mb-6">
                     <Zap size={18} fill="currentColor" />
                     <span className="text-[10px] font-black uppercase tracking-[0.3em]">Quick Filter</span>
                  </div>
@@ -174,7 +174,7 @@ const EnterpriseCalendar: React.FC = () => {
                       <button 
                         key={f}
                         onClick={() => setFilter(f)}
-                        className={`w-full flex items-center justify-between px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${filter === f ? 'bg-orange-600 text-white shadow-xl' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center justify-between px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${filter === f ? 'bg-red-600 text-white shadow-xl' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
                       >
                          {f}
                          {filter === f && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
@@ -238,7 +238,7 @@ const EnterpriseCalendar: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <input type="checkbox" id="recurring" checked={holidayForm.is_recurring} onChange={(e) => setHolidayForm({...holidayForm, is_recurring: e.target.checked})} className="w-5 h-5 rounded border-slate-300 text-orange-600" />
+                  <input type="checkbox" id="recurring" checked={holidayForm.is_recurring} onChange={(e) => setHolidayForm({...holidayForm, is_recurring: e.target.checked})} className="w-5 h-5 rounded border-slate-300 text-red-600" />
                   <label htmlFor="recurring" className="text-xs font-bold text-slate-600 uppercase tracking-widest">Recurring Yearly Holiday</label>
                 </div>
                 <button disabled={createHoliday.isPending} type="submit" className="w-full py-6 bg-slate-900 text-white rounded-[24px] font-black text-sm uppercase tracking-[0.3em] shadow-2xl hover:bg-black transition-all flex items-center justify-center gap-4">

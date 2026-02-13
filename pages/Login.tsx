@@ -55,7 +55,7 @@ const Login: React.FC = () => {
         className="max-w-[1000px] w-full bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-slate-200"
       >
         
-        <div className="md:w-1/2 bg-orange-700 p-12 text-white flex flex-col justify-between relative overflow-hidden">
+        <div className="md:w-1/2 bg-red-700 p-12 text-white flex flex-col justify-between relative overflow-hidden">
           <div className="relative z-10">
             <motion.div 
               initial={{ scale: 0.8, opacity: 0 }}
@@ -77,13 +77,13 @@ const Login: React.FC = () => {
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="text-orange-100 mt-4 text-lg max-w-sm"
+              className="text-red-100 mt-4 text-lg max-w-sm"
             >
               The all-in-one enterprise command center for large-scale operations in India.
             </motion.p>
           </div>
           <div className="relative z-10 mt-12 space-y-6">
-            <p className="text-xs text-orange-200">© 2026 QITPES Systems. Financial Tracking in INR (₹).</p>
+            <p className="text-xs text-red-200">© 2026 QITPES Systems. Financial Tracking in INR (₹).</p>
           </div>
           <motion.div 
             animate={{ 
@@ -122,7 +122,7 @@ const Login: React.FC = () => {
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Work Email</label>
                   <div className="relative group">
-                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 group-focus-within:text-orange-500 transition-colors">
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 group-focus-within:text-red-500 transition-colors">
                       <Mail size={18} />
                     </span>
                     <input 
@@ -130,7 +130,7 @@ const Login: React.FC = () => {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-orange-500 transition-all outline-none"
+                      className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-red-500 transition-all outline-none"
                       placeholder="name@qitpes.in"
                     />
                   </div>
@@ -139,7 +139,7 @@ const Login: React.FC = () => {
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Secure Password</label>
                   <div className="relative group">
-                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 group-focus-within:text-orange-500 transition-colors">
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 group-focus-within:text-red-500 transition-colors">
                       <Lock size={18} />
                     </span>
                     <input 
@@ -147,7 +147,7 @@ const Login: React.FC = () => {
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-orange-500 transition-all outline-none"
+                      className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-red-500 transition-all outline-none"
                       placeholder="••••••••"
                     />
                   </div>
@@ -159,13 +159,13 @@ const Login: React.FC = () => {
                 whileTap={{ scale: 0.98 }}
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center py-3 px-4 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 disabled:bg-slate-400 transition-all shadow-lg shadow-orange-500/20"
+                className="w-full flex items-center justify-center py-3 px-4 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 disabled:bg-slate-400 transition-all shadow-lg shadow-red-500/20"
               >
                 {loading ? 'Authenticating...' : 'Sign In To Portal'} <ArrowRight size={18} className="ml-2" />
               </motion.button>
 
               <p className="text-center text-sm text-slate-500 mt-6">
-                Don't have an account? <Link to="/register" className="text-orange-600 font-bold hover:underline transition-all">Register Site</Link>
+                Don't have an account? <Link to="/register" className="text-red-600 font-bold hover:underline transition-all">Register Site</Link>
               </p>
             </form>
           </div>

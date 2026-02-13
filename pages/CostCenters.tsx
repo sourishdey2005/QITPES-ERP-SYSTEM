@@ -75,7 +75,7 @@ const CostCenters: React.FC = () => {
           <h1 className="text-2xl font-bold text-slate-900">Cost Centers</h1>
           <p className="text-slate-500 text-sm">Strategic allocation and tracking of project-level burn rates.</p>
         </div>
-        <button onClick={() => openModal()} className="bg-orange-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md hover:bg-orange-700">
+        <button onClick={() => openModal()} className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md hover:bg-red-700">
           Initialize New Center
         </button>
       </div>
@@ -97,7 +97,7 @@ const CostCenters: React.FC = () => {
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Budget (₹)</label>
                   <input required type="number" value={formData.budget} onChange={(e) => setFormData({ ...formData, budget: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="0" />
                 </div>
-                <button disabled={upsertCenter.isPending} type="submit" className="w-full py-3 bg-orange-600 text-white rounded-xl font-bold flex items-center justify-center">
+                <button disabled={upsertCenter.isPending} type="submit" className="w-full py-3 bg-red-600 text-white rounded-xl font-bold flex items-center justify-center">
                   {upsertCenter.isPending ? <Loader2 className="animate-spin" /> : editingId ? 'Update Center' : 'Initialize Center'}
                 </button>
               </form>
@@ -113,11 +113,11 @@ const CostCenters: React.FC = () => {
             <motion.div key={center.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1 }} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all group">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-orange-50 text-orange-600 rounded-lg"><Target size={20} /></div>
+                  <div className="p-2 bg-red-50 text-red-600 rounded-lg"><Target size={20} /></div>
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">CENTER-ID: {center.id.slice(0, 6).toUpperCase()}</span>
                 </div>
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => openModal(center)} className="p-2 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-all"><Edit2 size={14} /></button>
+                  <button onClick={() => openModal(center)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Edit2 size={14} /></button>
                   <button onClick={() => { if (confirm('Purge this cost center?')) deleteCenter.mutate(center.id); }} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"><Trash2 size={14} /></button>
                 </div>
               </div>
@@ -133,11 +133,11 @@ const CostCenters: React.FC = () => {
                 </div>
               </div>
               <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden mb-4">
-                <motion.div initial={{ width: 0 }} animate={{ width: `${utilization}%` }} className={`h-full ${utilization > 90 ? 'bg-red-500' : 'bg-orange-500'}`} />
+                <motion.div initial={{ width: 0 }} animate={{ width: `${utilization}%` }} className={`h-full ${utilization > 90 ? 'bg-red-500' : 'bg-red-500'}`} />
               </div>
               <div className="flex items-center justify-between text-xs font-bold text-slate-500">
                 <span>Spent: {formatCurrency(center.spent)}</span>
-                <button className="text-orange-600 hover:underline">Full Audit</button>
+                <button className="text-red-600 hover:underline">Full Audit</button>
               </div>
             </motion.div>
           );

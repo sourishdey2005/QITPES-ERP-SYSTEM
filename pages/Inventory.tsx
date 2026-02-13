@@ -51,7 +51,7 @@ const Inventory: React.FC = () => {
           <h1 className="text-2xl font-bold text-slate-900">Store & Inventory</h1>
           <p className="text-slate-500">Real-time tracking of assets, materials, and consumables.</p>
         </div>
-        <button onClick={() => setIsModalOpen(true)} className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-bold flex items-center shadow-lg transition-all">
+        <button onClick={() => setIsModalOpen(true)} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-bold flex items-center shadow-lg transition-all">
           <Plus size={18} className="mr-2" /> Add Item
         </button>
       </div>
@@ -85,7 +85,7 @@ const Inventory: React.FC = () => {
                     <input required type="number" value={formData.unit_price} onChange={(e) => setFormData({...formData, unit_price: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" />
                   </div>
                 </div>
-                <button disabled={addItem.isPending} type="submit" className="w-full py-3 bg-orange-600 text-white rounded-xl font-bold flex items-center justify-center">
+                <button disabled={addItem.isPending} type="submit" className="w-full py-3 bg-red-600 text-white rounded-xl font-bold flex items-center justify-center">
                   {addItem.isPending ? <Loader2 className="animate-spin" /> : 'Register Item'}
                 </button>
               </form>
@@ -96,7 +96,7 @@ const Inventory: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-5 rounded-xl border border-slate-200 flex items-center">
-          <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center mr-4"><Package size={24} /></div>
+          <div className="w-12 h-12 bg-red-50 text-red-600 rounded-lg flex items-center justify-center mr-4"><Package size={24} /></div>
           <div><p className="text-xs font-bold text-slate-400 uppercase">SKU Count</p><h3 className="text-xl font-bold text-slate-900">{stats.total}</h3></div>
         </div>
         <div className="bg-white p-5 rounded-xl border border-slate-200 flex items-center">

@@ -176,9 +176,9 @@ const SiteWages: React.FC = () => {
                 <div className="bg-white rounded-[40px] border border-slate-200 shadow-sm overflow-hidden">
                   <div className="p-8 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
                     <h3 className="font-black text-slate-900 uppercase tracking-tighter flex items-center gap-2">
-                      <Users size={20} className="text-orange-600" /> Contractor Master Registry
+                      <Users size={20} className="text-red-600" /> Contractor Master Registry
                     </h3>
-                    <button onClick={() => setIsWorkerModalOpen(true)} className="flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-orange-500/20 hover:bg-orange-700 transition-all">
+                    <button onClick={() => setIsWorkerModalOpen(true)} className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-red-500/20 hover:bg-red-700 transition-all">
                       <UserPlus size={14} /> Add Contractor
                     </button>
                   </div>
@@ -194,7 +194,7 @@ const SiteWages: React.FC = () => {
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-sm font-medium">
                       {loadingWorkers ? (
-                        <tr><td colSpan={5} className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-orange-600" /></td></tr>
+                        <tr><td colSpan={5} className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-red-600" /></td></tr>
                       ) : workers?.length === 0 ? (
                         <tr><td colSpan={5} className="p-20 text-center text-slate-400 italic">No contractor nodes registered in system.</td></tr>
                       ) : workers?.map((w: any) => (
@@ -208,7 +208,7 @@ const SiteWages: React.FC = () => {
                           <td className="px-10 py-6 text-slate-400 font-bold">{w.site_location || 'Global Pool'}</td>
                           <td className="px-10 py-6 text-right">
                             <div className="flex items-center justify-end gap-3">
-                              <button className="text-orange-600 hover:underline font-bold text-xs">Edit</button>
+                              <button className="text-red-600 hover:underline font-bold text-xs">Edit</button>
                               <button
                                 onClick={() => deleteWorker.mutate(w.id)}
                                 disabled={deleteWorker.isPending}
@@ -247,7 +247,7 @@ const SiteWages: React.FC = () => {
                       const att = dailyAttendance?.find(a => a.worker_id === w.id);
                       const status = att ? att.status : 'none';
                       return (
-                        <div key={w.id} className="p-6 bg-slate-50 border border-slate-100 rounded-[32px] group hover:border-orange-200 transition-all flex flex-col justify-between h-48">
+                        <div key={w.id} className="p-6 bg-slate-50 border border-slate-100 rounded-[32px] group hover:border-red-200 transition-all flex flex-col justify-between h-48">
                           <div>
                             <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{w.trade}</p>
                             <h4 className="text-lg font-black text-slate-900 uppercase tracking-tight">{w.full_name}</h4>
@@ -281,7 +281,7 @@ const SiteWages: React.FC = () => {
                 <div className="bg-white rounded-[40px] border border-slate-200 shadow-sm overflow-hidden">
                   <div className="p-8 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
                     <h3 className="font-black text-slate-900 uppercase tracking-tighter flex items-center gap-2">
-                      <IndianRupee size={20} className="text-orange-600" /> Wage Liability: <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="bg-transparent border-none outline-none font-black text-orange-600 uppercase" />
+                      <IndianRupee size={20} className="text-red-600" /> Wage Liability: <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="bg-transparent border-none outline-none font-black text-red-600 uppercase" />
                     </h3>
                   </div>
                   <table className="w-full text-left">
@@ -303,7 +303,7 @@ const SiteWages: React.FC = () => {
                           </td>
                           <td className="px-10 py-6 text-slate-500 font-bold">{formatCurrency(p.daily_wage)}</td>
                           <td className="px-10 py-6">
-                            <span className="bg-orange-50 text-orange-600 px-3 py-1 rounded-full text-xs font-black">{p.presentDays} DAYS</span>
+                            <span className="bg-red-50 text-red-600 px-3 py-1 rounded-full text-xs font-black">{p.presentDays} DAYS</span>
                           </td>
                           <td className="px-10 py-6 font-black text-slate-900 text-lg">{formatCurrency(p.totalWage)}</td>
                           <td className="px-10 py-6 text-right">
@@ -323,7 +323,7 @@ const SiteWages: React.FC = () => {
         <div className="space-y-8">
           <div className="bg-slate-900 rounded-[40px] p-8 text-white relative overflow-hidden shadow-2xl">
             <div className="relative z-10">
-              <div className="flex items-center gap-2 text-orange-400 mb-6">
+              <div className="flex items-center gap-2 text-red-400 mb-6">
                 <Zap size={18} fill="currentColor" />
                 <span className="text-[10px] font-black uppercase tracking-[0.3em]">Fiscal Monitor</span>
               </div>
@@ -338,16 +338,16 @@ const SiteWages: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-500">
                   <span>Audit Trail</span>
-                  <span className="text-orange-400">Enabled</span>
+                  <span className="text-red-400">Enabled</span>
                 </div>
               </div>
             </div>
-            <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-orange-600/10 rounded-full blur-[80px]" />
+            <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-red-600/10 rounded-full blur-[80px]" />
           </div>
 
           <div className="bg-white p-8 rounded-[40px] border border-slate-200 shadow-sm">
             <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2">
-              <HandMetal size={16} className="text-orange-500" /> Dynamic Trades
+              <HandMetal size={16} className="text-red-500" /> Dynamic Trades
             </h3>
             <div className="space-y-4">
               {[

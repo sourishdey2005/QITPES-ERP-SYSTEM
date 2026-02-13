@@ -9,7 +9,7 @@ import { motion as motionBase } from 'framer-motion';
 
 const motion = motionBase as any;
 
-const COLORS = ['#f97316', '#10b981', '#f59e0b', '#ef4444'];
+const COLORS = ['#EA4643', '#10b981', '#f59e0b', '#ef4444'];
 
 const StatCard: React.FC<{ title: string; value: string; trend: string; icon: React.ReactNode; index: number }> = ({ title, value, trend, icon, index }) => (
   <motion.div
@@ -23,7 +23,7 @@ const StatCard: React.FC<{ title: string; value: string; trend: string; icon: Re
         <p className="text-sm font-medium text-slate-500">{title}</p>
         <h3 className="text-2xl font-bold text-slate-900 mt-1">{value}</h3>
       </div>
-      <div className="p-3 bg-slate-50 rounded-lg text-orange-600">
+      <div className="p-3 bg-slate-50 rounded-lg text-red-600">
         {icon}
       </div>
     </div>
@@ -121,7 +121,7 @@ const Dashboard: React.FC = () => {
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="bg-orange-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg shadow-orange-500/20"
+          className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-lg shadow-red-500/20"
         >
           Export FY26 Report
         </motion.button>
@@ -149,7 +149,7 @@ const Dashboard: React.FC = () => {
                 <XAxis dataKey="name" axisLine={false} tickLine={false} style={{ fontSize: '10px' }} />
                 <YAxis axisLine={false} tickLine={false} style={{ fontSize: '10px' }} />
                 <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
-                <Area type="monotone" dataKey="rev" stroke="#f97316" fill="#f97316" fillOpacity={0.1} strokeWidth={3} name="Revenue" />
+                <Area type="monotone" dataKey="rev" stroke="#EA4643" fill="#EA4643" fillOpacity={0.1} strokeWidth={3} name="Revenue" />
                 <Area type="monotone" dataKey="exp" stroke="#10b981" fill="#10b981" fillOpacity={0.1} strokeWidth={3} name="Expense" />
               </AreaChart>
             </ResponsiveContainer>
@@ -198,7 +198,7 @@ const Dashboard: React.FC = () => {
       >
         <div className="p-6 border-b border-slate-100 flex items-center justify-between">
           <h2 className="text-lg font-bold text-slate-900">Active 2026 Projects</h2>
-          <button className="text-orange-600 text-sm font-bold hover:underline uppercase tracking-tight transition-all">Enterprise View</button>
+          <button className="text-red-600 text-sm font-bold hover:underline uppercase tracking-tight transition-all">Enterprise View</button>
         </div>
         <table className="w-full text-left">
           <thead className="bg-slate-50">
@@ -220,13 +220,13 @@ const Dashboard: React.FC = () => {
               >
                 <td className="px-6 py-4 text-sm font-semibold text-slate-900">{project.name}</td>
                 <td className="px-6 py-4">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-orange-50 text-orange-600 ring-1 ring-blue-100">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-50 text-red-600 ring-1 ring-blue-100">
                     {project.status}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-slate-600 font-medium">{formatCurrency(project.budget)}</td>
                 <td className="px-6 py-4">
-                  <button className="p-2 text-slate-400 hover:text-orange-600 bg-slate-50 hover:bg-orange-50 rounded-lg transition-all">
+                  <button className="p-2 text-slate-400 hover:text-red-600 bg-slate-50 hover:bg-red-50 rounded-lg transition-all">
                     <ChevronRight size={16} />
                   </button>
                 </td>

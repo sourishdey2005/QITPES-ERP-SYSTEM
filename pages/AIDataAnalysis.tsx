@@ -167,12 +167,12 @@ const AIDataAnalysis: React.FC = () => {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                        <Brain className="text-orange-600" size={36} />
+                        <Brain className="text-red-600" size={36} />
                         QITPES AI Assistant
                     </h1>
                     <p className="text-slate-500 text-sm mt-1">Powered by Google Gemini AI • Real-time Data Analysis</p>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 text-orange-600 rounded-xl border border-orange-200">
+                <div className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl border border-red-200">
                     <Sparkles size={18} className="animate-pulse" />
                     <span className="text-xs font-bold uppercase tracking-wider">AI Enabled</span>
                 </div>
@@ -203,9 +203,9 @@ const AIDataAnalysis: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* AI Chat Interface */}
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[700px]">
-                    <div className="p-6 border-b border-slate-100 bg-gradient-to-r from-orange-50 to-white">
+                    <div className="p-6 border-b border-slate-100 bg-gradient-to-r from-red-50 to-white">
                         <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                            <MessageSquare className="text-orange-600" size={20} />
+                            <MessageSquare className="text-red-600" size={20} />
                             ERP AI Assistant
                         </h3>
                         <p className="text-xs text-slate-500 mt-1">Ask questions about your data • Get instant insights</p>
@@ -215,7 +215,7 @@ const AIDataAnalysis: React.FC = () => {
                     {chatMessages.length === 0 && (
                         <div className="p-4 border-b border-slate-100 bg-slate-50">
                             <div className="flex items-center gap-2 mb-3">
-                                <Lightbulb size={16} className="text-orange-600" />
+                                <Lightbulb size={16} className="text-red-600" />
                                 <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">Suggested Questions</span>
                             </div>
                             <div className="grid grid-cols-1 gap-2">
@@ -223,7 +223,7 @@ const AIDataAnalysis: React.FC = () => {
                                     <button
                                         key={idx}
                                         onClick={() => handleSuggestedQuery(query)}
-                                        className="text-left px-4 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-700 hover:border-orange-300 hover:bg-orange-50 transition-all"
+                                        className="text-left px-4 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-700 hover:border-red-300 hover:bg-red-50 transition-all"
                                     >
                                         💡 {query}
                                     </button>
@@ -249,7 +249,7 @@ const AIDataAnalysis: React.FC = () => {
                                 className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                             >
                                 <div className={`max-w-[85%] p-4 rounded-2xl ${msg.role === 'user'
-                                    ? 'bg-orange-600 text-white'
+                                    ? 'bg-red-600 text-white'
                                     : 'bg-slate-100 text-slate-900'
                                     }`}>
                                     <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
@@ -262,7 +262,7 @@ const AIDataAnalysis: React.FC = () => {
                         {isAnalyzing && (
                             <div className="flex justify-start">
                                 <div className="bg-slate-100 p-4 rounded-2xl flex items-center gap-3">
-                                    <Loader2 className="animate-spin text-orange-600" size={20} />
+                                    <Loader2 className="animate-spin text-red-600" size={20} />
                                     <span className="text-sm text-slate-600">AI is thinking...</span>
                                 </div>
                             </div>
@@ -278,13 +278,13 @@ const AIDataAnalysis: React.FC = () => {
                                 onChange={(e) => setUserInput(e.target.value)}
                                 onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
                                 placeholder="Ask about trends, insights, or recommendations..."
-                                className="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                                className="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
                                 disabled={isAnalyzing}
                             />
                             <button
                                 onClick={() => handleSendMessage()}
                                 disabled={isAnalyzing || !userInput.trim()}
-                                className="px-6 py-3 bg-orange-600 text-white rounded-xl font-bold hover:bg-orange-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-orange-500/20"
+                                className="px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-red-500/20"
                             >
                                 <Send size={18} />
                             </button>
@@ -295,9 +295,9 @@ const AIDataAnalysis: React.FC = () => {
 
                 {/* Data Analysis Panel */}
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[700px]">
-                    <div className="p-6 border-b border-slate-100 bg-gradient-to-r from-orange-50 to-white">
+                    <div className="p-6 border-b border-slate-100 bg-gradient-to-r from-red-50 to-white">
                         <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                            <BarChart3 className="text-orange-600" size={20} />
+                            <BarChart3 className="text-red-600" size={20} />
                             Automated Data Analysis
                         </h3>
                         <p className="text-xs text-slate-500 mt-1">AI-powered insights from your data</p>
@@ -309,7 +309,7 @@ const AIDataAnalysis: React.FC = () => {
                             <select
                                 value={selectedDataset}
                                 onChange={(e) => setSelectedDataset(e.target.value)}
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500/20 font-medium"
+                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-red-500/20 font-medium"
                             >
                                 <option value="financial">💰 Financial Transactions</option>
                                 <option value="projects">📊 Project Performance</option>
@@ -320,7 +320,7 @@ const AIDataAnalysis: React.FC = () => {
                         <button
                             onClick={runDataAnalysis}
                             disabled={isAnalyzing}
-                            className="w-full py-4 bg-orange-600 text-white rounded-xl font-bold hover:bg-orange-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20"
+                            className="w-full py-4 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-red-500/20"
                         >
                             {isAnalyzing ? (
                                 <><Loader2 className="animate-spin" size={18} /> Analyzing Data...</>
@@ -332,11 +332,11 @@ const AIDataAnalysis: React.FC = () => {
 
                     {analysisResult && (
                         <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                            <div className="p-4 bg-orange-50 rounded-xl border border-orange-200">
-                                <h4 className="text-sm font-bold text-orange-900 mb-2 flex items-center gap-2">
+                            <div className="p-4 bg-red-50 rounded-xl border border-red-200">
+                                <h4 className="text-sm font-bold text-red-900 mb-2 flex items-center gap-2">
                                     <TrendingUp size={16} /> Key Insights
                                 </h4>
-                                <p className="text-sm text-orange-800 leading-relaxed">{analysisResult.insights}</p>
+                                <p className="text-sm text-red-800 leading-relaxed">{analysisResult.insights}</p>
                             </div>
 
                             <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
@@ -380,7 +380,7 @@ const AIDataAnalysis: React.FC = () => {
 const MetricCard = ({ icon, label, value, trend }: any) => (
     <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all">
         <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-orange-50 text-orange-600 rounded-lg">
+            <div className="p-3 bg-red-50 text-red-600 rounded-lg">
                 {icon}
             </div>
             <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">

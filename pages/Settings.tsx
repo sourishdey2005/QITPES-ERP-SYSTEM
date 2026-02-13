@@ -165,7 +165,7 @@ const Settings: React.FC = () => {
           id="commit-changes-btn"
           onClick={handleSave}
           disabled={isSaving}
-          className="bg-orange-600 text-white px-8 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-2xl shadow-orange-500/30 hover:bg-orange-700 transition-all flex items-center gap-3 active:scale-95 disabled:opacity-50"
+          className="bg-red-600 text-white px-8 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-2xl shadow-red-500/30 hover:bg-red-700 transition-all flex items-center gap-3 active:scale-95 disabled:opacity-50"
         >
           {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
           {isSaving ? 'Synchronizing Node...' : 'Commit Changes'}
@@ -186,7 +186,7 @@ const Settings: React.FC = () => {
               key={item.label}
               onClick={() => setActiveTab(item.label as SettingTab)}
               className={`w-full flex items-center justify-between px-6 py-4 rounded-[20px] font-black text-[10px] uppercase tracking-[0.2em] transition-all duration-300 ${activeTab === item.label
-                ? 'bg-orange-600 text-white shadow-2xl shadow-orange-500/20 translate-x-2'
+                ? 'bg-red-600 text-white shadow-2xl shadow-red-500/20 translate-x-2'
                 : 'text-slate-400 hover:bg-white border border-transparent hover:border-slate-100 hover:text-slate-600'
                 }`}
             >
@@ -212,14 +212,14 @@ const Settings: React.FC = () => {
                     <div>
                       <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter mb-8">System Identity</h3>
                       <div className="flex items-center gap-10 mb-12">
-                        <div className="w-28 h-28 bg-orange-50 rounded-[40px] flex items-center justify-center text-orange-600 border border-orange-100 shadow-inner group relative cursor-pointer overflow-hidden">
+                        <div className="w-28 h-28 bg-red-50 rounded-[40px] flex items-center justify-center text-red-600 border border-red-100 shadow-inner group relative cursor-pointer overflow-hidden">
                           {profile?.avatar_url ? (
                             <img src={profile.avatar_url} className="w-full h-full object-cover" />
                           ) : (
                             <User size={56} />
                           )}
-                          <div className="absolute inset-0 bg-orange-600/10 rounded-[40px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <Camera size={24} className="text-orange-600" />
+                          <div className="absolute inset-0 bg-red-600/10 rounded-[40px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <Camera size={24} className="text-red-600" />
                           </div>
                         </div>
                         <div className="space-y-3">
@@ -232,11 +232,11 @@ const Settings: React.FC = () => {
                         <div className="space-y-3">
                           <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Enterprise Name</label>
                           <div className="relative group">
-                            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-orange-500 transition-colors"><User size={16} /></span>
+                            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-red-500 transition-colors"><User size={16} /></span>
                             <input
                               value={profileForm.full_name}
                               onChange={(e) => setProfileForm({ ...profileForm, full_name: e.target.value })}
-                              className="w-full pl-14 py-4 bg-slate-50 border border-slate-200 rounded-[18px] text-sm font-black outline-none focus:ring-8 focus:ring-orange-500/5 transition-all group-hover:border-slate-300"
+                              className="w-full pl-14 py-4 bg-slate-50 border border-slate-200 rounded-[18px] text-sm font-black outline-none focus:ring-8 focus:ring-red-500/5 transition-all group-hover:border-slate-300"
                             />
                           </div>
                         </div>
@@ -256,11 +256,11 @@ const Settings: React.FC = () => {
                         <div className="space-y-3">
                           <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Direct Contact</label>
                           <div className="relative group">
-                            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-orange-500 transition-colors"><Phone size={16} /></span>
+                            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-red-500 transition-colors"><Phone size={16} /></span>
                             <input
                               value={profileForm.phone}
                               onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
-                              className="w-full pl-14 py-4 bg-slate-50 border border-slate-200 rounded-[18px] text-sm font-black outline-none focus:ring-8 focus:ring-orange-500/5 transition-all group-hover:border-slate-300"
+                              className="w-full pl-14 py-4 bg-slate-50 border border-slate-200 rounded-[18px] text-sm font-black outline-none focus:ring-8 focus:ring-red-500/5 transition-all group-hover:border-slate-300"
                             />
                           </div>
                         </div>
@@ -268,11 +268,11 @@ const Settings: React.FC = () => {
                         <div className="space-y-3">
                           <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Primary Hub</label>
                           <div className="relative group">
-                            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-orange-500 transition-colors"><MapPin size={16} /></span>
+                            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-red-500 transition-colors"><MapPin size={16} /></span>
                             <input
                               value={profileForm.primary_hub}
                               onChange={(e) => setProfileForm({ ...profileForm, primary_hub: e.target.value })}
-                              className="w-full pl-14 py-4 bg-slate-50 border border-slate-200 rounded-[18px] text-sm font-black outline-none focus:ring-8 focus:ring-orange-500/5 transition-all group-hover:border-slate-300"
+                              className="w-full pl-14 py-4 bg-slate-50 border border-slate-200 rounded-[18px] text-sm font-black outline-none focus:ring-8 focus:ring-red-500/5 transition-all group-hover:border-slate-300"
                             />
                           </div>
                         </div>
@@ -281,11 +281,11 @@ const Settings: React.FC = () => {
 
                     <div className="p-8 bg-slate-900 rounded-[32px] flex items-center justify-between border border-slate-800 shadow-2xl relative overflow-hidden group">
                       <div className="relative z-10">
-                        <p className="text-[10px] font-black text-orange-400 uppercase tracking-[0.3em] mb-1">Access Protocol Verified</p>
+                        <p className="text-[10px] font-black text-red-400 uppercase tracking-[0.3em] mb-1">Access Protocol Verified</p>
                         <p className="text-xl font-black text-white uppercase tracking-tighter">{userRole?.toUpperCase()} CLEARANCE LEVEL</p>
                       </div>
-                      <ShieldCheck className="text-orange-500 relative z-10 group-hover:scale-125 transition-transform duration-700" size={48} />
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl" />
+                      <ShieldCheck className="text-red-500 relative z-10 group-hover:scale-125 transition-transform duration-700" size={48} />
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-3xl" />
                     </div>
                   </div>
                 )}
@@ -299,7 +299,7 @@ const Settings: React.FC = () => {
                         <input
                           value={enterpriseForm.legal_name}
                           onChange={(e) => setEnterpriseForm({ ...enterpriseForm, legal_name: e.target.value })}
-                          className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-[18px] text-sm font-black outline-none focus:ring-8 focus:ring-orange-500/5 transition-all hover:border-slate-300"
+                          className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-[18px] text-sm font-black outline-none focus:ring-8 focus:ring-red-500/5 transition-all hover:border-slate-300"
                         />
                       </div>
                       <div className="space-y-3">
@@ -307,7 +307,7 @@ const Settings: React.FC = () => {
                         <input
                           value={enterpriseForm.gstin}
                           onChange={(e) => setEnterpriseForm({ ...enterpriseForm, gstin: e.target.value })}
-                          className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-[18px] text-sm font-black outline-none focus:ring-8 focus:ring-orange-500/5 transition-all hover:border-slate-300"
+                          className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-[18px] text-sm font-black outline-none focus:ring-8 focus:ring-red-500/5 transition-all hover:border-slate-300"
                         />
                       </div>
                       <div className="space-y-3">
@@ -315,7 +315,7 @@ const Settings: React.FC = () => {
                         <input
                           value={enterpriseForm.pan}
                           onChange={(e) => setEnterpriseForm({ ...enterpriseForm, pan: e.target.value })}
-                          className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-[18px] text-sm font-black outline-none focus:ring-8 focus:ring-orange-500/5 transition-all hover:border-slate-300"
+                          className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-[18px] text-sm font-black outline-none focus:ring-8 focus:ring-red-500/5 transition-all hover:border-slate-300"
                         />
                       </div>
                       <div className="space-y-3">
@@ -325,7 +325,7 @@ const Settings: React.FC = () => {
                           <input
                             value={enterpriseForm.website}
                             onChange={(e) => setEnterpriseForm({ ...enterpriseForm, website: e.target.value })}
-                            className="w-full pl-14 py-4 bg-slate-50 border border-slate-200 rounded-[18px] text-sm font-black outline-none focus:ring-8 focus:ring-orange-500/5 transition-all hover:border-slate-300"
+                            className="w-full pl-14 py-4 bg-slate-50 border border-slate-200 rounded-[18px] text-sm font-black outline-none focus:ring-8 focus:ring-red-500/5 transition-all hover:border-slate-300"
                           />
                         </div>
                       </div>
@@ -333,20 +333,20 @@ const Settings: React.FC = () => {
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Certified Headquarters Address</label>
                       <textarea
-                        className="w-full p-6 bg-slate-50 border border-slate-200 rounded-[24px] text-sm outline-none font-bold min-h-[140px] focus:ring-8 focus:ring-orange-500/5 transition-all resize-none"
+                        className="w-full p-6 bg-slate-50 border border-slate-200 rounded-[24px] text-sm outline-none font-bold min-h-[140px] focus:ring-8 focus:ring-red-500/5 transition-all resize-none"
                         value={enterpriseForm.address}
                         onChange={(e) => setEnterpriseForm({ ...enterpriseForm, address: e.target.value })}
                       />
                     </div>
                     <div className="p-6 border border-slate-100 rounded-[28px] bg-slate-50/30 flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className="p-4 bg-white rounded-2xl shadow-sm text-orange-600"><CreditCard size={24} /></div>
+                        <div className="p-4 bg-white rounded-2xl shadow-sm text-red-600"><CreditCard size={24} /></div>
                         <div>
                           <p className="font-black text-slate-800 text-sm">Enterprise Subscription</p>
                           <p className="text-xs text-slate-400 font-bold uppercase">Pro Tier - Renewal Oct 2027</p>
                         </div>
                       </div>
-                      <button className="text-[10px] font-black text-orange-600 uppercase tracking-widest hover:underline">Manage Tier →</button>
+                      <button className="text-[10px] font-black text-red-600 uppercase tracking-widest hover:underline">Manage Tier →</button>
                     </div>
                   </div>
                 )}
@@ -358,7 +358,7 @@ const Settings: React.FC = () => {
                       <SecurityCard
                         title="Multi-Factor Authentication (MFA)"
                         description="Add a secondary biometric or TOTP layer for all financial disbursements."
-                        icon={<Fingerprint className="text-orange-500" />}
+                        icon={<Fingerprint className="text-red-500" />}
                         enabled={true}
                       />
 
@@ -443,7 +443,7 @@ const SecurityCard = ({ title, description, icon, enabled }: any) => (
         <p className="text-xs text-slate-400 font-medium leading-relaxed max-w-sm mt-1">{description}</p>
       </div>
     </div>
-    <div className={`w-14 h-8 rounded-full relative transition-all duration-500 cursor-pointer ${enabled ? 'bg-orange-600 shadow-lg shadow-orange-500/20' : 'bg-slate-100'}`}>
+    <div className={`w-14 h-8 rounded-full relative transition-all duration-500 cursor-pointer ${enabled ? 'bg-red-600 shadow-lg shadow-red-500/20' : 'bg-slate-100'}`}>
       <div className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-md transition-all duration-500 ${enabled ? 'left-7' : 'left-1'}`} />
     </div>
   </div>
@@ -452,22 +452,22 @@ const SecurityCard = ({ title, description, icon, enabled }: any) => (
 const NotificationToggle = ({ label, description, active }: any) => (
   <div className="flex items-center justify-between py-6 border-b border-slate-50 group hover:px-2 transition-all">
     <div>
-      <p className="text-sm font-black text-slate-800 tracking-tight group-hover:text-orange-600 transition-colors">{label}</p>
+      <p className="text-sm font-black text-slate-800 tracking-tight group-hover:text-red-600 transition-colors">{label}</p>
       <p className="text-xs text-slate-400 font-medium mt-1">{description}</p>
     </div>
-    <div className={`w-12 h-6 rounded-full relative transition-all cursor-pointer ${active ? 'bg-orange-600' : 'bg-slate-200'}`}>
+    <div className={`w-12 h-6 rounded-full relative transition-all cursor-pointer ${active ? 'bg-red-600' : 'bg-slate-200'}`}>
       <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${active ? 'left-7' : 'left-1'}`} />
     </div>
   </div>
 );
 
 const DataExportCard = ({ title, format, size }: any) => (
-  <div className="p-8 border border-slate-100 rounded-[32px] bg-slate-50/50 hover:bg-white hover:border-orange-200 transition-all group cursor-pointer hover:shadow-2xl hover:shadow-slate-200/50">
+  <div className="p-8 border border-slate-100 rounded-[32px] bg-slate-50/50 hover:bg-white hover:border-red-200 transition-all group cursor-pointer hover:shadow-2xl hover:shadow-slate-200/50">
     <div className="flex items-center justify-between mb-4">
-      <div className="p-4 bg-white rounded-2xl text-slate-400 group-hover:text-orange-600 group-hover:scale-110 transition-all duration-500"><Download size={24} /></div>
+      <div className="p-4 bg-white rounded-2xl text-slate-400 group-hover:text-red-600 group-hover:scale-110 transition-all duration-500"><Download size={24} /></div>
       <span className="text-[10px] font-black text-slate-400 bg-white px-3 py-1 rounded-full uppercase tracking-widest">{size}</span>
     </div>
-    <p className="text-sm font-black text-slate-800 group-hover:text-orange-600 transition-colors">{title}</p>
+    <p className="text-sm font-black text-slate-800 group-hover:text-red-600 transition-colors">{title}</p>
     <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">{format}</p>
   </div>
 );

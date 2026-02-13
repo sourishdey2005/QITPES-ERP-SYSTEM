@@ -43,7 +43,7 @@ const GeneralLedger: React.FC = () => {
           <p className="text-slate-500 text-sm">Comprehensive double-entry transaction history.</p>
         </div>
         <div className="flex gap-2">
-           <button onClick={() => setIsModalOpen(true)} className="bg-orange-600 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 shadow-md hover:bg-orange-700 transition-all">
+           <button onClick={() => setIsModalOpen(true)} className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 shadow-md hover:bg-red-700 transition-all">
              <Landmark size={16} /> Journal Entry
            </button>
         </div>

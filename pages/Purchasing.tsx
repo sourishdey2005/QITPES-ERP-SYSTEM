@@ -42,7 +42,7 @@ const Purchasing: React.FC = () => {
           <h1 className="text-2xl font-bold text-slate-900">Purchase Management</h1>
           <p className="text-slate-500 text-sm">Centralized procurement and vendor relations portal.</p>
         </div>
-        <button onClick={() => setIsModalOpen(true)} className="bg-orange-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-orange-700 shadow-md flex items-center gap-2">
+        <button onClick={() => setIsModalOpen(true)} className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-red-700 shadow-md flex items-center gap-2">
           <FilePlus size={18} /> New Purchase Order
         </button>
       </div>
@@ -68,7 +68,7 @@ const Purchasing: React.FC = () => {
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Total Amount (₹)</label>
                   <input required type="number" value={formData.total_amount} onChange={(e) => setFormData({...formData, total_amount: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="0" />
                 </div>
-                <button disabled={createPO.isPending} type="submit" className="w-full py-3 bg-orange-600 text-white rounded-xl font-bold flex items-center justify-center">
+                <button disabled={createPO.isPending} type="submit" className="w-full py-3 bg-red-600 text-white rounded-xl font-bold flex items-center justify-center">
                   {createPO.isPending ? <Loader2 className="animate-spin" /> : 'Confirm PO'}
                 </button>
               </form>
@@ -107,7 +107,7 @@ const Purchasing: React.FC = () => {
            <tbody className="divide-y divide-slate-100 text-sm">
              {pos?.map((po: any) => (
                <tr key={po.id} className="hover:bg-slate-50">
-                 <td className="px-6 py-4 font-mono font-bold text-orange-600">{po.po_number}</td>
+                 <td className="px-6 py-4 font-mono font-bold text-red-600">{po.po_number}</td>
                  <td className="px-6 py-4 font-bold text-slate-900">{po.vendor_name}</td>
                  <td className="px-6 py-4 font-bold">{formatCurrency(po.total_amount)}</td>
                  <td className="px-6 py-4">

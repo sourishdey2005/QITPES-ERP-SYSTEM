@@ -20,7 +20,7 @@ import {
 import { motion as motionBase, AnimatePresence } from 'framer-motion';
 
 const motion = motionBase as any;
-const COLORS = ['#f97316', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#14b8a6', '#f43f5e', '#84cc16'];
+const COLORS = ['#EA4643', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#14b8a6', '#f43f5e', '#84cc16'];
 
 const BIAnalytics: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'finance' | 'hr' | 'inventory' | 'ops' | 'ai' | 'sales'>('finance');
@@ -239,7 +239,7 @@ const BIAnalytics: React.FC = () => {
   if (isLoading) return (
     <div className="flex h-screen items-center justify-center bg-[#020617]">
       <div className="text-center">
-        <Loader2 className="w-16 h-16 text-orange-500 animate-spin mx-auto mb-6" />
+        <Loader2 className="w-16 h-16 text-red-500 animate-spin mx-auto mb-6" />
         <h2 className="text-2xl font-black text-white tracking-[0.2em] uppercase">Synchronizing Live ERP Data...</h2>
         <p className="text-slate-500 font-bold mt-2">Connecting to QITPES Real-Time Node Registry.</p>
       </div>
@@ -247,15 +247,15 @@ const BIAnalytics: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-100 p-8 space-y-10 selection:bg-orange-500/30">
+    <div className="min-h-screen bg-[#020617] text-slate-100 p-8 space-y-10 selection:bg-red-500/30">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10 border-b border-white/5 pb-10">
         <div className="space-y-4">
-          <div className="flex items-center gap-3 text-orange-400">
+          <div className="flex items-center gap-3 text-red-400">
             <Zap size={22} fill="currentColor" className="animate-pulse" />
             <span className="text-xs font-black uppercase tracking-[0.4em]">Live System Status: Synchronized</span>
           </div>
           <h1 className="text-5xl font-black text-white tracking-tighter leading-none">
-            REAL-TIME <span className="text-orange-500">BI HUB</span>
+            REAL-TIME <span className="text-red-500">BI HUB</span>
           </h1>
           <p className="text-slate-400 font-medium text-lg max-w-2xl">
             Zero-simulation dashboard. Fetching directly from Supabase Postgres Realtime.
@@ -266,7 +266,7 @@ const BIAnalytics: React.FC = () => {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${activeTab === tab ? 'bg-orange-600 text-white shadow-lg shadow-orange-500/30' : 'text-slate-500 hover:text-white'}`}
+              className={`px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${activeTab === tab ? 'bg-red-600 text-white shadow-lg shadow-red-500/30' : 'text-slate-500 hover:text-white'}`}
             >
               {tab}
             </button>
@@ -285,11 +285,11 @@ const BIAnalytics: React.FC = () => {
           {activeTab === 'finance' && finBI && (
             <>
               <VisualCard title="Revenue Flow" icon={<Activity />} sub="Hourly DB Snapshot">
-                <ResponsiveContainer><LineChart data={finBI.hourlyVelocity}><CartesianGrid stroke="#1e293b" /><XAxis dataKey="hour" stroke="#475569" style={{ fontSize: 10 }} /><YAxis stroke="#475569" style={{ fontSize: 10 }} /><Tooltip /><Line type="step" dataKey="rev" stroke="#f97316" strokeWidth={4} dot={{ r: 4, fill: '#f97316' }} /></LineChart></ResponsiveContainer>
+                <ResponsiveContainer><LineChart data={finBI.hourlyVelocity}><CartesianGrid stroke="#1e293b" /><XAxis dataKey="hour" stroke="#475569" style={{ fontSize: 10 }} /><YAxis stroke="#475569" style={{ fontSize: 10 }} /><Tooltip /><Line type="step" dataKey="rev" stroke="#EA4643" strokeWidth={4} dot={{ r: 4, fill: '#EA4643' }} /></LineChart></ResponsiveContainer>
               </VisualCard>
               <VisualCard title="Yield Margin" icon={<Thermometer />} sub="Gross Fiscal Delta">
                 <div className="flex flex-col items-center justify-center h-full relative">
-                  <PieChart width={250} height={140}><Pie data={[{ v: finBI.margin }, { v: 100 - finBI.margin }]} innerRadius={70} outerRadius={90} startAngle={180} endAngle={0} dataKey="v"><Cell fill="#f97316" /><Cell fill="#0f172a" /></Pie></PieChart>
+                  <PieChart width={250} height={140}><Pie data={[{ v: finBI.margin }, { v: 100 - finBI.margin }]} innerRadius={70} outerRadius={90} startAngle={180} endAngle={0} dataKey="v"><Cell fill="#EA4643" /><Cell fill="#0f172a" /></Pie></PieChart>
                   <div className="absolute top-[60%] text-center"><span className="text-5xl font-black text-white">{finBI.margin.toFixed(1)}%</span></div>
                 </div>
               </VisualCard>
@@ -328,10 +328,10 @@ const BIAnalytics: React.FC = () => {
                 <div className="flex items-center justify-center h-full"><span className={`text-6xl font-black ${hrBI.attritionRisk > 10 ? 'text-rose-500' : 'text-emerald-500'}`}>{hrBI.attritionRisk.toFixed(1)}%</span></div>
               </VisualCard>
               <VisualCard title="Contribution" icon={<User />} sub="Weighted Productivity">
-                <ResponsiveContainer><BarChart data={hrBI.contribution}><XAxis dataKey="name" stroke="#475569" style={{ fontSize: 10 }} /><Bar dataKey="val" fill="#f97316" radius={[6, 6, 0, 0]} /></BarChart></ResponsiveContainer>
+                <ResponsiveContainer><BarChart data={hrBI.contribution}><XAxis dataKey="name" stroke="#475569" style={{ fontSize: 10 }} /><Bar dataKey="val" fill="#EA4643" radius={[6, 6, 0, 0]} /></BarChart></ResponsiveContainer>
               </VisualCard>
               <VisualCard title="Payroll Matrix" icon={<Database />} sub="Salary Density Tree">
-                <ResponsiveContainer><Treemap data={hrBI.payrollTree.children} dataKey="size" stroke="#000" fill="#f97316" /></ResponsiveContainer>
+                <ResponsiveContainer><Treemap data={hrBI.payrollTree.children} dataKey="size" stroke="#000" fill="#EA4643" /></ResponsiveContainer>
               </VisualCard>
             </>
           )}
@@ -339,7 +339,7 @@ const BIAnalytics: React.FC = () => {
           {activeTab === 'inventory' && invBI && (
             <>
               <VisualCard title="Turnover" icon={<Zap />} sub="Velocity Vector">
-                <div className="flex items-center justify-center h-full text-[100px] font-black text-orange-500">{invBI.turnover.toFixed(1)}<span className="text-xl">x</span></div>
+                <div className="flex items-center justify-center h-full text-[100px] font-black text-red-500">{invBI.turnover.toFixed(1)}<span className="text-xl">x</span></div>
               </VisualCard>
               <VisualCard title="Stall Nodes" icon={<Skull />} sub="Stagnant > 30 Days">
                 <div className="space-y-4 overflow-y-auto max-h-full pr-2 custom-scrollbar">
@@ -347,7 +347,7 @@ const BIAnalytics: React.FC = () => {
                 </div>
               </VisualCard>
               <VisualCard title="Stock Exhaustion" icon={<Timer />} sub="Nodes Under 10 Days">
-                <div className="space-y-4">{invBI.stockOutRisk.map(i => <div key={i.name} className="space-y-2"><div className="flex justify-between text-[10px] font-black"><span>{i.name}</span><span>{i.daysLeft.toFixed(1)} Days Left</span></div><div className="h-1 bg-slate-900 rounded-full"><motion.div initial={{ width: 0 }} animate={{ width: `${(i.daysLeft / 10) * 100}%` }} className="h-full bg-orange-500" /></div></div>)}</div>
+                <div className="space-y-4">{invBI.stockOutRisk.map(i => <div key={i.name} className="space-y-2"><div className="flex justify-between text-[10px] font-black"><span>{i.name}</span><span>{i.daysLeft.toFixed(1)} Days Left</span></div><div className="h-1 bg-slate-900 rounded-full"><motion.div initial={{ width: 0 }} animate={{ width: `${(i.daysLeft / 10) * 100}%` }} className="h-full bg-red-500" /></div></div>)}</div>
               </VisualCard>
             </>
           )}
@@ -358,7 +358,7 @@ const BIAnalytics: React.FC = () => {
                 <ResponsiveContainer><AreaChart data={opsBI.meetingLoad}><Area dataKey="load" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.1} strokeWidth={4} /></AreaChart></ResponsiveContainer>
               </VisualCard>
               <VisualCard title="Capacity Delta" icon={<Users />} sub="Filled vs Cap">
-                <ResponsiveContainer><PieChart><Pie data={opsBI.shiftUtilization} innerRadius={60} outerRadius={90} dataKey="value" startAngle={90} endAngle={450} paddingAngle={5}><Cell fill="#f97316" /><Cell fill="#0f172a" /></Pie><Tooltip /></PieChart></ResponsiveContainer>
+                <ResponsiveContainer><PieChart><Pie data={opsBI.shiftUtilization} innerRadius={60} outerRadius={90} dataKey="value" startAngle={90} endAngle={450} paddingAngle={5}><Cell fill="#EA4643" /><Cell fill="#0f172a" /></Pie><Tooltip /></PieChart></ResponsiveContainer>
               </VisualCard>
               <VisualCard title="Venue Load" icon={<Box />} sub="Room Usage Estimate">
                 <ResponsiveContainer><BarChart data={opsBI.roomEff}><XAxis dataKey="room" hide /><Tooltip /><Bar dataKey="hrs" fill="#14b8a6" radius={[6, 6, 0, 0]} /></BarChart></ResponsiveContainer>
@@ -400,7 +400,7 @@ const VisualCard = ({ title, icon, sub, children, wide }: any) => (
   >
     <div className="flex items-center justify-between mb-8 relative z-10">
       <div className="flex gap-4 items-center">
-        <div className="p-4 bg-slate-900 text-orange-400 rounded-2xl group-hover:bg-orange-600 group-hover:text-white transition-all transform group-hover:rotate-6">
+        <div className="p-4 bg-slate-900 text-red-400 rounded-2xl group-hover:bg-red-600 group-hover:text-white transition-all transform group-hover:rotate-6">
           {React.cloneElement(icon as any, { size: 22 })}
         </div>
         <div>
@@ -408,12 +408,12 @@ const VisualCard = ({ title, icon, sub, children, wide }: any) => (
           <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">{sub}</p>
         </div>
       </div>
-      <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse shadow-[0_0_15px_#f97316]" />
+      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_15px_#EA4643]" />
     </div>
     <div className="flex-1 min-h-0 relative z-10">
       {children}
     </div>
-    <div className="absolute top-0 right-0 w-48 h-48 bg-orange-500/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 group-hover:bg-orange-500/10" />
+    <div className="absolute top-0 right-0 w-48 h-48 bg-red-500/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 group-hover:bg-red-500/10" />
   </motion.div>
 );
 

@@ -36,7 +36,7 @@ const AIStrategy: React.FC = () => {
   return (
     <div className="space-y-6 page-transition max-w-4xl mx-auto">
       <div className="text-center space-y-2 py-8">
-        <div className="w-16 h-16 bg-orange-600 rounded-2xl flex items-center justify-center mx-auto shadow-xl shadow-orange-500/20">
+        <div className="w-16 h-16 bg-red-600 rounded-2xl flex items-center justify-center mx-auto shadow-xl shadow-red-500/20">
            <BrainCircuit size={32} className="text-white" />
         </div>
         <h1 className="text-3xl font-bold text-slate-900">AI Strategy Engine</h1>
@@ -50,12 +50,12 @@ const AIStrategy: React.FC = () => {
                value={prompt}
                onChange={(e) => setPrompt(e.target.value)}
                placeholder="e.g. Based on current site burn rates, what is our projected cash flow for Q4 2026?"
-               className="w-full h-32 p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-orange-500/10 transition-all text-slate-800"
+               className="w-full h-32 p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-4 focus:ring-red-500/10 transition-all text-slate-800"
             />
             <button 
                onClick={generateStrategy}
                disabled={loading}
-               className="w-full py-4 bg-orange-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-orange-700 disabled:bg-slate-300 transition-all shadow-lg"
+               className="w-full py-4 bg-red-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-700 disabled:bg-slate-300 transition-all shadow-lg"
             >
                {loading ? <Loader2 className="animate-spin" /> : <><Sparkles size={18} /> Formulate Strategic Insight</>}
             </button>
@@ -63,7 +63,7 @@ const AIStrategy: React.FC = () => {
 
          {result && (
            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-100 prose prose-slate max-w-none">
-              <div className="flex items-center gap-2 mb-4 text-orange-600">
+              <div className="flex items-center gap-2 mb-4 text-red-600">
                  <Bot size={20} />
                  <span className="font-bold text-sm">Strategic Output</span>
               </div>
@@ -75,7 +75,7 @@ const AIStrategy: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-         <div className="p-4 bg-orange-50 text-blue-800 rounded-2xl border border-orange-100 flex items-center justify-between group cursor-pointer">
+         <div className="p-4 bg-red-50 text-blue-800 rounded-2xl border border-red-100 flex items-center justify-between group cursor-pointer">
             <div className="text-sm font-bold">Forecast 2027 Headcount</div>
             <ArrowRight size={18} className="opacity-0 group-hover:opacity-100 transition-all" />
          </div>

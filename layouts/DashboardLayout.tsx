@@ -25,7 +25,7 @@ const DashboardLayout: React.FC = () => {
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
-        <div className="w-8 h-8 border-4 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -47,7 +47,7 @@ const DashboardLayout: React.FC = () => {
         className="bg-white border-r border-slate-200 flex flex-col z-50 overflow-hidden shadow-sm"
       >
         <div className="h-16 flex items-center px-6 border-b border-slate-100 shrink-0">
-          <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center shrink-0 shadow-sm shadow-orange-200">
+          <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center shrink-0 shadow-sm shadow-red-200">
             <span className="text-white font-bold">Q</span>
           </div>
           <AnimatePresence>
@@ -91,12 +91,12 @@ const DashboardLayout: React.FC = () => {
                         to={item.href}
                         className={`flex items-center px-3 py-2 rounded-lg transition-all group relative ${
                           isActive 
-                            ? 'bg-orange-50 text-orange-600 font-semibold' 
+                            ? 'bg-red-50 text-red-600 font-semibold' 
                             : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                         }`}
                         title={!sidebarOpen ? item.label : ''}
                       >
-                        <span className={`${isActive ? 'text-orange-600' : 'text-slate-400 group-hover:text-slate-600'}`}>
+                        <span className={`${isActive ? 'text-red-600' : 'text-slate-400 group-hover:text-slate-600'}`}>
                           {ICON_MAP[item.icon]}
                         </span>
                         <AnimatePresence mode="wait">
@@ -114,7 +114,7 @@ const DashboardLayout: React.FC = () => {
                         {isActive && (
                           <motion.div 
                             layoutId="activeNav"
-                            className="absolute left-0 w-1 h-6 bg-orange-600 rounded-r-full"
+                            className="absolute left-0 w-1 h-6 bg-red-600 rounded-r-full"
                           />
                         )}
                       </Link>
@@ -168,10 +168,10 @@ const DashboardLayout: React.FC = () => {
             <div className="flex items-center space-x-3 cursor-pointer group">
               <div className="flex flex-col items-end mr-1">
                 <span className="text-sm font-semibold text-slate-700">{user?.email?.split('@')[0] || 'User'}</span>
-                <span className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">{userRole}</span>
+                <span className="text-[10px] font-bold text-red-600 uppercase tracking-wider">{userRole}</span>
               </div>
-              <div className="w-9 h-9 bg-orange-50 rounded-lg flex items-center justify-center overflow-hidden border border-blue-100 group-hover:border-blue-300 transition-all">
-                <User size={20} className="text-orange-600" />
+              <div className="w-9 h-9 bg-red-50 rounded-lg flex items-center justify-center overflow-hidden border border-blue-100 group-hover:border-blue-300 transition-all">
+                <User size={20} className="text-red-600" />
               </div>
             </div>
           </div>

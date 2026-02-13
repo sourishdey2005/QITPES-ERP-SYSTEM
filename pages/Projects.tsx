@@ -134,7 +134,7 @@ const Projects: React.FC = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => openModal()}
-            className="flex items-center justify-center px-6 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700 font-black shadow-lg shadow-orange-500/20 transition-all text-xs uppercase tracking-widest"
+            className="flex items-center justify-center px-6 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 font-black shadow-lg shadow-red-500/20 transition-all text-xs uppercase tracking-widest"
           >
             <Plus size={18} className="mr-2" /> Initialize Site
           </motion.button>
@@ -154,7 +154,7 @@ const Projects: React.FC = () => {
               <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                 <div>
                   <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter">{editId ? 'Update Site Registry' : 'Initialize New Project Site'}</h3>
-                  <p className="text-[10px] font-bold text-orange-600 uppercase tracking-widest mt-1">Enterprise Configuration Console</p>
+                  <p className="text-[10px] font-bold text-red-600 uppercase tracking-widest mt-1">Enterprise Configuration Console</p>
                 </div>
                 <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 p-2 hover:bg-white rounded-full transition-all shadow-sm"><X size={24} /></button>
               </div>
@@ -168,7 +168,7 @@ const Projects: React.FC = () => {
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       placeholder="e.g. Nagpur Logistics Hub"
-                      className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-orange-500/5 transition-all"
+                      className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-red-500/5 transition-all"
                     />
                   </div>
                   <div className="space-y-2">
@@ -179,7 +179,7 @@ const Projects: React.FC = () => {
                       value={formData.client_name}
                       onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
                       placeholder="e.g. Mahindra Realty"
-                      className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-orange-500/5 transition-all"
+                      className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-red-500/5 transition-all"
                     />
                   </div>
                 </div>
@@ -190,7 +190,7 @@ const Projects: React.FC = () => {
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     placeholder="Summary of site operations..."
-                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-orange-500/5 h-24 resize-none"
+                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-red-500/5 h-24 resize-none"
                   />
                 </div>
 
@@ -203,7 +203,7 @@ const Projects: React.FC = () => {
                       value={formData.contract_value}
                       onChange={(e) => setFormData({ ...formData, contract_value: e.target.value })}
                       placeholder="0"
-                      className="w-full p-4 bg-orange-50/30 border border-orange-100 rounded-2xl text-sm font-black outline-none focus:ring-4 focus:ring-orange-500/5"
+                      className="w-full p-4 bg-red-50/30 border border-red-100 rounded-2xl text-sm font-black outline-none focus:ring-4 focus:ring-red-500/5"
                     />
                   </div>
                   <div className="space-y-2">
@@ -214,7 +214,7 @@ const Projects: React.FC = () => {
                       value={formData.budget}
                       onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
                       placeholder="0"
-                      className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-black outline-none focus:ring-4 focus:ring-orange-500/5"
+                      className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-black outline-none focus:ring-4 focus:ring-red-500/5"
                     />
                   </div>
                 </div>
@@ -224,7 +224,7 @@ const Projects: React.FC = () => {
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-black outline-none focus:ring-4 focus:ring-orange-500/5"
+                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-black outline-none focus:ring-4 focus:ring-red-500/5"
                   >
                     <option value="Planning">Planning</option>
                     <option value="Active">Active</option>
@@ -236,7 +236,7 @@ const Projects: React.FC = () => {
                 <button
                   disabled={createProject.isPending}
                   type="submit"
-                  className="w-full py-5 bg-orange-600 text-white rounded-[24px] font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-orange-500/30 hover:bg-orange-700 transition-all flex items-center justify-center gap-3"
+                  className="w-full py-5 bg-red-600 text-white rounded-[24px] font-black text-sm uppercase tracking-[0.2em] shadow-2xl shadow-red-500/30 hover:bg-red-700 transition-all flex items-center justify-center gap-3"
                 >
                   {createProject.isPending ? <Loader2 className="animate-spin" size={20} /> : <><Plus size={20} /> {editId ? 'Apply Global Updates' : 'Initialize Site Registry'}</>}
                 </button>
@@ -254,7 +254,7 @@ const Projects: React.FC = () => {
         <div className="flex items-center gap-3 text-sm font-black text-slate-400 uppercase tracking-widest mr-4">
           <Filter size={16} /> Site Filters
         </div>
-        <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-orange-50 rounded-full blur-3xl opacity-50"></div>
+        <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-red-50 rounded-full blur-3xl opacity-50"></div>
       </motion.div>
 
       {isLoading ? (
@@ -269,28 +269,28 @@ const Projects: React.FC = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
-              className="bg-white rounded-[40px] border border-slate-200 shadow-sm overflow-hidden flex flex-col group hover:border-orange-400 hover:shadow-2xl transition-all relative"
+              className="bg-white rounded-[40px] border border-slate-200 shadow-sm overflow-hidden flex flex-col group hover:border-red-400 hover:shadow-2xl transition-all relative"
             >
               <div className="p-8 flex-1">
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex flex-col gap-1">
                     <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest inline-block w-fit ${project.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
-                      project.status === 'Planning' ? 'bg-orange-50 text-orange-600 border border-orange-100' :
+                      project.status === 'Planning' ? 'bg-red-50 text-red-600 border border-red-100' :
                         'bg-slate-50 text-slate-500'
                       }`}>
                       {project.status}
                     </span>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter flex items-center gap-1 mt-1">
-                      <Building2 size={10} className="text-orange-500" /> {project.client_name || 'Direct Enterprise'}
+                      <Building2 size={10} className="text-red-500" /> {project.client_name || 'Direct Enterprise'}
                     </p>
                   </div>
                   <div className="flex gap-1">
-                    <button onClick={() => openModal(project)} className="p-2 text-slate-300 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"><Edit2 size={14} /></button>
+                    <button onClick={() => openModal(project)} className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"><Edit2 size={14} /></button>
                     <button onClick={() => { if (confirm('Permanently decommission site?')) deleteProject.mutate(project.id); }} className="p-2 text-slate-300 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"><Trash2 size={14} /></button>
                   </div>
                 </div>
 
-                <h3 className="font-black text-slate-900 text-xl mb-2 group-hover:text-orange-600 transition-colors tracking-tighter leading-tight uppercase">{project.name}</h3>
+                <h3 className="font-black text-slate-900 text-xl mb-2 group-hover:text-red-600 transition-colors tracking-tighter leading-tight uppercase">{project.name}</h3>
                 <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed font-medium italic">"{project.description || 'Standard project documentation pending for 2026 audit.'}"</p>
 
                 <div className="mt-8 space-y-5">
@@ -303,14 +303,14 @@ const Projects: React.FC = () => {
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${project.utilization}%` }}
-                        className={`h-full rounded-full ${project.utilization > 90 ? 'bg-red-500' : project.utilization > 50 ? 'bg-orange-500' : 'bg-emerald-500'}`}
+                        className={`h-full rounded-full ${project.utilization > 90 ? 'bg-red-500' : project.utilization > 50 ? 'bg-red-500' : 'bg-emerald-500'}`}
                       />
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between pt-6 border-t border-slate-50">
                     <div className="flex items-center text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100/50 px-3 py-1.5 rounded-full">
-                      <Calendar size={12} className="mr-2 text-orange-500" />
+                      <Calendar size={12} className="mr-2 text-red-500" />
                       <span>{project.start_date ? new Date(project.start_date).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' }) : 'JAN 2026'}</span>
                     </div>
                     <div className="flex flex-col items-end">
@@ -322,10 +322,10 @@ const Projects: React.FC = () => {
               </div>
               <div className="p-6 border-t border-slate-50 bg-slate-50/10 flex items-center justify-between relative overflow-hidden group/audit">
                 <div className="text-[10px] text-slate-300 uppercase font-black tracking-widest relative z-10">REF: QIT-26-{project.id.slice(0, 4).toUpperCase()}</div>
-                <button className="flex items-center text-[10px] font-black text-orange-600 uppercase tracking-[0.2em] relative z-10 hover:text-blue-800 transition-colors">
+                <button className="flex items-center text-[10px] font-black text-red-600 uppercase tracking-[0.2em] relative z-10 hover:text-blue-800 transition-colors">
                   Site Audit <ChevronRight size={14} className="ml-1 group-hover/audit:translate-x-1 transition-transform" />
                 </button>
-                <div className="absolute inset-x-0 bottom-0 h-0 group-hover/audit:h-full bg-orange-50/50 transition-all duration-500 -z-0"></div>
+                <div className="absolute inset-x-0 bottom-0 h-0 group-hover/audit:h-full bg-red-50/50 transition-all duration-500 -z-0"></div>
               </div>
             </motion.div>
           ))}

@@ -84,7 +84,7 @@ const Fleet: React.FC = () => {
         </div>
         <button 
           onClick={() => setIsModalOpen(true)} 
-          className="bg-orange-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-xl hover:bg-orange-700 transition-all flex items-center gap-2"
+          className="bg-red-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-xl hover:bg-red-700 transition-all flex items-center gap-2"
         >
           <Plus size={18} /> Register Asset
         </button>
@@ -100,7 +100,7 @@ const Fleet: React.FC = () => {
       <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
          <div className="p-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
             <h3 className="font-bold text-slate-800 flex items-center gap-2">
-              <Activity size={18} className="text-orange-500" /> Operational Unit Registry
+              <Activity size={18} className="text-red-500" /> Operational Unit Registry
             </h3>
          </div>
          <table className="w-full text-left">
@@ -115,7 +115,7 @@ const Fleet: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm font-medium">
                {isLoading ? (
-                 <tr><td colSpan={5} className="p-10 text-center"><Loader2 className="animate-spin mx-auto text-orange-600" /></td></tr>
+                 <tr><td colSpan={5} className="p-10 text-center"><Loader2 className="animate-spin mx-auto text-red-600" /></td></tr>
                ) : fleet?.length === 0 ? (
                  <tr><td colSpan={5} className="px-8 py-16 text-center text-slate-400 italic">No assets detected in enterprise registry.</td></tr>
                ) : fleet?.map((v: any) => (
@@ -141,7 +141,7 @@ const Fleet: React.FC = () => {
                      <td className="px-8 py-5">
                         <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tight ${
                           v.status === 'Ready' ? 'bg-green-50 text-green-600' :
-                          v.status === 'In Transit' ? 'bg-orange-50 text-orange-600' :
+                          v.status === 'In Transit' ? 'bg-red-50 text-red-600' :
                           v.status === 'Maintenance' ? 'bg-amber-50 text-amber-600' :
                           'bg-slate-100 text-slate-600'
                         }`}>
@@ -151,7 +151,7 @@ const Fleet: React.FC = () => {
                      <td className="px-8 py-5 text-right">
                         <button 
                           onClick={() => handleOpenUpdate(v)}
-                          className="flex items-center gap-2 ml-auto px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-orange-600 hover:text-white hover:border-orange-600 transition-all font-bold text-xs"
+                          className="flex items-center gap-2 ml-auto px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-red-600 hover:text-white hover:border-red-600 transition-all font-bold text-xs"
                         >
                            <ArrowRightLeft size={14} /> Update Lifecycle
                         </button>
@@ -170,7 +170,7 @@ const Fleet: React.FC = () => {
               <div className="p-8 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
                 <div>
                   <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Lifecycle Intelligence</h3>
-                  <p className="text-xs font-bold text-orange-600 uppercase tracking-widest mt-0.5">{selectedVehicle.vehicle_number} Registry Update</p>
+                  <p className="text-xs font-bold text-red-600 uppercase tracking-widest mt-0.5">{selectedVehicle.vehicle_number} Registry Update</p>
                 </div>
                 <button onClick={() => setIsUpdateModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-2 rounded-full hover:bg-white transition-all shadow-sm"><X size={20}/></button>
               </div>
@@ -181,7 +181,7 @@ const Fleet: React.FC = () => {
                        <select 
                          value={updateData.status} 
                          onChange={(e) => setUpdateData({...updateData, status: e.target.value})}
-                         className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold text-sm focus:ring-4 focus:ring-orange-500/5 transition-all"
+                         className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold text-sm focus:ring-4 focus:ring-red-500/5 transition-all"
                        >
                          <option value="Ready">Ready (In Hub)</option>
                          <option value="In Transit">In Transit (Active Dispatch)</option>
@@ -205,14 +205,14 @@ const Fleet: React.FC = () => {
                     <textarea 
                       value={updateData.work_details}
                       onChange={(e) => setUpdateData({...updateData, work_details: e.target.value})}
-                      className="w-full h-28 p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none text-sm font-medium focus:ring-4 focus:ring-orange-500/5 transition-all"
+                      className="w-full h-28 p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none text-sm font-medium focus:ring-4 focus:ring-red-500/5 transition-all"
                       placeholder="Specify mission details, load specs, or maintenance requirements..."
                     />
                  </div>
 
-                 <div className="p-5 bg-orange-50/50 border border-orange-100 rounded-2xl flex items-start gap-3">
-                    <ClipboardCheck className="text-orange-500 shrink-0 mt-0.5" size={18} />
-                    <p className="text-[10px] text-orange-700 font-bold leading-relaxed uppercase">Enterprise Assurance: This update will trigger an audit trail entry in the Global Compliance Ledger.</p>
+                 <div className="p-5 bg-red-50/50 border border-red-100 rounded-2xl flex items-start gap-3">
+                    <ClipboardCheck className="text-red-500 shrink-0 mt-0.5" size={18} />
+                    <p className="text-[10px] text-red-700 font-bold leading-relaxed uppercase">Enterprise Assurance: This update will trigger an audit trail entry in the Global Compliance Ledger.</p>
                  </div>
 
                  <button 
@@ -237,8 +237,8 @@ const Fleet: React.FC = () => {
 };
 
 const StatCard = ({ label, value, icon, color }: any) => (
-  <div className="bg-white p-6 rounded-[24px] border border-slate-200 shadow-sm flex items-center gap-4 hover:border-orange-200 transition-all cursor-default group">
-    <div className={`p-4 rounded-2xl bg-${color}-50 text-${color}-600 group-hover:bg-orange-600 group-hover:text-white transition-colors duration-500`}>{icon}</div>
+  <div className="bg-white p-6 rounded-[24px] border border-slate-200 shadow-sm flex items-center gap-4 hover:border-red-200 transition-all cursor-default group">
+    <div className={`p-4 rounded-2xl bg-${color}-50 text-${color}-600 group-hover:bg-red-600 group-hover:text-white transition-colors duration-500`}>{icon}</div>
     <div>
       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</p>
       <h3 className="text-2xl font-black text-slate-900">{value}</h3>

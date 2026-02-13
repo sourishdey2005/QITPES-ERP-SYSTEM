@@ -72,7 +72,7 @@ const Register: React.FC = () => {
         transition={{ duration: 0.5 }}
         className="max-w-[1000px] w-full bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-slate-200"
       >
-        <div className="md:w-1/2 bg-orange-700 p-12 text-white flex flex-col justify-between relative overflow-hidden">
+        <div className="md:w-1/2 bg-red-700 p-12 text-white flex flex-col justify-between relative overflow-hidden">
           <div className="relative z-10">
             <motion.div 
               initial={{ y: -10, opacity: 0 }}
@@ -94,7 +94,7 @@ const Register: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="text-orange-100 mt-4 text-lg max-w-sm"
+              className="text-red-100 mt-4 text-lg max-w-sm"
             >
               Initialize your enterprise account for the 2026 fiscal year operations.
             </motion.p>
@@ -103,7 +103,7 @@ const Register: React.FC = () => {
           <div className="relative z-10 mt-12 space-y-4">
             <div className="p-4 bg-white/10 rounded-lg border border-white/10">
               <h4 className="font-bold text-sm text-white">Security Standards</h4>
-              <p className="text-xs text-orange-200 mt-1">RLS Protected Database & End-to-End Encryption.</p>
+              <p className="text-xs text-red-200 mt-1">RLS Protected Database & End-to-End Encryption.</p>
             </div>
             <p className="text-xs text-blue-300 italic">© 2026 QITPES International Systems.</p>
           </div>
@@ -135,7 +135,7 @@ const Register: React.FC = () => {
                       animate={{ opacity: 1, height: 'auto' }}
                       className={`p-4 rounded-lg border font-medium flex gap-3 ${
                         error.type === 'disabled' 
-                          ? 'bg-orange-50 text-blue-800 border-orange-200' 
+                          ? 'bg-red-50 text-blue-800 border-red-200' 
                           : error.type === 'rate-limit'
                           ? 'bg-amber-50 text-amber-700 border-amber-200'
                           : 'bg-red-50 text-red-700 border-red-100'
@@ -157,7 +157,7 @@ const Register: React.FC = () => {
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Full Name</label>
                       <div className="relative group">
-                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 group-focus-within:text-orange-500 transition-colors">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 group-focus-within:text-red-500 transition-colors">
                           <User size={18} />
                         </span>
                         <input 
@@ -165,7 +165,7 @@ const Register: React.FC = () => {
                           required
                           value={formData.fullName}
                           onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-                          className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                          className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-red-500 outline-none transition-all"
                           placeholder="e.g. Abhradeep Hazra"
                         />
                       </div>
@@ -174,7 +174,7 @@ const Register: React.FC = () => {
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Work Email</label>
                       <div className="relative group">
-                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 group-focus-within:text-orange-500 transition-colors">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 group-focus-within:text-red-500 transition-colors">
                           <Mail size={18} />
                         </span>
                         <input 
@@ -182,7 +182,7 @@ const Register: React.FC = () => {
                           required
                           value={formData.email}
                           onChange={(e) => setFormData({...formData, email: e.target.value})}
-                          className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                          className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-red-500 outline-none transition-all"
                           placeholder="abhradeephazra99@gmail.com"
                         />
                       </div>
@@ -191,7 +191,7 @@ const Register: React.FC = () => {
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Password</label>
                       <div className="relative group">
-                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 group-focus-within:text-orange-500 transition-colors">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 group-focus-within:text-red-500 transition-colors">
                           <Lock size={18} />
                         </span>
                         <input 
@@ -199,7 +199,7 @@ const Register: React.FC = () => {
                           required
                           value={formData.password}
                           onChange={(e) => setFormData({...formData, password: e.target.value})}
-                          className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                          className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-red-500 outline-none transition-all"
                           placeholder="Min 6 characters"
                         />
                       </div>
@@ -208,13 +208,13 @@ const Register: React.FC = () => {
                     <div>
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">System Role</label>
                       <div className="relative group">
-                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 group-focus-within:text-orange-500 transition-colors">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 group-focus-within:text-red-500 transition-colors">
                           <Briefcase size={18} />
                         </span>
                         <select
                           value={formData.role}
                           onChange={(e) => setFormData({...formData, role: e.target.value as UserRole})}
-                          className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-orange-500 outline-none transition-all appearance-none"
+                          className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-red-500 outline-none transition-all appearance-none"
                         >
                           <option value="owner">Owner / CEO</option>
                           <option value="director">Site Director</option>
@@ -229,13 +229,13 @@ const Register: React.FC = () => {
                     whileTap={{ scale: 0.98 }}
                     type="submit"
                     disabled={loading}
-                    className="w-full flex items-center justify-center py-3 px-4 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 disabled:bg-slate-400 transition-all shadow-lg shadow-orange-500/20 mt-4"
+                    className="w-full flex items-center justify-center py-3 px-4 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 disabled:bg-slate-400 transition-all shadow-lg shadow-red-500/20 mt-4"
                   >
                     {loading ? 'Initializing...' : 'Initialize Account'} <ArrowRight size={18} className="ml-2" />
                   </motion.button>
 
                   <p className="text-center text-sm text-slate-500 mt-6">
-                    Already have an account? <Link to="/login" className="text-orange-600 font-bold hover:underline transition-all">Log In</Link>
+                    Already have an account? <Link to="/login" className="text-red-600 font-bold hover:underline transition-all">Log In</Link>
                   </p>
                 </form>
               </motion.div>

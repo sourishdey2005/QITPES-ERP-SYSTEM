@@ -108,7 +108,7 @@ const Machinery: React.FC = () => {
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-orange-600 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg shadow-orange-500/20 hover:bg-orange-700 flex items-center gap-2 transition-all"
+          className="bg-red-600 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg shadow-red-500/20 hover:bg-red-700 flex items-center gap-2 transition-all"
         >
           <Plus size={18} /> Register Asset
         </button>
@@ -171,7 +171,7 @@ const Machinery: React.FC = () => {
           <motion.div key={machine.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:border-blue-300 transition-all group overflow-hidden relative">
             <div className="relative z-10">
               <div className="flex justify-between items-start mb-4">
-                <div className="p-3 bg-slate-50 rounded-2xl text-slate-400 group-hover:bg-orange-50 group-hover:text-orange-500 transition-colors">
+                <div className="p-3 bg-slate-50 rounded-2xl text-slate-400 group-hover:bg-red-50 group-hover:text-red-500 transition-colors">
                   <Zap size={24} />
                 </div>
                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${machine.status === 'Healthy' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
@@ -179,14 +179,14 @@ const Machinery: React.FC = () => {
                 </span>
               </div>
 
-              <h3 className="font-black text-slate-900 text-lg group-hover:text-orange-600 transition-colors">{machine.name}</h3>
-              <p className="text-xs text-slate-500 font-bold flex items-center gap-1 mt-0.5 uppercase tracking-tighter"><MapPin size={12} className="text-orange-500" /> {machine.site_location}</p>
+              <h3 className="font-black text-slate-900 text-lg group-hover:text-red-600 transition-colors">{machine.name}</h3>
+              <p className="text-xs text-slate-500 font-bold flex items-center gap-1 mt-0.5 uppercase tracking-tighter"><MapPin size={12} className="text-red-500" /> {machine.site_location}</p>
 
               <div className="grid grid-cols-2 gap-3 mt-6">
                 <div className="bg-slate-50/80 p-3 rounded-2xl border border-slate-100 flex flex-col justify-center items-center">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter mb-1">Engine Load</p>
                   <div className="flex items-center gap-2">
-                    <Gauge size={14} className="text-orange-500" />
+                    <Gauge size={14} className="text-red-500" />
                     <span className="text-sm font-black text-slate-900">{machine.engine_hours}h</span>
                   </div>
                 </div>
@@ -202,7 +202,7 @@ const Machinery: React.FC = () => {
               <div className="flex gap-2 mt-4 pt-4 border-t border-slate-100 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={() => handleEdit(machine)}
-                  className="flex-1 py-2 rounded-xl bg-orange-50 text-orange-600 text-xs font-bold uppercase hover:bg-orange-100 flex items-center justify-center gap-2"
+                  className="flex-1 py-2 rounded-xl bg-red-50 text-red-600 text-xs font-bold uppercase hover:bg-red-100 flex items-center justify-center gap-2"
                 >
                   <Pencil size={12} /> Edit
                 </button>
@@ -214,7 +214,7 @@ const Machinery: React.FC = () => {
                 </button>
               </div>
             </div>
-            <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-slate-50 rounded-full group-hover:bg-orange-50 group-hover:scale-110 transition-all duration-700 -z-0"></div>
+            <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-slate-50 rounded-full group-hover:bg-red-50 group-hover:scale-110 transition-all duration-700 -z-0"></div>
           </motion.div>
         ))}
       </div>

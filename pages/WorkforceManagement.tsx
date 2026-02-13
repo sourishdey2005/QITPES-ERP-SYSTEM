@@ -83,7 +83,7 @@ const WorkforceManagement: React.FC = () => {
     const mUpdateTransfer = updateStatus('transfer_requests');
     const mUpdateGrievance = updateStatus('grievances');
 
-    if (isLoading) return <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-orange-600" /></div>;
+    if (isLoading) return <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-red-600" /></div>;
 
     return (
         <div className="space-y-8 page-transition">
@@ -143,7 +143,7 @@ const WorkforceManagement: React.FC = () => {
                                             </td>
                                             <td className="px-10 py-5 text-right">
                                                 <div className="flex justify-end gap-2">
-                                                    <button className="p-2 hover:bg-orange-50 text-orange-600 rounded-lg transition-all"><Edit2 size={14} /></button>
+                                                    <button className="p-2 hover:bg-red-50 text-red-600 rounded-lg transition-all"><Edit2 size={14} /></button>
                                                     <button onClick={() => { setModalType('locker'); setSelectedItem(e); setIsModalOpen(true); }} className="p-2 hover:bg-slate-100 text-slate-400 rounded-lg transition-all"><Lock size={14} /></button>
                                                 </div>
                                             </td>
@@ -243,7 +243,7 @@ const WorkforceManagement: React.FC = () => {
                             </div>
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                 {db?.memos.map(m => (
-                                    <div key={m.id} className="bg-white p-10 rounded-[48px] border border-slate-200 relative overflow-hidden group hover:border-orange-500 transition-all">
+                                    <div key={m.id} className="bg-white p-10 rounded-[48px] border border-slate-200 relative overflow-hidden group hover:border-red-500 transition-all">
                                         {m.is_urgent && <div className="absolute top-0 right-0 px-6 py-2 bg-red-600 text-white text-[9px] font-black uppercase tracking-widest rounded-bl-3xl">Urgent Action Required</div>}
                                         <div className="space-y-4">
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{new Date(m.created_at).toLocaleString()} • To: {m.target_audience}</p>
@@ -251,7 +251,7 @@ const WorkforceManagement: React.FC = () => {
                                             <p className="text-sm font-medium text-slate-500 leading-relaxed italic">"{m.content}"</p>
                                         </div>
                                         <div className="mt-8 flex items-center gap-3">
-                                            <div className="w-8 h-8 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center"><Mail size={14} /></div>
+                                            <div className="w-8 h-8 bg-red-50 text-red-600 rounded-lg flex items-center justify-center"><Mail size={14} /></div>
                                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Office of Executive Command</span>
                                         </div>
                                     </div>
@@ -424,15 +424,15 @@ const LockerView = ({ employee, documents }: any) => {
             </div>
             <div className="grid grid-cols-2 gap-4">
                 {documents?.map((d: any) => (
-                    <div key={d.id} className="p-6 bg-slate-50 border border-slate-200 rounded-3xl flex items-center justify-between group hover:border-orange-500 transition-all">
+                    <div key={d.id} className="p-6 bg-slate-50 border border-slate-200 rounded-3xl flex items-center justify-between group hover:border-red-500 transition-all">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-white border rounded-xl flex items-center justify-center text-slate-400 group-hover:text-orange-600"><FileText size={18} /></div>
+                            <div className="w-10 h-10 bg-white border rounded-xl flex items-center justify-center text-slate-400 group-hover:text-red-600"><FileText size={18} /></div>
                             <span className="text-[10px] font-black uppercase tracking-tighter text-slate-700">{d.document_name}</span>
                         </div>
-                        <button className="text-slate-300 hover:text-orange-600"><Plus size={16} /></button>
+                        <button className="text-slate-300 hover:text-red-600"><Plus size={16} /></button>
                     </div>
                 ))}
-                <button className="p-6 border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center text-slate-400 hover:text-orange-600 h-28 group">
+                <button className="p-6 border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center text-slate-400 hover:text-red-600 h-28 group">
                     <Folder size={20} className="mb-2 group-hover:scale-110 transition-transform" />
                     <span className="text-[8px] font-black uppercase tracking-widest">Inject Asset</span>
                 </button>
