@@ -20,7 +20,7 @@ VITE_GEMINI_API_KEY=your_api_key_here
 
 **Example:**
 ```env
-VITE_GEMINI_API_KEY=AIzaSyABC123def456GHI789jkl012MNO345pqr
+VITE_GEMINI_API_KEY=AIzaSyABC123def456GHI789jkl012MNO345pq
 ```
 
 ## Step 2: Restart Development Server
