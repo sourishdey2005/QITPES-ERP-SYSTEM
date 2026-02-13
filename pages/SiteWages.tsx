@@ -95,30 +95,42 @@ const SiteWages: React.FC = () => {
     }
   });
 
-  const toggleAttendance = useMutation({
-    mutationFn: async ({ worker_id, date, current_status }: any) => {
-      if (current_status === 'none') {
+  const setAttendance = useMutation({
+    mutationFn: async ({ worker_id, date, status }: any) => {
+      // Check for existing record to determine if we update, insert, or delete
+      const { data: existing, error: fetchError } = await supabase
+        .from('contract_attendance')
+        .select('id, status')
+        .eq('worker_id', worker_id)
+        .eq('attendance_date', date)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      if (existing) {
+        if (existing.status === status) {
+          // Clicking the same status again toggles it off
+          const { error } = await supabase.from('contract_attendance').delete().eq('id', existing.id);
+          if (error) throw error;
+        } else {
+          // Changing status (e.g., from Present to Absent)
+          const { error } = await supabase.from('contract_attendance').update({ status }).eq('id', existing.id);
+          if (error) throw error;
+        }
+      } else {
+        // New marking
         const { error } = await supabase.from('contract_attendance').insert([{
           worker_id,
           attendance_date: date,
-          status: 'Present'
+          status
         }]);
-        if (error) throw error;
-      } else if (current_status === 'Present') {
-        const { error } = await supabase.from('contract_attendance')
-          .update({ status: 'Absent' })
-          .eq('worker_id', worker_id)
-          .eq('attendance_date', date);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from('contract_attendance')
-          .delete()
-          .eq('worker_id', worker_id)
-          .eq('attendance_date', date);
         if (error) throw error;
       }
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['contract_attendance'] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contract_attendance'] });
+      queryClient.invalidateQueries({ queryKey: ['contract_attendance_month'] });
+    }
   });
 
   // Analytics
@@ -254,18 +266,20 @@ const SiteWages: React.FC = () => {
                           </div>
                           <div className="flex gap-2">
                             <button
-                              onClick={() => toggleAttendance.mutate({ worker_id: w.id, date: selectedDate, current_status: status })}
-                              className={`flex-1 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${status === 'Present' ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-500/20' : 'bg-white text-slate-400 hover:bg-slate-100'
+                              disabled={setAttendance.isPending}
+                              onClick={() => setAttendance.mutate({ worker_id: w.id, date: selectedDate, status: 'Present' })}
+                              className={`flex-1 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${status === 'Present' ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-500/20' : 'bg-white text-slate-400 hover:bg-slate-100'
                                 }`}
                             >
-                              Present
+                              {setAttendance.isPending && setAttendance.variables?.worker_id === w.id && setAttendance.variables?.status === 'Present' ? <Loader2 size={12} className="animate-spin" /> : 'Present'}
                             </button>
                             <button
-                              onClick={() => toggleAttendance.mutate({ worker_id: w.id, date: selectedDate, current_status: status === 'Absent' ? 'Absent_toggle_back' : 'Present' })}
-                              className={`flex-1 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${status === 'Absent' ? 'bg-rose-600 text-white shadow-xl shadow-rose-500/20' : 'bg-white text-slate-400 hover:bg-slate-100'
+                              disabled={setAttendance.isPending}
+                              onClick={() => setAttendance.mutate({ worker_id: w.id, date: selectedDate, status: 'Absent' })}
+                              className={`flex-1 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${status === 'Absent' ? 'bg-rose-600 text-white shadow-xl shadow-rose-500/20' : 'bg-white text-slate-400 hover:bg-slate-100'
                                 }`}
                             >
-                              Absent
+                              {setAttendance.isPending && setAttendance.variables?.worker_id === w.id && setAttendance.variables?.status === 'Absent' ? <Loader2 size={12} className="animate-spin" /> : 'Absent'}
                             </button>
                           </div>
                         </div>
