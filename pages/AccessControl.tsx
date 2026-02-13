@@ -80,7 +80,7 @@ const AccessControl: React.FC = () => {
             queryClient.invalidateQueries({ queryKey: ['approved_users'] });
             setIsModalOpen(false);
             setFormData({ email: '', full_name: '', role: 'accounting', initial_password: '' });
-            alert('User added successfully! Share these credentials with them so they can register.');
+            alert('User Provisioned! They can now log in immediately using the email and password you just set. No further authorization or registration steps are required.');
         },
         onError: (error: any) => {
             alert(`Failed to add user: ${error.message}`);
