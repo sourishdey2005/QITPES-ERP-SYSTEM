@@ -5,7 +5,7 @@ import {
   Wrench, Truck, Landmark, Wallet, ReceiptText, PieChart, UserPlus,
   Clock, FileText, Bell, ShieldCheck, Settings, BrainCircuit,
   GitMerge, Target, Building2, Calendar, Coffee, Video, Monitor,
-  Coins, UserCheck, ShieldAlert, Sparkles
+  Coins, UserCheck, ShieldAlert, Sparkles, FileSpreadsheet
 } from 'lucide-react';
 import { NavItem } from './types';
 
@@ -47,6 +47,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'BI Analytics', href: '/bi', icon: 'bi', roles: ['owner', 'director'], group: 'Analytics' },
   { label: 'AI Strategy', href: '/ai', icon: 'ai', roles: ['owner'], group: 'Analytics' },
   { label: 'AI Data Analysis', href: '/ai-analysis', icon: 'aianalysis', roles: ['owner', 'director'], group: 'Analytics' },
+  { label: 'Data Insights', href: '/data-insights', icon: 'datainsights', roles: ['owner', 'director', 'accounting'], group: 'Analytics' },
 
   // Admin
   { label: 'Workflows', href: '/workflows', icon: 'workflows', roles: ['owner'], group: 'Admin' },
@@ -84,4 +85,5 @@ export const ICON_MAP: Record<string, React.ReactNode> = {
   budget: <Wallet size={18} />,
   maintenance: <ShieldAlert size={18} />,
   aianalysis: <Sparkles size={18} />,
+  datainsights: <FileSpreadsheet size={18} />,
 };

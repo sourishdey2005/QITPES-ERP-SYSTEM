@@ -40,6 +40,7 @@ import RosterShifts from './pages/RosterShifts';
 
 // AI & Data Analysis
 import AIDataAnalysis from './pages/AIDataAnalysis';
+import DataInsights from './pages/DataInsights';
 
 import { UserRole } from './types';
 
@@ -183,6 +184,7 @@ const App: React.FC = () => {
           <Route path="/bi" element={<BIAnalytics />} />
           <Route path="/ai" element={<AIStrategy />} />
           <Route path="/ai-analysis" element={<AIDataAnalysis />} />
+          <Route path="/data-insights" element={<DataInsights />} />
 
           {/* Admin Group */}
           <Route path="/workflows" element={<WorkflowBuilder />} />
