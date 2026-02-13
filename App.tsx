@@ -48,6 +48,7 @@ import BusinessDevelopment from './pages/BusinessDevelopment';
 import Procurement from './pages/Procurement';
 import CRM from './pages/CRM';
 import ContractsManagement from './pages/ContractsManagement';
+import Vendors from './pages/Vendors';
 
 import { UserRole } from './types';
 
@@ -163,6 +164,7 @@ const App: React.FC = () => {
           <Route path="/procurement" element={<Procurement />} />
           <Route path="/crm" element={<CRM />} />
           <Route path="/contracts" element={<ContractsManagement />} />
+          <Route path="/vendors" element={<Vendors />} />
           <Route path="/planning" element={<Planning />} />
           <Route path="/purchasing" element={<Purchasing />} />
           <Route path="/production" element={<Production />} />

@@ -106,4 +106,5 @@ export const ICON_MAP: Record<string, React.ReactNode> = {
   bizdev: <Briefcase size={18} />,
   procurement: <Truck size={18} />,
   contracts: <ShieldCheck size={18} />,
+  suppliers: <Building2 size={18} />,
 };
