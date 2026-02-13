@@ -11,6 +11,7 @@ const motion = motionBase as any;
 const Inventory: React.FC = () => {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ sku: '', name: '', category: 'Consumables', stock_level: '', unit: 'Bags', unit_price: '' });
 
   const { data: items, isLoading } = useQuery({
@@ -30,10 +31,71 @@ const Inventory: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
-      setIsModalOpen(false);
-      setFormData({ sku: '', name: '', category: 'Consumables', stock_level: '', unit: 'Bags', unit_price: '' });
+      closeModal();
     }
   });
+
+  const updateItem = useMutation({
+    mutationFn: async ({ id, ...item }: any) => {
+      const { data, error } = await supabase.from('inventory').update(item).eq('id', id).select();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      closeModal();
+    }
+  });
+
+  const deleteItem = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('inventory').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+    }
+  });
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingId(null);
+    setFormData({ sku: '', name: '', category: 'Consumables', stock_level: '', unit: 'Bags', unit_price: '' });
+  };
+
+  const handleEdit = (item: any) => {
+    setEditingId(item.id);
+    setFormData({
+      sku: item.sku,
+      name: item.name,
+      category: item.category,
+      stock_level: item.stock_level.toString(),
+      unit: item.unit,
+      unit_price: item.unit_price.toString()
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('Are you sure you want to PERMANENTLY remove this item?')) {
+      deleteItem.mutate(id);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const payload = {
+      ...formData,
+      stock_level: parseFloat(formData.stock_level),
+      unit_price: parseFloat(formData.unit_price)
+    };
+
+    if (editingId) {
+      updateItem.mutate({ id: editingId, ...payload });
+    } else {
+      addItem.mutate(payload);
+    }
+  };
 
   const stats = React.useMemo(() => {
     if (!items) return { total: 0, low: 0, val: 0 };
@@ -61,32 +123,47 @@ const Inventory: React.FC = () => {
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
               <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                <h3 className="text-lg font-bold text-slate-900">Register New Inventory SKU</h3>
-                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={20}/></button>
+                <h3 className="text-lg font-bold text-slate-900">{editingId ? 'Update Item' : 'Register New Inventory SKU'}</h3>
+                <button onClick={closeModal} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
               </div>
-              <form onSubmit={(e) => { e.preventDefault(); addItem.mutate({...formData, stock_level: parseFloat(formData.stock_level), unit_price: parseFloat(formData.unit_price)}); }} className="p-6 space-y-4">
+              <form onSubmit={handleSubmit} className="p-6 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">SKU Reference</label>
-                    <input required value={formData.sku} onChange={(e) => setFormData({...formData, sku: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="ITM-2026-X" />
+                    <input required value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="ITM-2026-X" />
                   </div>
                   <div>
                     <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Item Name</label>
-                    <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="Cement Bags" />
+                    <input required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="Cement Bags" />
                   </div>
                 </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Qty</label>
-                    <input required type="number" value={formData.stock_level} onChange={(e) => setFormData({...formData, stock_level: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" />
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Stock Level</label>
+                    <input required type="number" step="0.01" value={formData.stock_level} onChange={(e) => setFormData({ ...formData, stock_level: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="0" />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Unit Price (₹)</label>
-                    <input required type="number" value={formData.unit_price} onChange={(e) => setFormData({...formData, unit_price: e.target.value})} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" />
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Unit (e.g. Bags, Kg)</label>
+                    <input list="units" required value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="Select or type..." />
+                    <datalist id="units">
+                      <option value="Bags" />
+                      <option value="Kg" />
+                      <option value="Litres" />
+                      <option value="Tons" />
+                      <option value="Numbers" />
+                      <option value="Meters" />
+                    </datalist>
                   </div>
                 </div>
-                <button disabled={addItem.isPending} type="submit" className="w-full py-3 bg-red-600 text-white rounded-xl font-bold flex items-center justify-center">
-                  {addItem.isPending ? <Loader2 className="animate-spin" /> : 'Register Item'}
+
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Unit Price (₹)</label>
+                  <input required type="number" step="0.01" value={formData.unit_price} onChange={(e) => setFormData({ ...formData, unit_price: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none" placeholder="0.00" />
+                </div>
+
+                <button disabled={addItem.isPending || updateItem.isPending} type="submit" className="w-full py-3 bg-red-600 text-white rounded-xl font-bold flex items-center justify-center gap-2">
+                  {(addItem.isPending || updateItem.isPending) ? <Loader2 className="animate-spin" /> : editingId ? 'Update SKU' : 'Register SKU'}
                 </button>
               </form>
             </motion.div>
@@ -124,12 +201,12 @@ const Inventory: React.FC = () => {
               <th className="px-6 py-3">Stock Level</th>
               <th className="px-6 py-3">Unit Price</th>
               <th className="px-6 py-3">Status</th>
-              <th className="px-6 py-3"></th>
+              <th className="px-6 py-3">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {items?.map((item: any) => (
-              <tr key={item.id} className="text-sm hover:bg-slate-50 transition-colors">
+              <tr key={item.id} className="text-sm group hover:bg-slate-50 transition-colors">
                 <td className="px-6 py-4">
                   <span className="text-[10px] font-mono text-slate-400 block">{item.sku}</span>
                   <span className="font-bold text-slate-900">{item.name}</span>
@@ -142,7 +219,24 @@ const Inventory: React.FC = () => {
                     {item.stock_level < 50 ? 'Low Stock' : 'Healthy'}
                   </span>
                 </td>
-                <td className="px-6 py-4"><MoreVertical size={16} className="text-slate-400" /></td>
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => handleEdit(item)}
+                      className="p-1.5 hover:bg-slate-200 rounded-lg text-slate-600 transition-colors"
+                      title="Edit Item"
+                    >
+                      <Filter size={14} className="rotate-90" /> {/* Using Filter as Edit Substitute or similar */}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(item.id)}
+                      className="p-1.5 hover:bg-red-50 rounded-lg text-red-600 transition-colors"
+                      title="Delete Item"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
