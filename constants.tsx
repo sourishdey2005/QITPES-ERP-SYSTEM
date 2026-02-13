@@ -51,7 +51,7 @@ export const NAV_ITEMS: NavItem[] = [
 
   // Admin
   { label: 'Workflows', href: '/workflows', icon: 'workflows', roles: ['owner', 'director', 'accounting'], group: 'Admin' },
-  { label: 'Access Control', href: '/access-control', icon: 'access', roles: ['owner', 'director', 'accounting'], group: 'Admin' },
+  { label: 'Access Control', href: '/access-control', icon: 'access', roles: ['owner'], group: 'Admin' },
   { label: 'System Reset', href: '/maintenance', icon: 'maintenance', roles: ['owner', 'director', 'accounting'], group: 'Admin' },
   { label: 'Company Settings', href: '/settings', icon: 'settings', roles: ['owner', 'director', 'accounting'], group: 'Admin' },
   { label: 'Audit Logs', href: '/audit', icon: 'audit', roles: ['owner', 'director', 'accounting'], group: 'Admin' },

@@ -200,7 +200,7 @@ const Planning: React.FC = () => {
                 <td className="px-6 py-4 text-slate-500">{task.owner_name}</td>
                 <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
                   <button onClick={() => handleEdit(task)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Pencil size={16} /></button>
-                  <button onClick={() => { if (confirm('Are you sure?')) deleteTask.mutate(task.id); }} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
+                  <button onClick={() => deleteTask.mutate(task.id) } className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
                 </td>
               </tr>
             ))}
