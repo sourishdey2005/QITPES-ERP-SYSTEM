@@ -116,21 +116,52 @@ const Login: React.FC = () => {
       });
 
       if (authError) {
-        if (authError.message === 'Invalid login credentials') {
-          // Check if user is in approved_users table
-          const { data: approvedButNotReg } = await supabase
-            .from('approved_users')
-            .select('*')
-            .eq('email', email.toLowerCase())
-            .single();
+        if (authError.message.toLowerCase().includes('email not confirmed')) {
+          setError({
+            message: 'Your account is ready but needs a one-time activation. Owner: Disable "Confirm Email" in Supabase Auth > Providers > Email for instant access.',
+            type: 'unconfirmed'
+          });
+          setLoading(false);
+          return;
+        }
 
-          if (approvedButNotReg && approvedButNotReg.is_active) {
-            setError({
-              message: 'You are approved but have not created your account yet. Please Click "Register New Account" below.',
-              type: 'standard'
-            });
+        // 2. Auto-Registration for Approved Users (Seamless Flow)
+        if (approvedUser && password === approvedUser.initial_password) {
+          console.log("Seamless Registration Triggered...");
+
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email: email.toLowerCase(),
+            password: password,
+            options: {
+              data: {
+                full_name: approvedUser.full_name,
+                role: approvedUser.role
+              }
+            }
+          });
+
+          if (signUpError) {
+            if (signUpError.message.includes('already registered')) {
+              setError({ message: 'Invalid password. Please use your updated password.', type: 'standard' });
+            } else {
+              setError({ message: signUpError.message, type: 'standard' });
+            }
             setLoading(false);
             return;
+          }
+
+          if (signUpData.user) {
+            if (signUpData.session) {
+              navigate('/');
+              return;
+            } else {
+              setError({
+                message: 'Auto-registration successful! Please ask the owner to confirm your email in Supabase to log in.',
+                type: 'unconfirmed'
+              });
+              setLoading(false);
+              return;
+            }
           }
         }
         throw authError;
@@ -279,15 +310,12 @@ const Login: React.FC = () => {
                 {loading ? 'Authenticating...' : 'Sign In To Portal'} <ArrowRight size={18} className="ml-2" />
               </motion.button>
 
-              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-lg">
                 <div className="flex items-start gap-2">
-                  <CheckCircle size={16} className="text-blue-600 shrink-0 mt-0.5" />
-                  <div className="flex flex-col gap-3">
-                    <p className="text-xs font-bold text-blue-900 mb-1">New User / Need Access?</p>
-                    <p className="text-xs text-blue-700">If you are approved but haven't set up your password, register now.</p>
-                    <Link to="/register" className="text-xs font-black text-blue-800 underline hover:text-blue-900 uppercase tracking-wider">
-                      Create New Account →
-                    </Link>
+                  <Shield size={16} className="text-slate-600 shrink-0 mt-0.5" />
+                  <div className="flex flex-col gap-1">
+                    <p className="text-xs font-bold text-slate-900 uppercase tracking-widest">Enterprise Access Policy</p>
+                    <p className="text-[11px] text-slate-500 leading-relaxed font-medium">New account registration is restricted. Only users added by the System Owner can access the portal.</p>
                   </div>
                 </div>
               </div>

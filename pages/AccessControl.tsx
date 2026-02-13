@@ -16,7 +16,7 @@ const AccessControl: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [copiedId, setCopiedId] = useState<string | null>(null);
 
-    const isOwner = role === 'owner' || user?.email?.toLowerCase() === 'abhradeephazra99@gmail.com';
+    const isOwner = role === 'owner' || role === 'director' || role === 'accounting' || user?.email?.toLowerCase() === 'abhradeephazra99@gmail.com';
 
     const { data: users, isLoading, refetch } = useQuery({
         queryKey: ['approved_users'],
@@ -66,7 +66,11 @@ const AccessControl: React.FC = () => {
 
             const { data, error } = await supabase
                 .from('approved_users')
-                .insert([{ ...newUser, is_active: true }])
+                .insert([{
+                    ...newUser,
+                    is_active: true,
+                    approved_by: user?.id
+                }])
                 .select();
 
             if (error) throw error;
@@ -457,7 +461,7 @@ const AccessControl: React.FC = () => {
                                 </div>
 
                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1 font-mono">Initial Security Key</label>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-1 font-mono">User Login Password</label>
                                     <div className="relative">
                                         <Key className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
                                         <input
@@ -466,10 +470,10 @@ const AccessControl: React.FC = () => {
                                             value={formData.initial_password}
                                             onChange={(e) => setFormData({ ...formData, initial_password: e.target.value })}
                                             className="w-full pl-14 pr-5 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none font-black text-slate-900 font-mono focus:border-slate-900 transition-all placeholder:font-medium placeholder:text-slate-300"
-                                            placeholder="Security Passcode"
+                                            placeholder="Set User Password"
                                         />
                                     </div>
-                                    <p className="px-2 text-[10px] text-slate-500 font-bold uppercase tracking-wider opacity-60">Used by user for first-time profile sync.</p>
+                                    <p className="px-2 text-[10px] text-slate-500 font-bold uppercase tracking-wider opacity-60">The user will use this password for their first login.</p>
                                 </div>
 
                                 <div className="space-y-3">

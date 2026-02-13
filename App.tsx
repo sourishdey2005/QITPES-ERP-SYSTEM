@@ -142,7 +142,7 @@ const App: React.FC = () => {
     }}>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/register" element={<Navigate to="/login" replace />} />
 
         <Route element={
           <ProtectedRoute>
