@@ -42,6 +42,7 @@ import RosterShifts from './pages/RosterShifts';
 // AI & Data Analysis
 import AIDataAnalysis from './pages/AIDataAnalysis';
 import DataInsights from './pages/DataInsights';
+import Tally from './pages/Tally';
 
 import { UserRole } from './types';
 
@@ -164,6 +165,7 @@ const App: React.FC = () => {
           <Route path="/roster" element={<RosterShifts />} />
 
           {/* Finance Group */}
+          <Route path="/tally" element={<Tally />} />
           <Route path="/ledger" element={<AccountingHub />} />
           <Route path="/cost-centers" element={<CostCenters />} />
           <Route path="/tax" element={<TaxEngine />} />
