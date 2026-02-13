@@ -6,7 +6,7 @@ import {
   Clock, FileText, Bell, ShieldCheck, Settings, BrainCircuit,
   GitMerge, Target, Building2, Calendar, Coffee, Video, Monitor,
   Coins, UserCheck, ShieldAlert, Sparkles, FileSpreadsheet, Calculator,
-  TrendingUp
+  TrendingUp, Briefcase
 } from 'lucide-react';
 import { NavItem } from './types';
 
@@ -28,6 +28,10 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Enterprise Calendar', href: '/calendar', icon: 'calendar', roles: ['owner', 'director', 'accounting'], group: 'Finance' },
   { label: 'Meetings & Rooms', href: '/collaboration', icon: 'collaboration', roles: ['owner', 'director', 'accounting'], group: 'Operations' },
   { label: 'Roster & Shifts', href: '/roster', icon: 'attendance', roles: ['owner', 'director', 'accounting'], group: 'HR' },
+
+  // Sales & Marketing
+  { label: 'Tenders & Biz-Dev', href: '/biz-dev', icon: 'bizdev', roles: ['owner', 'director', 'accounting'], group: 'Sales & Marketing' },
+  { label: 'CRM Master', href: '/crm', icon: 'users', roles: ['owner', 'director', 'accounting'], group: 'Sales & Marketing' },
 
   // Finance
   { label: 'Tally', href: '/tally', icon: 'tally', roles: ['owner', 'director', 'accounting'], group: 'Finance' },
@@ -94,4 +98,5 @@ export const ICON_MAP: Record<string, React.ReactNode> = {
   access: <UserCheck size={18} />,
   tally: <Calculator size={18} />,
   executive: <TrendingUp size={18} />,
+  bizdev: <Briefcase size={18} />,
 };

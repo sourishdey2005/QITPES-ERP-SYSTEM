@@ -44,6 +44,7 @@ import AIDataAnalysis from './pages/AIDataAnalysis';
 import DataInsights from './pages/DataInsights';
 import Tally from './pages/Tally';
 import ExecutiveMonitor from './pages/ExecutiveMonitor';
+import BusinessDevelopment from './pages/BusinessDevelopment';
 
 import { UserRole } from './types';
 
@@ -155,6 +156,7 @@ const App: React.FC = () => {
 
           {/* Operations Group */}
           <Route path="/projects" element={<Projects />} />
+          <Route path="/biz-dev" element={<BusinessDevelopment />} />
           <Route path="/planning" element={<Planning />} />
           <Route path="/purchasing" element={<Purchasing />} />
           <Route path="/production" element={<Production />} />
