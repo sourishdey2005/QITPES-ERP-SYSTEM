@@ -17,6 +17,7 @@ const FinanceManagement: React.FC = () => {
     const [activeTab, setActiveTab] = useState<FinanceTab>('overview');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalType, setModalType] = useState<'invoice' | 'forecast' | 'cost-center' | ''>('');
+    const [selectedItem, setSelectedItem] = useState<any>(null);
 
     // 1. DATA FETCHING
     const { data: invoices, isLoading: loadingInvoices } = useQuery({
@@ -76,12 +77,62 @@ const FinanceManagement: React.FC = () => {
         }
     });
 
+    const mUpdateInvoice = useMutation({
+        mutationFn: async ({ id, ...updates }: any) => {
+            const { error } = await supabase.from('client_invoices').update(updates).eq('id', id);
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['finance-invoices'] });
+            setIsModalOpen(false);
+            setSelectedItem(null);
+        }
+    });
+
     const mDeleteInvoice = useMutation({
         mutationFn: async (id: string) => {
             const { error } = await supabase.from('client_invoices').delete().eq('id', id);
             if (error) throw error;
         },
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['finance-invoices'] })
+    });
+
+    const mAddCostCenter = useMutation({
+        mutationFn: async (cc: any) => {
+            const { error } = await supabase.from('cost_centers').insert([cc]);
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['finance-cost-centers'] });
+            setIsModalOpen(false);
+        }
+    });
+
+    const mDeleteCostCenter = useMutation({
+        mutationFn: async (id: string) => {
+            const { error } = await supabase.from('cost_centers').delete().eq('id', id);
+            if (error) throw error;
+        },
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['finance-cost-centers'] })
+    });
+
+    const mAddForecast = useMutation({
+        mutationFn: async (f: any) => {
+            const { error } = await supabase.from('cashflow_forecasts').insert([f]);
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['finance-forecast'] });
+            setIsModalOpen(false);
+        }
+    });
+
+    const mDeleteForecast = useMutation({
+        mutationFn: async (id: string) => {
+            const { error } = await supabase.from('cashflow_forecasts').delete().eq('id', id);
+            if (error) throw error;
+        },
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['finance-forecast'] })
     });
 
     // 3. STATS LOGIC
@@ -163,7 +214,7 @@ const FinanceManagement: React.FC = () => {
                     <h4 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Tax Invoicing Engine</h4>
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">GST Compliant Fiscal Documentation</p>
                 </div>
-                <button onClick={() => { setModalType('invoice'); setIsModalOpen(true); }} className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-500/20">
+                <button onClick={() => { setSelectedItem(null); setModalType('invoice'); setIsModalOpen(true); }} className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-500/20">
                     <Plus size={16} /> Raise Invoice
                 </button>
             </div>
@@ -195,9 +246,14 @@ const FinanceManagement: React.FC = () => {
                                     <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase ${inv.status === 'Paid' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600 shadow-sm'}`}>{inv.status}</span>
                                 </td>
                                 <td className="px-10 py-6 text-right">
-                                    <button onClick={() => mDeleteInvoice.mutate(inv.id)} className="p-2 text-slate-300 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all">
-                                        <X size={16} />
-                                    </button>
+                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                        <button onClick={() => { setSelectedItem(inv); setModalType('invoice'); setIsModalOpen(true); }} className="p-2 text-slate-400 hover:text-red-600 transition-all">
+                                            <FileText size={16} />
+                                        </button>
+                                        <button onClick={() => { if (confirm('Purge this invoice node?')) mDeleteInvoice.mutate(inv.id); }} className="p-2 text-slate-400 hover:text-red-600 transition-all">
+                                            <X size={16} />
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -227,7 +283,7 @@ const FinanceManagement: React.FC = () => {
                             </div>
                         </div>
                     ))}
-                    <button className="p-6 border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center hover:border-red-400 transition-all group">
+                    <button onClick={() => { setModalType('forecast'); setIsModalOpen(true); }} className="p-6 border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center hover:border-red-400 transition-all group">
                         <Plus className="text-slate-200 group-hover:text-red-400 mb-2" />
                         <span className="text-[9px] font-black text-slate-400 uppercase">Extend Projection</span>
                     </button>
@@ -366,14 +422,19 @@ const FinanceManagement: React.FC = () => {
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Code: {cc.code}</p>
                                         </div>
                                     </div>
-                                    <div className="p-4 bg-slate-50 rounded-2xl flex justify-between items-center mb-6">
-                                        <span className="text-[9px] font-black text-slate-400 uppercase">Operational Utilization</span>
-                                        <span className="text-xs font-black text-slate-900 uppercase">Tier 1 Control</span>
+                                    <div className="flex justify-between items-center mb-6">
+                                        <div className="p-4 bg-slate-50 rounded-2xl flex-1 mr-4 flex justify-between items-center">
+                                            <span className="text-[9px] font-black text-slate-400 uppercase">Control Tier</span>
+                                            <span className="text-xs font-black text-slate-900 uppercase">Primary</span>
+                                        </div>
+                                        <button onClick={() => { if (confirm('Decommission this cost center?')) mDeleteCostCenter.mutate(cc.id); }} className="p-2 text-slate-300 hover:text-red-600 transition-all">
+                                            <X size={16} />
+                                        </button>
                                     </div>
                                     <button className="text-[10px] font-black uppercase text-red-600 tracking-widest hover:underline flex items-center gap-2">View Full Ledger <ChevronRight size={14} /></button>
                                 </div>
                             ))}
-                            <button className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-[40px] flex flex-col items-center justify-center p-12 hover:border-red-300 transition-all group min-h-[250px]">
+                            <button onClick={() => { setModalType('cost-center'); setIsModalOpen(true); }} className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-[40px] flex flex-col items-center justify-center p-12 hover:border-red-300 transition-all group min-h-[250px]">
                                 <Plus size={32} className="text-slate-200 group-hover:text-red-400" />
                                 <span className="text-[10px] font-black text-slate-400 uppercase mt-4 tracking-widest">Initialize Cost Center Node</span>
                             </button>
@@ -423,72 +484,148 @@ const FinanceManagement: React.FC = () => {
                     <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm font-sans">
                         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white rounded-[40px] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200">
                             <div className="p-8 border-b border-slate-100 flex items-center justify-between">
-                                <h3 className="text-lg font-black text-slate-900 uppercase tracking-tighter">Fiscal Execution — Tax Invoice</h3>
-                                <button onClick={() => setIsModalOpen(false)}><X size={20} className="text-slate-400 hover:text-red-600 transition-all" /></button>
+                                <h3 className="text-lg font-black text-slate-900 uppercase tracking-tighter">
+                                    {modalType === 'invoice' ? (selectedItem ? 'Modify Tax Invoice' : 'Raise Tax Invoice') :
+                                        modalType === 'forecast' ? 'Liquidity Projection' : 'Initialize Cost Center'}
+                                </h3>
+                                <button onClick={() => { setIsModalOpen(false); setSelectedItem(null); }}><X size={20} className="text-slate-400 hover:text-red-600 transition-all" /></button>
                             </div>
                             <div className="p-10">
-                                <form onSubmit={(e: any) => {
-                                    e.preventDefault();
-                                    const fd = new FormData(e.target);
-                                    mAddInvoice.mutate({
-                                        project_id: fd.get('pid'),
-                                        invoice_number: fd.get('num'),
-                                        client_name: fd.get('client'),
-                                        invoice_date: fd.get('date'),
-                                        due_date: fd.get('due'),
-                                        taxable_amount: parseFloat(fd.get('val') as string),
-                                        gst_percentage: parseFloat(fd.get('gst') as string),
-                                        gst_type: fd.get('gst_type'),
-                                        status: 'Sent'
-                                    });
-                                }} className="space-y-4">
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase">Select Project Node</label>
-                                        <select name="pid" required className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs">
-                                            {projects?.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                                        </select>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase">Client Legal Entity Name</label>
-                                        <input name="client" required placeholder="Prime Client Ltd" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
+                                {modalType === 'invoice' && (
+                                    <form onSubmit={(e: any) => {
+                                        e.preventDefault();
+                                        const fd = new FormData(e.target);
+                                        const data = {
+                                            project_id: fd.get('pid'),
+                                            invoice_number: fd.get('num'),
+                                            client_name: fd.get('client'),
+                                            invoice_date: fd.get('date'),
+                                            due_date: fd.get('due'),
+                                            taxable_amount: parseFloat(fd.get('val') as string),
+                                            gst_percentage: parseFloat(fd.get('gst') as string),
+                                            gst_type: fd.get('gst_type'),
+                                            status: fd.get('status') || 'Sent'
+                                        };
+                                        if (selectedItem) mUpdateInvoice.mutate({ id: selectedItem.id, ...data });
+                                        else mAddInvoice.mutate(data);
+                                    }} className="space-y-4">
                                         <div className="space-y-1">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase">Tax Invoice #</label>
-                                            <input name="num" required placeholder="INV-2026-001" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase">Taxable Value (₹)</label>
-                                            <input name="val" type="number" step="any" required placeholder="0.00" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs font-mono" />
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase">GST %</label>
-                                            <input name="gst" type="number" defaultValue="18" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
-                                        </div>
-                                        <div className="space-y-1 col-span-2">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase">GST Jurisdiction</label>
-                                            <select name="gst_type" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs">
-                                                <option value="IGST">Inter-State (IGST)</option>
-                                                <option value="CGST/SGST">Intra-State (CGST/SGST)</option>
+                                            <label className="text-[10px] font-black text-slate-400 uppercase">Select Project Node</label>
+                                            <select name="pid" defaultValue={selectedItem?.project_id} required className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs">
+                                                {projects?.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
                                             </select>
                                         </div>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-1">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase">Invoice Date</label>
-                                            <input name="date" type="date" required className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
+                                            <label className="text-[10px] font-black text-slate-400 uppercase">Client Legal Entity Name</label>
+                                            <input name="client" defaultValue={selectedItem?.client_name} required placeholder="Prime Client Ltd" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase">Tax Invoice #</label>
+                                                <input name="num" defaultValue={selectedItem?.invoice_number} required placeholder="INV-2026-001" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase">Taxable Value (₹)</label>
+                                                <input name="val" defaultValue={selectedItem?.taxable_amount} type="number" step="any" required placeholder="0.00" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs font-mono" />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase">GST %</label>
+                                                <input name="gst" defaultValue={selectedItem?.gst_percentage || 18} type="number" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
+                                            </div>
+                                            <div className="space-y-1 col-span-2">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase">GST Jurisdiction</label>
+                                                <select name="gst_type" defaultValue={selectedItem?.gst_type || 'IGST'} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs">
+                                                    <option value="IGST">Inter-State (IGST)</option>
+                                                    <option value="CGST/SGST">Intra-State (CGST/SGST)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase">Invoice Date</label>
+                                                <input name="date" defaultValue={selectedItem?.invoice_date} type="date" required className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase">Payment Deadline</label>
+                                                <input name="due" defaultValue={selectedItem?.due_date} type="date" required className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
+                                            </div>
+                                        </div>
+                                        {selectedItem && (
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase">Payment Status</label>
+                                                <select name="status" defaultValue={selectedItem.status} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs">
+                                                    <option value="Draft">Draft</option>
+                                                    <option value="Sent">Sent</option>
+                                                    <option value="Paid">Paid</option>
+                                                    <option value="Overdue">Overdue</option>
+                                                </select>
+                                            </div>
+                                        )}
+                                        <button type="submit" className="w-full py-5 bg-red-600 text-white rounded-[24px] font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all shadow-xl shadow-red-500/20">
+                                            {(mAddInvoice.isPending || mUpdateInvoice.isPending) ? <Loader2 className="animate-spin mx-auto" /> : (selectedItem ? 'Authorize Modification' : 'Settle & Transmit Invoice')}
+                                        </button>
+                                    </form>
+                                )}
+
+                                {modalType === 'cost-center' && (
+                                    <form onSubmit={(e: any) => {
+                                        e.preventDefault();
+                                        const fd = new FormData(e.target);
+                                        mAddCostCenter.mutate({
+                                            name: fd.get('name'),
+                                            code: fd.get('code'),
+                                            description: fd.get('desc')
+                                        });
+                                    }} className="space-y-4">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase">Department / Cost Center Name</label>
+                                            <input name="name" required placeholder="Project-A Head Office" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase">Payment Deadline</label>
-                                            <input name="due" type="date" required className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
+                                            <label className="text-[10px] font-black text-slate-400 uppercase">Internal Code</label>
+                                            <input name="code" required placeholder="CC-001" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
                                         </div>
-                                    </div>
-                                    <button type="submit" className="w-full py-5 bg-red-600 text-white rounded-[24px] font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all shadow-xl shadow-red-500/20">
-                                        {mAddInvoice.isPending ? <Loader2 className="animate-spin mx-auto" /> : 'Settle & Transmit Invoice'}
-                                    </button>
-                                </form>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase">Functional Description</label>
+                                            <textarea name="desc" placeholder="Operational oversight for civil works..." className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs h-24" />
+                                        </div>
+                                        <button type="submit" className="w-full py-5 bg-slate-900 text-white rounded-[24px] font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all">
+                                            {mAddCostCenter.isPending ? <Loader2 className="animate-spin mx-auto" /> : 'Map Cost Node'}
+                                        </button>
+                                    </form>
+                                )}
+
+                                {modalType === 'forecast' && (
+                                    <form onSubmit={(e: any) => {
+                                        e.preventDefault();
+                                        const fd = new FormData(e.target);
+                                        mAddForecast.mutate({
+                                            forecast_month: fd.get('month') + '-01',
+                                            projected_inflow: parseFloat(fd.get('in') as string),
+                                            projected_outflow: parseFloat(fd.get('out') as string)
+                                        });
+                                    }} className="space-y-4">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase">Projection Month</label>
+                                            <input name="month" type="month" required className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs" />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase">Expected Inflow (₹)</label>
+                                                <input name="in" type="number" step="any" required placeholder="0.00" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs font-mono" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase">Expected Outflow (₹)</label>
+                                                <input name="out" type="number" step="any" required placeholder="0.00" className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-black text-xs font-mono" />
+                                            </div>
+                                        </div>
+                                        <button type="submit" className="w-full py-5 bg-emerald-600 text-white rounded-[24px] font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all">
+                                            {mAddForecast.isPending ? <Loader2 className="animate-spin mx-auto" /> : 'Authorize Projection Node'}
+                                        </button>
+                                    </form>
+                                )}
                             </div>
                         </motion.div>
                     </div>
