@@ -32,6 +32,11 @@ const DashboardLayout: React.FC = () => {
 
   const groupedNav = NAV_ITEMS.filter(item => {
     if (!userRole) return false;
+    if (userRole === 'owner') return true;
+    const equivalentRoles = ['owner', 'director', 'accountant'];
+    if (equivalentRoles.includes(userRole)) {
+      return item.roles.some(role => equivalentRoles.includes(role));
+    }
     return item.roles.includes(userRole);
   }).reduce((acc, item) => {
     if (!acc[item.group]) acc[item.group] = [];
@@ -41,7 +46,7 @@ const DashboardLayout: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
-      <motion.aside 
+      <motion.aside
         initial={false}
         animate={{ width: sidebarOpen ? 256 : 80 }}
         className="bg-white border-r border-slate-200 flex flex-col z-50 overflow-hidden shadow-sm"
@@ -52,7 +57,7 @@ const DashboardLayout: React.FC = () => {
           </div>
           <AnimatePresence>
             {sidebarOpen && (
-              <motion.span 
+              <motion.span
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
@@ -69,7 +74,7 @@ const DashboardLayout: React.FC = () => {
             <div key={group}>
               <AnimatePresence mode="wait">
                 {sidebarOpen ? (
-                  <motion.h3 
+                  <motion.h3
                     key="expanded"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -90,8 +95,8 @@ const DashboardLayout: React.FC = () => {
                       <Link
                         to={item.href}
                         className={`flex items-center px-3 py-2 rounded-lg transition-all group relative ${
-                          isActive 
-                            ? 'bg-red-50 text-red-600 font-semibold' 
+                          isActive
+                            ? 'bg-red-50 text-red-600 font-semibold'
                             : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                         }`}
                         title={!sidebarOpen ? item.label : ''}
@@ -101,7 +106,7 @@ const DashboardLayout: React.FC = () => {
                         </span>
                         <AnimatePresence mode="wait">
                           {sidebarOpen && (
-                            <motion.span 
+                            <motion.span
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
                               exit={{ opacity: 0, x: -10 }}
@@ -112,7 +117,7 @@ const DashboardLayout: React.FC = () => {
                           )}
                         </AnimatePresence>
                         {isActive && (
-                          <motion.div 
+                          <motion.div
                             layoutId="activeNav"
                             className="absolute left-0 w-1 h-6 bg-red-600 rounded-r-full"
                           />
@@ -127,13 +132,13 @@ const DashboardLayout: React.FC = () => {
         </div>
 
         <div className="p-4 border-t border-slate-100 space-y-2">
-           <button 
+           <button
              onClick={() => setSidebarOpen(!sidebarOpen)}
              className="w-full flex items-center justify-center p-2 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors"
            >
              {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
            </button>
-           <button 
+           <button
              onClick={handleLogout}
              className="w-full flex items-center justify-center p-2 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors"
              title="Logout"
@@ -151,8 +156,8 @@ const DashboardLayout: React.FC = () => {
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search size={16} className="text-slate-400" />
               </span>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="Enterprise Command (Search or Ask AI)..."
                 className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-slate-50/50"
               />
