@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import * as GenAI from "@google/genai";
 import { Sparkles, Send, X, Bot, Loader2, User } from 'lucide-react';
 import { motion as motionBase, AnimatePresence } from 'framer-motion';
 
@@ -34,8 +34,8 @@ const AIAssistant: React.FC = () => {
     setLoading(true);
 
     try {
-      const genAI = new GoogleGenerativeAI(import.meta.env.VITE_API_KEY);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      // Using the New SDK: @google/genai
+      const ai = new GenAI.GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
 
       const prompt = `You are the QITPES ERP Intelligence Assistant.
       The user is asking: "${query}"
@@ -45,9 +45,13 @@ const AIAssistant: React.FC = () => {
       If asked about data you don't have, explain that you can query active site ledgers once configured.
       Format: Use clear bullet points if needed.`;
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+      // New SDK call structure
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: [{ role: 'user', parts: [{ text: prompt }] }]
+      });
+
+      const text = response.text;
 
       const assistantMessage: Message = { role: 'assistant', content: text || "I'm sorry, I couldn't process that request." };
       setMessages(prev => [...prev, assistantMessage]);
@@ -62,7 +66,7 @@ const AIAssistant: React.FC = () => {
 
   return (
     <>
-      <button 
+      <button
         onClick={() => setIsOpen(true)}
         className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-2xl hover:bg-blue-700 transition-all z-[100]"
       >
@@ -71,7 +75,7 @@ const AIAssistant: React.FC = () => {
 
       <AnimatePresence>
         {isOpen && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -95,7 +99,7 @@ const AIAssistant: React.FC = () => {
                   <p className="text-xs text-slate-500 mt-2">"What is our current burn rate for the Nagpur project?"</p>
                 </div>
               )}
-              
+
               <AnimatePresence>
                 {messages.map((msg, index) => (
                   <motion.div
@@ -114,24 +118,24 @@ const AIAssistant: React.FC = () => {
 
               {loading && (
                 <div className="flex items-center gap-2 p-4">
-                    <div className="w-8 h-8 bg-slate-900 text-white rounded-full flex items-center justify-center flex-shrink-0"><Bot size={20} /></div>
-                    <div className="bg-slate-50 p-3 rounded-2xl">
-                      <Loader2 size={20} className="text-blue-600 animate-spin" />
-                    </div>
+                  <div className="w-8 h-8 bg-slate-900 text-white rounded-full flex items-center justify-center flex-shrink-0"><Bot size={20} /></div>
+                  <div className="bg-slate-50 p-3 rounded-2xl">
+                    <Loader2 size={20} className="text-blue-600 animate-spin" />
+                  </div>
                 </div>
               )}
             </div>
 
             <form onSubmit={handleAskAI} className="p-4 border-t border-slate-100 flex items-center gap-2">
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Type your question..."
                 className="flex-1 bg-slate-100 border-none rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
               />
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={loading}
                 className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
               >
