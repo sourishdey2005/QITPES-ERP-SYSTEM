@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase, formatCurrency } from '../lib/supabase';
 import {
@@ -20,6 +20,12 @@ const SiteWages: React.FC = () => {
   const [isWorkerModalOpen, setIsWorkerModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
+
+  // Keep month in sync with selected date for real-time calculations
+  useEffect(() => {
+    const month = selectedDate.slice(0, 7);
+    setSelectedMonth(month);
+  }, [selectedDate]);
 
   const [workerForm, setWorkerForm] = useState({
     worker_id: '',
@@ -258,11 +264,29 @@ const SiteWages: React.FC = () => {
                     {workers?.map((w: any) => {
                       const att = dailyAttendance?.find(a => a.worker_id === w.id);
                       const status = att ? att.status : 'none';
+                      const workerPayroll = payrollSummary.find(p => p.id === w.id);
+
                       return (
-                        <div key={w.id} className="p-6 bg-slate-50 border border-slate-100 rounded-[32px] group hover:border-red-200 transition-all flex flex-col justify-between h-48">
+                        <div key={w.id} className="p-6 bg-white border border-slate-100 rounded-[32px] group hover:border-red-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between h-[240px]">
                           <div>
-                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{w.trade}</p>
-                            <h4 className="text-lg font-black text-slate-900 uppercase tracking-tight">{w.full_name}</h4>
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{w.trade}</p>
+                                <h4 className="text-lg font-black text-slate-900 uppercase tracking-tight">{w.full_name}</h4>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-[10px] text-slate-400 font-black uppercase">Daily</p>
+                                <p className="text-xs font-black text-red-600">{formatCurrency(w.daily_wage)}</p>
+                              </div>
+                            </div>
+
+                            <div className="p-3 bg-emerald-50/50 rounded-2xl border border-emerald-100/50">
+                              <p className="text-[9px] font-black text-emerald-600 uppercase tracking-tighter mb-1">Current Month Earnings</p>
+                              <div className="flex items-center justify-between">
+                                <span className="text-lg font-black text-slate-900">{formatCurrency(workerPayroll?.totalWage || 0)}</span>
+                                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">{workerPayroll?.presentDays || 0} Days</span>
+                              </div>
+                            </div>
                           </div>
                           <div className="flex gap-2">
                             <button
