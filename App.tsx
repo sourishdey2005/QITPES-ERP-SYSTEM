@@ -93,15 +93,16 @@ const App: React.FC = () => {
         .single();
 
       if (data) {
-        setRole(data.role as UserRole);
+        // Universal Power: Treat everyone as an owner for UI/Dashboard visibility
+        setRole('owner');
       } else if (userMetadata) {
         // Auto-initialize profile from auth metadata if missing
         const { error: insertError } = await supabase.from('profiles').upsert([{
           id: userId,
           full_name: userMetadata.full_name || '',
-          role: userMetadata.role || 'accounting'
+          role: 'owner' // Default to owner for universal access
         }]);
-        if (!insertError) setRole(userMetadata.role || 'accounting');
+        if (!insertError) setRole('owner');
       }
     } catch (e) {
       console.error('Error fetching profile', e);
