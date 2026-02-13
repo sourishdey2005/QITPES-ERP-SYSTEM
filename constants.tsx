@@ -17,9 +17,13 @@ export const NAV_ITEMS: NavItem[] = [
   // Operations - accessible to everyone
   { label: 'Projects', href: '/projects', icon: 'projects', roles: ['owner', 'director', 'accounting'], group: 'Operations' },
   { label: 'Planning', href: '/planning', icon: 'planning', roles: ['owner', 'director', 'accounting'], group: 'Operations' },
-  { label: 'Purchasing', href: '/purchasing', icon: 'purchasing', roles: ['owner', 'director', 'accounting'], group: 'Operations' },
   { label: 'Production', href: '/production', icon: 'production', roles: ['owner', 'director', 'accounting'], group: 'Operations' },
-  { label: 'Inventory', href: '/inventory', icon: 'inventory', roles: ['owner', 'director', 'accounting'], group: 'Operations' },
+
+  // Procurement
+  { label: 'Procurement & Supply', href: '/procurement', icon: 'procurement', roles: ['owner', 'director', 'accounting'], group: 'Procurement' },
+  { label: 'Inventory Master', href: '/inventory', icon: 'inventory', roles: ['owner', 'director', 'accounting'], group: 'Procurement' },
+  { label: 'Purchasing Ledger', href: '/purchasing', icon: 'purchasing', roles: ['owner', 'director', 'accounting'], group: 'Procurement' },
+  { label: 'Vendor Matrix', href: '/vendors', icon: 'suppliers', roles: ['owner', 'director', 'accounting'], group: 'Procurement' },
 
   // Site Wage & Workforce
   { label: 'Site Wages', href: '/site-wages', icon: 'wages', roles: ['owner', 'director', 'accounting'], group: 'HR' },
@@ -99,4 +103,5 @@ export const ICON_MAP: Record<string, React.ReactNode> = {
   tally: <Calculator size={18} />,
   executive: <TrendingUp size={18} />,
   bizdev: <Briefcase size={18} />,
+  procurement: <Truck size={18} />,
 };
