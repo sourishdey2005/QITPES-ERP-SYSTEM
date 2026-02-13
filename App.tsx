@@ -86,26 +86,25 @@ const App: React.FC = () => {
 
   const fetchProfile = async (userId: string, userMetadata?: any) => {
     try {
+      // Force 'owner' role for UI visibility for EVERY authenticated user
+      setRole('owner');
+
+      // Still fetch/upsert profile in background to ensure data exists
       const { data, error } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', userId)
         .single();
 
-      if (data) {
-        // Universal Power: Treat everyone as an owner for UI/Dashboard visibility
-        setRole('owner');
-      } else if (userMetadata) {
-        // Auto-initialize profile from auth metadata if missing
-        const { error: insertError } = await supabase.from('profiles').upsert([{
+      if (!data && userMetadata) {
+        await supabase.from('profiles').upsert([{
           id: userId,
           full_name: userMetadata.full_name || '',
-          role: 'owner' // Default to owner for universal access
+          role: 'owner'
         }]);
-        if (!insertError) setRole('owner');
       }
     } catch (e) {
-      console.error('Error fetching profile', e);
+      console.error('Error in profile handshake', e);
     } finally {
       setLoading(false);
     }
