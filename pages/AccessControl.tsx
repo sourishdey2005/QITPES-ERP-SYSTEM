@@ -20,9 +20,10 @@ const AccessControl: React.FC = () => {
     // Removed access restriction as per updated requirement to give full access to director and accounting roles.
 
 
-    const { data: users, isLoading } = useQuery({
+    const { data: users, isLoading, refetch } = useQuery({
         queryKey: ['approved_users'],
         queryFn: async () => {
+            console.log("Fetching approved_users...");
             const { data, error } = await supabase
                 .from('approved_users')
                 .select('*')
@@ -32,9 +33,25 @@ const AccessControl: React.FC = () => {
                 console.error('Error fetching users:', error);
                 return [];
             }
+            console.log("Users fetched:", data);
             return data;
         },
     });
+
+    // Real-time subscription for instant updates when a new user registers
+    React.useEffect(() => {
+        const channel = supabase
+            .channel('public:approved_users')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'approved_users' }, (payload) => {
+                console.log("Real-time update received:", payload);
+                queryClient.invalidateQueries({ queryKey: ['approved_users'] });
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [queryClient]);
 
     const addUser = useMutation({
         mutationFn: async (newUser: any) => {
@@ -121,12 +138,21 @@ const AccessControl: React.FC = () => {
                     <h1 className="text-3xl font-black text-slate-900 tracking-tighter uppercase">Access Control</h1>
                     <p className="text-slate-500 text-sm font-medium">Manage approved users and set their initial credentials.</p>
                 </div>
-                <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="bg-slate-900 text-white px-8 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-2xl hover:bg-slate-800 transition-all flex items-center gap-3"
-                >
-                    <UserCheck size={18} /> Approve New User
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => refetch()}
+                        className="p-4 bg-white border border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-200 rounded-[20px] transition-all shadow-sm active:scale-95"
+                        title="Refresh List"
+                    >
+                        <Loader2 size={18} className={isLoading ? 'animate-spin' : ''} />
+                    </button>
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="bg-slate-900 text-white px-8 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-2xl hover:bg-slate-800 transition-all flex items-center gap-3"
+                    >
+                        <UserCheck size={18} /> Approve New User
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
