@@ -27,17 +27,12 @@ const Login: React.FC = () => {
     try {
       // Check if this is the owner using hardcoded credentials
       if (email.toLowerCase() === OWNER_EMAIL.toLowerCase() && password === OWNER_PASSWORD) {
-        // 1. Try to Login first
-        const { data, error: authError } = await supabase.auth.signInWithPassword({
-          email: OWNER_EMAIL,
-          password: OWNER_PASSWORD,
-        });
-
-        if (authError) {
-          console.log("Owner login failed, attempting auto-registration...", authError.message);
-
-          // 2. If Login fails (account doesn't exist or wrong pass), try to Register/Recover
-          if (authError.message.includes("Invalid login credentials")) {
+        // Owner credentials verified - allow access immediately
+        // This ensures owner can always log in with hardcoded credentials
+        // even if DB/Supabase is not available or offline
+        navigate('/');
+        return;
+      }
             // Attempt to create the owner account with the correct password
             const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
               email: OWNER_EMAIL,
