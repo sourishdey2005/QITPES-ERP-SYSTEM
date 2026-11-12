@@ -92,6 +92,16 @@ const App: React.FC = () => {
   const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Check for hardcoded owner login from localStorage (Supabase-free mode)
+  useEffect(() => {
+    const storedLogin = localStorage.getItem('qitpes_owner_login');
+    if (storedLogin === 'true') {
+      setSession({ user: { email: 'duttaarunima50@gmail.com' } });
+      setRole('owner');
+      setLoading(false);
+    }
+  }, []);
+
   const fetchProfile = async (userId: string, userMetadata?: any) => {
     try {
       // Force 'owner' role for UI visibility for EVERY authenticated user

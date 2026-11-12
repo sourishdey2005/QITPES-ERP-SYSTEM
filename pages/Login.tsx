@@ -16,6 +16,8 @@ const Login: React.FC = () => {
     e.preventDefault();
 
     if (email.toLowerCase() === OWNER_EMAIL.toLowerCase() && password === OWNER_PASSWORD) {
+      // Store login state in localStorage so app remembers user is authenticated
+      localStorage.setItem('qitpes_owner_login', 'true');
       setSuccess(true);
       setError(null);
       // Navigate after a brief delay to show success state
