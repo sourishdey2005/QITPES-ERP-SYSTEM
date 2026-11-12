@@ -1083,12 +1083,15 @@ const builders: Record<string, () => DemoRow[]> = {
     const profs = getDemoRows('profiles')!;
     return Array.from({ length: DEMO_COUNTS.cost_centers }, (_, i) => {
       const area = SITE_AREAS[i % SITE_AREAS.length];
+      const budget = r.money(2_500_000, 120_000_000);
       return {
         id: demoId('cost_centers', i),
         name: `${area} Site Cost Center ${i + 1}`,
         code: `CC-${String(1001 + i)}`,
         description: `Cost tracking for ${area} operations and site overheads.`,
         manager_id: profs[i % profs.length].id,
+        budget: budget,
+        spent: Math.round(budget * (0.25 + r.next() * 0.7)),
         created_at: isoTime(r.pastDate(30, 900)),
       };
     });
