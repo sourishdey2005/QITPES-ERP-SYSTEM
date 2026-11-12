@@ -92,11 +92,11 @@ CREATE TRIGGER on_auth_user_created
 -- Ensures the owner can always log in and has correct permissions
 UPDATE public.approved_users 
 SET role = 'owner', is_active = true 
-WHERE lower(email) = 'arunima';
+WHERE lower(email) = 'duttaarunima50@gmail.com';
 
 UPDATE public.profiles 
 SET role = 'owner' 
-WHERE lower(email) = 'arunima';
+WHERE lower(email) = 'duttaarunima50@gmail.com';
 
 -- 5. AUTO-CONFIRM EMAILS (OPTIONAL BUT RECOMMENDED FOR INTERNAL ERPs)
 -- This eliminates the "Email not confirmed" error for new users.

@@ -16,7 +16,7 @@ const AccessControl: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [copiedId, setCopiedId] = useState<string | null>(null);
 
-    const isOwner = role === 'owner' || role === 'director' || role === 'accounting' || user?.email?.toLowerCase() === 'arunima';
+    const isOwner = role === 'owner' || role === 'director' || role === 'accounting' || user?.email?.toLowerCase() === 'duttaarunima50@gmail.com';
 
     const { data: users, isLoading, refetch } = useQuery({
         queryKey: ['approved_users'],
@@ -350,7 +350,7 @@ const AccessControl: React.FC = () => {
                                         </td>
                                         <td className="px-8 py-6 text-right">
                                             <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                {user.email.toLowerCase() !== 'arunima' && (
+                                                {user.email.toLowerCase() !== 'duttaarunima50@gmail.com' && (
                                                     <div className="flex items-center gap-3">
                                                         <button
                                                             onClick={() => toggleStatus.mutate({ id: user.id, is_active: !user.is_active })}
@@ -374,7 +374,7 @@ const AccessControl: React.FC = () => {
                                                         </button>
                                                     </div>
                                                 )}
-                                                {user.email.toLowerCase() === 'arunima' && (
+                                                {user.email.toLowerCase() === 'duttaarunima50@gmail.com' && (
                                                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] px-4">Master Identity</span>
                                                 )}
                                             </div>

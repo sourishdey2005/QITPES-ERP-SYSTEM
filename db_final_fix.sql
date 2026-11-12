@@ -6,7 +6,7 @@ ALTER TABLE approved_users ADD COLUMN IF NOT EXISTS initial_password TEXT;
 -- 2. Ensure Owner has the correct initial password set
 UPDATE approved_users 
 SET initial_password = '123456789', role = 'owner', is_active = true
-WHERE email = 'arunima';
+WHERE email = 'duttaarunima50@gmail.com';
 
 -- 3. KEY FIX: Allow Login Page to read the approved users list
 -- Without this, the Login page sees an "empty" list and rejects everyone

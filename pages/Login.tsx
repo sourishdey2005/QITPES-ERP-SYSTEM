@@ -9,7 +9,7 @@ import { motion as motionBase } from 'framer-motion';
 const motion = motionBase as any;
 
 // Hardcoded owner credentials
-const OWNER_EMAIL = 'arunima';
+const OWNER_EMAIL = 'duttaarunima50@gmail.com';
 const OWNER_PASSWORD = '123456789';
 
 const Login: React.FC = () => {
