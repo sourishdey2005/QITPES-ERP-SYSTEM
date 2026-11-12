@@ -9,8 +9,8 @@ import { motion as motionBase } from 'framer-motion';
 const motion = motionBase as any;
 
 // Hardcoded owner credentials
-const OWNER_EMAIL = 'abhradeephazra99@gmail.com';
-const OWNER_PASSWORD = 'Ahazra@987';
+const OWNER_EMAIL = 'arunima';
+const OWNER_PASSWORD = '123456789';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -53,7 +53,7 @@ const Login: React.FC = () => {
             if (signUpError) {
               // If registration also fails (e.g. user exists but wrong pass), we can't do much automatically
               setError({
-                message: `Owner account exists but password doesn't match 'Ahazra@987'. Please use 'Forgot Password' or reset via Supabase dashboard. Error: ${signUpError.message}`,
+                message: `Owner account exists but password doesn't match '123456789'. Please use 'Forgot Password' or reset via Supabase dashboard. Error: ${signUpError.message}`,
                 type: 'standard'
               });
               setLoading(false);

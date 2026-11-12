@@ -46,7 +46,7 @@ BEGIN
     new.email,
     COALESCE(new.raw_user_meta_data->>'full_name', 'New ERP User'),
     COALESCE(new.raw_user_meta_data->>'role', 'accounting'),
-    CASE WHEN new.email = 'abhradeephazra99@gmail.com' THEN true ELSE false END, -- Only owner is auto-active
+    CASE WHEN new.email = 'arunima' THEN true ELSE false END, -- Only owner is auto-active
     'Pending Approval'
   )
   ON CONFLICT (email) DO UPDATE SET 
@@ -69,7 +69,7 @@ SELECT
   email, 
   COALESCE(raw_user_meta_data->>'full_name', 'Legacy User'),
   COALESCE(raw_user_meta_data->>'role', 'accounting'),
-  CASE WHEN email = 'abhradeephazra99@gmail.com' THEN true ELSE false END,
+  CASE WHEN email = 'arunima' THEN true ELSE false END,
   'Pending Approval'
 FROM auth.users
 ON CONFLICT (email) DO NOTHING;

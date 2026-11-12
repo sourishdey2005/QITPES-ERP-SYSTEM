@@ -9,7 +9,7 @@ import { motion as motionBase, AnimatePresence } from 'framer-motion';
 const motion = motionBase as any;
 
 // Hardcoded owner details
-const OWNER_EMAIL = 'abhradeephazra99@gmail.com';
+const OWNER_EMAIL = 'arunima';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -220,7 +220,7 @@ const Register: React.FC = () => {
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                           className="block w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-red-500 outline-none transition-all"
-                          placeholder="abhradeephazra99@gmail.com"
+                          placeholder="arunima"
                         />
                       </div>
                     </div>

@@ -4,14 +4,14 @@
 
 - [ ] **Database Migration**
   - Run `db_approved_users.sql` in Supabase SQL Editor to create the `approved_users` table and policies.
-  - Verify that the owner email `abhradeephazra99@gmail.com` is inserted correctly.
+  - Verify that the owner email `arunima` is inserted correctly.
 
 - [ ] **Environment Configuration**
   - Ensure `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are correct in `.env`.
   - Check that RLS policies are enabled on all tables including `approved_users`.
 
 - [ ] **Owner Account Setup**
-  - Log in with the hardcoded owner credentials (`abhradeephazra99@gmail.com` / `Ahazra@987`).
+  - Log in with the hardcoded owner credentials (`arunima` / `123456789`).
   - Verify access to the **Access Control** menu item.
 
 ## 🚀 Feature Validation

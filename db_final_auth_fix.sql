@@ -59,7 +59,7 @@ DROP POLICY IF EXISTS "Owners can add approved users" ON approved_users;
 CREATE POLICY "Owners can add approved users" ON approved_users
   FOR INSERT
   WITH CHECK (
-    auth.jwt() ->> 'email' = 'abhradeephazra99@gmail.com'
+    auth.jwt() ->> 'email' = 'arunima'
     OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'owner')
   );
 
@@ -67,7 +67,7 @@ DROP POLICY IF EXISTS "Owners can view all approved users" ON approved_users;
 CREATE POLICY "Owners can view all approved users" ON approved_users
   FOR SELECT
   USING (
-    auth.jwt() ->> 'email' = 'abhradeephazra99@gmail.com'
+    auth.jwt() ->> 'email' = 'arunima'
     OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'owner')
   );
 
@@ -75,13 +75,13 @@ DROP POLICY IF EXISTS "Owners can update approved users" ON approved_users;
 CREATE POLICY "Owners can update approved users" ON approved_users
   FOR UPDATE
   USING (
-    auth.jwt() ->> 'email' = 'abhradeephazra99@gmail.com'
+    auth.jwt() ->> 'email' = 'arunima'
     OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'owner')
   );
 
 -- 4. Ensure the owner's own record is correctly set
-UPDATE approved_users SET role = 'owner', is_active = true WHERE email = 'abhradeephazra99@gmail.com';
-UPDATE profiles SET role = 'owner' WHERE email = 'abhradeephazra99@gmail.com';
+UPDATE approved_users SET role = 'owner', is_active = true WHERE email = 'arunima';
+UPDATE profiles SET role = 'owner' WHERE email = 'arunima';
 
 -- 5. Revoke public registration inserts (we moved to owner-only)
 DROP POLICY IF EXISTS "Allow public registration requests" ON approved_users;

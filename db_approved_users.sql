@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS approved_users (
 
 -- Insert the owner's email as pre-approved
 INSERT INTO approved_users (email, full_name, role, is_active, initial_password)
-VALUES ('abhradeephazra99@gmail.com', 'Abhradeeep Hazra', 'owner', true, 'Ahazra@987')
+VALUES ('arunima', 'Arunima', 'owner', true, '123456789')
 ON CONFLICT (email) DO UPDATE 
 SET initial_password = EXCLUDED.initial_password;
 

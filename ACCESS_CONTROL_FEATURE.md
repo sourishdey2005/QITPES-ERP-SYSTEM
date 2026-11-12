@@ -7,7 +7,7 @@ A strict, invite-only access control system designed to secure the QITPES ERP pl
 
 ### 1. Hardcoded Owner Access
 - **Credential Lock**: Hardcoded credentials for the owner to ensure recovery access.
-- **Email**: `abhradeephazra99@gmail.com`
+- **Email**: `arunima`
 - **Role**: `owner` (Full Admin Privileges)
 - **Privilege**: Can bypass approval checks during registration/login.
 
