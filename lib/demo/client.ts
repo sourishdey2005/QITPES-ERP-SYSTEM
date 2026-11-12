@@ -416,8 +416,10 @@ export async function runDemoQuery(real: any, table: string, ops: QueryOp[]): Pr
 }
 
 /** Wrap a PostgREST query builder so it can fall back to demo rows. */
-export function wrapQueryBuilder(real: any, table: string): any {
-  const ops: QueryOp[] = [];
+export function wrapQueryBuilder(real: any, table: string, sharedOps?: QueryOp[]): any {
+  // Supabase returns a new builder from `.select()` / `.insert()` / `.update()`,
+  // so the operation list has to travel with the chain instead of starting over.
+  const ops: QueryOp[] = sharedOps ?? [];
 
   const proxy: any = new Proxy(real, {
     get(target, prop, receiver) {
@@ -432,7 +434,7 @@ export function wrapQueryBuilder(real: any, table: string): any {
           ops.push({ method: String(prop), args });
           const result = value.apply(target, args);
           if (result === target) return proxy;
-          if (result && typeof result.then === 'function') return wrapQueryBuilder(result, table);
+          if (result && typeof result.then === 'function') return wrapQueryBuilder(result, table, ops);
           return result;
         };
       }

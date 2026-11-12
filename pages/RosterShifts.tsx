@@ -169,14 +169,14 @@ const RosterShifts: React.FC = () => {
                   <tr><td colSpan={5} className="p-20 text-center text-slate-400 italic">No personnel nodes assigned for this date.</td></tr>
                 ) : assignments?.map((a: any) => (
                   <tr key={a.id} className="hover:bg-slate-50/50 transition-all group">
-                    <td className="px-10 py-6 font-black text-slate-900 uppercase tracking-tight">{a.employees?.full_name}</td>
-                    <td className="px-10 py-6 text-slate-500 font-bold">{a.employees?.department}</td>
+                    <td className="px-10 py-6 font-black text-slate-900 uppercase tracking-tight">{a.employees?.full_name || 'Unassigned'}</td>
+                    <td className="px-10 py-6 text-slate-500 font-bold">{a.employees?.department || '—'}</td>
                     <td className="px-10 py-6">
-                      <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${a.shifts?.name.toLowerCase().includes('night') ? 'bg-indigo-50 text-indigo-600' :
-                          a.shifts?.name.toLowerCase().includes('day') ? 'bg-emerald-50 text-emerald-600' :
+                      <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${(a.shifts?.name || '').toLowerCase().includes('night') ? 'bg-indigo-50 text-indigo-600' :
+                          (a.shifts?.name || '').toLowerCase().includes('day') ? 'bg-emerald-50 text-emerald-600' :
                             'bg-red-50 text-red-600'
                         }`}>
-                        {a.shifts?.name}
+                        {a.shifts?.name || 'Unassigned'}
                       </span>
                     </td>
                     <td className="px-10 py-6 text-right">

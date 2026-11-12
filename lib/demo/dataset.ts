@@ -1465,13 +1465,32 @@ const builders: Record<string, () => DemoRow[]> = {
     const r = makeRng('shift_assignments');
     const employees = getDemoRows('employees')!;
     const shifts = getDemoRows('shifts')!;
-    return Array.from({ length: DEMO_COUNTS.shift_assignments }, (_, i) => ({
-      id: demoId('shift_assignments', i),
-      employee_id: employees[i % employees.length].id,
-      shift_id: shifts[i % shifts.length].id,
-      assignment_date: iso(daysAgo(r.int(0, 20))),
-      status: r.chance(0.9) ? 'Active' : 'Swapped',
-    }));
+    const today = iso(NOW);
+    const rows: DemoRow[] = [];
+
+    // A fully staffed deployment board for today, so the roster is never empty.
+    for (let i = 0; i < 72; i++) {
+      rows.push({
+        id: demoId('shift_assignments', i),
+        employee_id: employees[i % employees.length].id,
+        shift_id: shifts[i % shifts.length].id,
+        assignment_date: today,
+        status: 'Active',
+      });
+    }
+
+    // Rotation history for the previous three weeks.
+    for (let i = 72; i < DEMO_COUNTS.shift_assignments; i++) {
+      rows.push({
+        id: demoId('shift_assignments', i),
+        employee_id: employees[(i * 7) % employees.length].id,
+        shift_id: shifts[(i * 3) % shifts.length].id,
+        assignment_date: iso(daysAgo(r.int(1, 21))),
+        status: r.chance(0.92) ? 'Active' : 'Swapped',
+      });
+    }
+
+    return rows;
   },
 
   conference_rooms: () => {
