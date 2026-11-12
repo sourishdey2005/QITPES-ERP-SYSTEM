@@ -1,10 +1,26 @@
 // AI Service for QITPES ERP using Google Generative AI SDK
 import * as GenAI from "@google/genai";
 
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_API_KEY;
+const getApiKey = (): string | undefined => {
+    const key = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_API_KEY;
+    return key && key !== 'undefined' ? key : undefined;
+};
 
-// Initialize the Generative AI client
-const ai = new GenAI.GoogleGenAI({ apiKey: GEMINI_API_KEY || '' });
+// The client is created lazily. Constructing it at module scope threw
+// "API key must be set" whenever the env var was missing, and because this
+// module is imported by the dashboard layout it took the whole app down.
+let aiClient: GenAI.GoogleGenAI | null = null;
+
+const getClient = (): GenAI.GoogleGenAI => {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+        throw new Error('API_KEY_MISSING: Please configure VITE_API_KEY in your .env file and restart the dev server');
+    }
+    if (!aiClient) {
+        aiClient = new GenAI.GoogleGenAI({ apiKey });
+    }
+    return aiClient;
+};
 
 export interface ChatMessage {
     role: 'user' | 'assistant';
@@ -24,12 +40,8 @@ export async function sendChatMessage(
     message: string,
     context?: string
 ): Promise<string> {
-    // Validate API key
-    if (!GEMINI_API_KEY || GEMINI_API_KEY === 'undefined') {
-        throw new Error('API_KEY_MISSING: Please configure VITE_API_KEY in your .env file and restart the dev server');
-    }
-
     try {
+        const ai = getClient();
         const fullMessage = context ? `${message}\n\nContext:\n${context}` : message;
 
         // Using the New SDK and Model

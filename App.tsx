@@ -1,7 +1,13 @@
 
-import React, { useEffect, useState, createContext, useContext } from 'react';
+import React, { useCallback, useEffect, useState, createContext, useContext } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
+import {
+  createOwnerSession,
+  isOwnerLoggedIn,
+  OWNER_LOGIN_EVENT,
+  OWNER_LOGOUT_EVENT,
+} from './lib/ownerAuth';
 import DashboardLayout from './layouts/DashboardLayout';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -69,6 +75,7 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
+
 const ProtectedRoute: React.FC<{ children: React.ReactNode; roles?: UserRole[] }> = ({ children, roles }) => {
   const { user, role, loading } = useAuth();
 
@@ -92,23 +99,19 @@ const App: React.FC = () => {
   const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Check for hardcoded owner login from localStorage (Supabase-free mode)
-  useEffect(() => {
-    const storedLogin = localStorage.getItem('qitpes_owner_login');
-    if (storedLogin === 'true') {
-      setSession({ user: { email: 'duttaarunima50@gmail.com' } });
-      setRole('owner');
-      setLoading(false);
-    }
+  const applyOwnerSession = useCallback(() => {
+    setSession(createOwnerSession());
+    setRole('owner');
+    setLoading(false);
   }, []);
 
-  const fetchProfile = async (userId: string, userMetadata?: any) => {
+  const fetchProfile = useCallback(async (userId: string, userMetadata?: any) => {
     try {
       // Force 'owner' role for UI visibility for EVERY authenticated user
       setRole('owner');
 
       // Still fetch/upsert profile in background to ensure data exists
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', userId)
@@ -126,29 +129,77 @@ const App: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) fetchProfile(session.user.id, session.user.user_metadata);
-      else setLoading(false);
-    });
+    let active = true;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session) fetchProfile(session.user.id, session.user.user_metadata);
-      else {
+    const handleAuthenticatedSession = (supabaseSession: any) => {
+      if (!active) return;
+
+      // A completed owner login always wins over Supabase's (possibly empty) session.
+      if (isOwnerLoggedIn()) {
+        applyOwnerSession();
+        return;
+      }
+
+      setSession(supabaseSession ?? null);
+
+      if (supabaseSession?.user) {
+        void fetchProfile(supabaseSession.user.id, supabaseSession.user.user_metadata);
+      } else {
         setRole(null);
         setLoading(false);
       }
+    };
+
+    // Restore the persisted owner login immediately (no flash of the login page).
+    if (isOwnerLoggedIn()) applyOwnerSession();
+
+    const handleOwnerLogin = () => applyOwnerSession();
+    const handleOwnerLogout = () => {
+      if (!active) return;
+      setSession(null);
+      setRole(null);
+      setLoading(false);
+    };
+
+    window.addEventListener(OWNER_LOGIN_EVENT, handleOwnerLogin);
+    window.addEventListener(OWNER_LOGOUT_EVENT, handleOwnerLogout);
+
+    // Safety net: never leave the app stuck on "Securing QITPES Session..."
+    // when Supabase is unreachable or slow.
+    const safetyTimer = window.setTimeout(() => {
+      if (!active) return;
+      if (isOwnerLoggedIn()) applyOwnerSession();
+      else setLoading(false);
+    }, 5000);
+
+    supabase.auth
+      .getSession()
+      .then(({ data }: any) => handleAuthenticatedSession(data?.session))
+      .catch((error: any) => {
+        console.error('Unable to read Supabase session', error);
+        if (active) handleAuthenticatedSession(null);
+      });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, supabaseSession: any) => {
+      handleAuthenticatedSession(supabaseSession);
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      active = false;
+      window.clearTimeout(safetyTimer);
+      window.removeEventListener(OWNER_LOGIN_EVENT, handleOwnerLogin);
+      window.removeEventListener(OWNER_LOGOUT_EVENT, handleOwnerLogout);
+      subscription.unsubscribe();
+    };
+  }, [applyOwnerSession, fetchProfile]);
 
   const refreshProfileData = async () => {
-    if (session) await fetchProfile(session.user.id, session.user.user_metadata);
+    if (session?.user?.id && !isOwnerLoggedIn()) {
+      await fetchProfile(session.user.id, session.user.user_metadata);
+    }
   };
 
   return (

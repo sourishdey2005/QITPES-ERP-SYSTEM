@@ -1,35 +1,43 @@
-import React, { useState } from 'react';
-import { Shield, Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Shield, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-const OWNER_EMAIL = 'duttaarunima50@gmail.com';
-const OWNER_PASSWORD = '123456789';
+import {
+  OWNER_EMAIL,
+  isOwnerLoggedIn,
+  isValidOwnerCredentials,
+  setOwnerLoggedIn,
+} from '../lib/ownerAuth';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<boolean | null>(null);
+  const [success, setSuccess] = useState<boolean>(false);
   const navigate = useNavigate();
+
+  // Already signed in? Go straight to the dashboard instead of showing the form.
+  useEffect(() => {
+    if (isOwnerLoggedIn()) {
+      navigate('/', { replace: true });
+    }
+  }, [navigate]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (email.toLowerCase() === OWNER_EMAIL.toLowerCase() && password === OWNER_PASSWORD) {
-      // Store login state in localStorage so app remembers user is authenticated
-      localStorage.setItem('qitpes_owner_login', 'true');
-      setSuccess(true);
+    if (isValidOwnerCredentials(email, password)) {
       setError(null);
-      // Navigate after a brief delay to show success state
-      const timer = setTimeout(() => {
-        navigate('/');
-        clearTimeout(timer);
-      }, 500);
+      setSuccess(true);
+
+      // Persist the owner login, notify <App /> so the auth context updates
+      // before routing, then go to the dashboard.
+      setOwnerLoggedIn();
+      navigate('/', { replace: true });
       return;
     }
 
+    setSuccess(false);
     setError('Invalid email or password. Please use the owner credentials.');
-    setSuccess(null);
   };
 
   return (
@@ -42,15 +50,15 @@ const Login: React.FC = () => {
         </div>
 
         {success && (
-          <div className="mb-4 p-3 bg-green-100 border border-green-200 rounded-lg">
-            <AlertCircle className="mr-2 shrink-0 text-green-600" />
+          <div className="mb-4 p-3 bg-green-100 border border-green-200 rounded-lg flex items-center text-sm text-green-800">
+            <CheckCircle2 size={18} className="mr-2 shrink-0 text-green-600" />
             <span>Login successful! Redirecting to dashboard...</span>
           </div>
         )}
 
         {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-200 rounded-lg">
-            <AlertCircle className="mr-2 shrink-0 text-red-600" />
+          <div className="mb-4 p-3 bg-red-100 border border-red-200 rounded-lg flex items-center text-sm text-red-800">
+            <AlertCircle size={18} className="mr-2 shrink-0 text-red-600" />
             <span>{error}</span>
           </div>
         )}
@@ -61,8 +69,12 @@ const Login: React.FC = () => {
             <input
               type="email"
               required
+              autoComplete="username"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (error) setError(null);
+              }}
               className="block w-full pl-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-red-500 transition-all outline-none"
               placeholder="name@qitpes.in"
             />
@@ -73,8 +85,12 @@ const Login: React.FC = () => {
             <input
               type="password"
               required
+              autoComplete="current-password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (error) setError(null);
+              }}
               className="block w-full pl-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:ring-2 focus:ring-red-500 transition-all outline-none"
               placeholder="••••••••"
             />
@@ -83,9 +99,8 @@ const Login: React.FC = () => {
           <button
             type="submit"
             className="w-full flex items-center justify-center py-3 px-4 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-all shadow-lg"
-            disabled={!!error}
           >
-            {error ? 'Try Again' : 'Sign In To Portal'} <ArrowRight size={18} className="ml-2" />
+            Sign In To Portal <ArrowRight size={18} className="ml-2" />
           </button>
 
           <div className="mt-4 text-xs text-slate-500">

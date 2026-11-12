@@ -7,6 +7,7 @@ import { motion as motionBase, AnimatePresence } from 'framer-motion';
 import { NAV_ITEMS, ICON_MAP } from '../constants';
 import { useAuth } from '../App';
 import { supabase } from '../lib/supabase';
+import { clearOwnerLogin } from '../lib/ownerAuth';
 import AIAssistant from '../components/AIAssistant';
 
 const motion = motionBase as any;
@@ -18,8 +19,14 @@ const DashboardLayout: React.FC = () => {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/login');
+    // Clear the local owner login first so the app cannot bounce back in.
+    clearOwnerLogin();
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Supabase may be unreachable; the local logout above is enough.
+    }
+    navigate('/login', { replace: true });
   };
 
   if (loading) {
