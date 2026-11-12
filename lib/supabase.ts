@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { withDemoData } from './demo/client';
 
 // QITPES ERP - Verified Production Connection
 // Project Name: ERP
@@ -6,7 +7,9 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = 'https://asvkyztwnjgeajoyccuo.supabase.co';
 const supabaseAnonKey = 'sb_publishable_UiqrTs3LbymTSLOTH5tDag_Zjye5owE'; 
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// The demo layer fills empty/unreachable tables with realistic local data so the
+// portal stays usable without a seeded database. Disable with VITE_DEMO_DATA=false.
+export const supabase = withDemoData(createClient(supabaseUrl, supabaseAnonKey));
 
 /**
  * Formats a number into Indian Rupee (INR) currency format.
